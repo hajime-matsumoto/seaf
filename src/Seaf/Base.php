@@ -78,13 +78,14 @@ class Base
     protected function initialize()
     {
         $self = $this; 
-
         $this->dispatcher->init();
         $this->uicontainer->init();
 
         $this->register('extension', 'Seaf\Extension\ExtensionManager', function( $instance ) use($self){
             $instance->setSeafBase($self);
             $instance->initialize();
+            $self->exten('env', 'Seaf\Extension\ENV');
+            $self->enable('env');
             $self->exten('test', 'Seaf\Extension\TestExtension');
             $self->exten('http', 'Seaf\Extension\HTTP\Http');
         });

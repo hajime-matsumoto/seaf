@@ -55,8 +55,8 @@ class Route
       }
 	  $this->regex = $regex;
 
-	  var_dump('From Route.php');
-	  var_dump($this->splat, $this->methods, $this->params);
+	  //var_dump('From Route.php');
+	  //var_dump($this->splat, $this->methods, $this->params);
       return true;
     }
     return false;

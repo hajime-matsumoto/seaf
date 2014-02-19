@@ -68,7 +68,8 @@ class Http extends Extension
             'start' => 'start',
             'stop' => 'stop',
             'notFound' => 'notFound',
-            'staticFile' => 'staticFile'
+            'staticFile' => 'staticFile',
+            'renderer' => 'renderer'
         ), $this);
         return $this;
 
@@ -80,6 +81,15 @@ class Http extends Extension
     public function map( $pattern, $callback )
     {
         $this->base->router()->map( $pattern, $callback);
+    }
+
+    public function renderer($documents)
+    {
+        $base = $this->base;
+        $base->after('renderer', function($params, &$output) use($base, $documents){
+            echo $output;
+        });
+        return $documents;
     }
 
     public function start( ) {
@@ -111,21 +121,22 @@ class Http extends Extension
 
     public function stop( $code = 200) {
 
-        echo '<pre>';
-        var_dump($_SERVER);
         $this->base->response()->status($code)->write(ob_get_clean())->send();
     }
 
     public function notFound( ){
-        $this->response()
+        $this->base->response()
             ->status(404)
             ->write( '<h1>404 Not Found</h1>'. str_repeat(' ', 512))
             ->send();
     }
 
     public function staticFile( $filepath) {
+        $dirpath = $this->base->envGet("dirs.static", "./");
+        $filepath= $dirpath.'/'.$filepath;
+
         if( !file_exists($filepath) ) $this->base->notFound();
-        $this->response()
+        $this->base->response()
             ->status(200)
             ->header('Content-Type', mime_content_type($filepath) )
             ->write(file_get_contents($filepath))

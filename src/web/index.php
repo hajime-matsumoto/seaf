@@ -15,9 +15,14 @@
  
 require_once dirname(__FILE__).'/../../vendor/autoload.php';
 
+$root_dir = realpath(dirname(__FILE__));
+$static_dir = $root_dir."/static";
+
 use Seaf\Seaf;
 Seaf::extension(); 
 
+Seaf::enable('env');
+Seaf::envSet('dirs.static', $static_dir);
 // WEBぺーじを作成する
 // 
 // これでロードされるもの
@@ -28,22 +33,27 @@ Seaf::extension();
 //  - start
 //  - halt
 Seaf::enable('http');
-Seaf::before('start', function( ){
-    echo '<html>';
-    echo ' <body>';
+Seaf::before('renderer', function($args, &$output){
+    $output.= '<html>';
+    $output.= '<style>body{background: url("/static/assets/styles/images/bg.jpg")}</style>';
+    $output.= ' <body><pre>';
 });
-Seaf::after('start', function( ){
-    echo ' </body>';
-    echo '</html>';
+Seaf::after('renderer', function($args, &$output){
+    $output = str_replace('W','VV',$output);
+    $output.= ' </pre></body>';
+    $output.= '</html>';
 });
 Seaf::route('/user/@name', function($name ){
     echo '<h1>Hello World!'.$name.'</h1>';
 });
 Seaf::route('/user/@name(/@age)(/@place)*', function($name, $age, $place ){
-    echo '<h1>Hello World!'.$name.'</h1>';
+    Seaf::renderer('<h1>Hello World!'.$name.'</h1>');
 });
 Seaf::route('/', function( ){
-    echo '<h1>Hello World!</h1>';
+    Seaf::renderer('<h1>Hello World!</h1>');
+});
+Seaf::route('/static/@file:*', function( $file, $route ){
+    Seaf::staticFile($file);
 });
 
 Seaf::start();

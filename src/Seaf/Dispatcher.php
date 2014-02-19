@@ -133,7 +133,7 @@ class Dispatcher
 	 * @param array $output
 	 */
 	public function filter( $name, &$params, &$output ) {
-		$args = array(&$params, &$output);
+        $args = array(&$params, &$output);
 		if( empty($this->filters[$name]) ) return;
 
 		foreach($this->filters[$name] as $callback) {
