@@ -58,8 +58,8 @@ class Seaf
         if (self::$instance) {
             return self::$instance;
         }
-        $instance = new Seaf();
-        return $instance;
+        self::$instance = new Seaf();
+        return self::$instance;
     }
 
     /**
