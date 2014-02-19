@@ -32,7 +32,37 @@ class Container
 	 * description of instances
 	 * @var array instances
 	 */
-	private $instances=array();
+    private $instances=array();
+
+    /**
+     * short description of init
+     *
+     * description of init
+     *
+     * @params 
+     * return null
+     */
+    public function init() 
+    {
+        $this->initialize();
+        return null;
+    }
+
+    /**
+     * short description of init
+     *
+     * description of init
+     *
+     * @params 
+     * return null
+     */
+    protected function initialize()
+    {
+        $this->factories = array();
+        $this->instances = array();
+        return null;
+    }
+
 
 	/**
 	 * short description of addFactory
@@ -43,7 +73,7 @@ class Container
 	 * return $this;
 	 */
 	public function addFactory($name, $factory, $params = array(),  $callback = false) 
-	{
+    {
 		$this->factories[$name] = array($factory,$params,  $callback);
 		return $this;
 	}
@@ -61,7 +91,22 @@ class Container
 		$factory = $this->getFactory($name);
         $instance = call_user_func($factory);
         return $instance;
-	}
+    }
+
+    /**
+     * Get Shared Instance
+     *
+     * description of getInstance
+     *
+     * @params $name
+     * return $instance;
+     */
+    public function getInstance($name) 
+    {
+        if(isset($this->instances[$name])) return $this->instances[$name];
+
+        return $this->instances[$name] = $this->newInstance($name);
+    }
 	
 	/**
 	 * short description of getFactory
@@ -74,6 +119,11 @@ class Container
 	public function getFactory($name) 
 	{
 		list($factory,$params,$callback) = $this->factories[$name];
+
+        if ($callback == false && !is_array($params) && is_callable($params)) {
+            $callback = $params;
+            $params = array();
+        }
 
 
 		$newFactory = function( ) use ($factory, $params, $callback) {

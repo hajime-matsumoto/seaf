@@ -22,5 +22,9 @@ namespace Seaf\Extension;
  */
 interface ExtensionIF
 {
+    /**
+     * エクステンションを有効化する
+     */
+    public function enable($base);
 	
 }

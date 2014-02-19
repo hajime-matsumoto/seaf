@@ -34,7 +34,23 @@ class Dispatcher
 	public function __construct() 
 	{
 		
-	}
+    }
+
+    /**
+     * short description of init
+     *
+     * description of init
+     *
+     * @params 
+     * return null
+     */
+    public function init() 
+    {
+        $this->methods = array();
+        $this->filters = array();
+        return null;
+    }
+
 
 	/**
 	 * Method Setter
@@ -42,7 +58,7 @@ class Dispatcher
 	 * @param string $name
 	 * @param callback $callback
 	 */
-	public function setMethod( $name, $callback ) {
+    public function setMethod( $name, $callback ) {
 		$this->methods[$name] = $callback;
 	}
 

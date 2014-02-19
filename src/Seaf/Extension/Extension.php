@@ -22,5 +22,10 @@ namespace Seaf\Extension;
  */
 class Extension implements ExtensionIF
 {
-	
+    /**
+     * エクステンションを有効化する
+     */
+    public function enable($base)
+    {
+    }
 }

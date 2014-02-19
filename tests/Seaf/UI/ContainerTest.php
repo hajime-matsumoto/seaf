@@ -37,6 +37,20 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
 
 		$dispatcher = $container->newInstance('dispatcher');
 		$this->assertInstanceOf('Seaf\Dispatcher', $dispatcher);
-		$dispatcher->run('test');
+		$result = $dispatcher->run('test');
+		$this->assertEquals('test', $result);
+
+
+		$dispatcher2 = $container->getInstance('dispatcher');
+		$dispatcher2->setMethod('test2', function(){
+			return 'test2';
+		});
+		$result = $dispatcher2->run('test2');
+		$this->assertEquals('test2', $result);
+
+		$dispatcher3 = $container->getInstance('dispatcher');
+
+		$result = $dispatcher3->run('test2');
+		$this->assertEquals('test2', $result);
 	}
 }
