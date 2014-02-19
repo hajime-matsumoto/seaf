@@ -54,7 +54,7 @@ class Base
 	{
         $this->dispatcher = new Dispatcher();
         $this->uicontainer = new UIContainer();
-        $this->builtinActions = array('helloWild','start');
+        $this->builtinActions = array();
         $this->initialize();
     }
 
@@ -85,6 +85,8 @@ class Base
         $this->register('extension', 'Seaf\Extension\ExtensionManager', function( $instance ) use($self){
             $instance->setSeafBase($self);
             $instance->initialize();
+            $self->exten('test', 'Seaf\Extension\TestExtension');
+            $self->exten('http', 'Seaf\Extension\HTTP\Http');
         });
 
         foreach ($this->builtinActions as  $name) {
@@ -193,7 +195,14 @@ class Base
     public function actionHelloWild($name)
     {
         return "hello wild ".$name;
+    } 
+
+    public function execute( $func, $params ){
+        return $this->dispatcher->execute($func, $params);
     }
+
+
+
 
 
 	/**
@@ -205,7 +214,7 @@ class Base
 	 * @retun mixed 
 	 */
 	public function __call($name, array $params = array())
-	{
+    {
         if(isset($this->helpers[$name])) {
             return call_user_func_array($this->helpers[$name], $params);
         }
