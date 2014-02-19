@@ -110,6 +110,9 @@ class Http extends Extension
     }
 
     public function stop( $code = 200) {
+
+        echo '<pre>';
+        var_dump($_SERVER);
         $this->base->response()->status($code)->write(ob_get_clean())->send();
     }
 
@@ -121,7 +124,7 @@ class Http extends Extension
     }
 
     public function staticFile( $filepath) {
-        if( !file_exists($filepath) ) Seaf::onNotFound();
+        if( !file_exists($filepath) ) $this->base->notFound();
         $this->response()
             ->status(200)
             ->header('Content-Type', mime_content_type($filepath) )

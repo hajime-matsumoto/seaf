@@ -53,7 +53,10 @@ class Route
       foreach ($ids as $k=>$v) {
         $this->params[$k] = (array_key_exists($k, $matches)) ? urldecode($matches[$k]): null;
       }
-      $this->regex = $regex;
+	  $this->regex = $regex;
+
+	  var_dump('From Route.php');
+	  var_dump($this->splat, $this->methods, $this->params);
       return true;
     }
     return false;

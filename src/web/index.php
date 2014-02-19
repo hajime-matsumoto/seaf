@@ -18,12 +18,7 @@ require_once dirname(__FILE__).'/../../vendor/autoload.php';
 use Seaf\Seaf;
 Seaf::extension(); 
 
-Seaf::enable('test'); // TEST MODE
-
-Seaf::echoHelloWorld();
-
 // WEBぺーじを作成する
-
 // 
 // これでロードされるもの
 //
@@ -40,6 +35,12 @@ Seaf::before('start', function( ){
 Seaf::after('start', function( ){
     echo ' </body>';
     echo '</html>';
+});
+Seaf::route('/user/@name', function($name ){
+    echo '<h1>Hello World!'.$name.'</h1>';
+});
+Seaf::route('/user/@name(/@age)(/@place)*', function($name, $age, $place ){
+    echo '<h1>Hello World!'.$name.'</h1>';
 });
 Seaf::route('/', function( ){
     echo '<h1>Hello World!</h1>';

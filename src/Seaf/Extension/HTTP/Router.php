@@ -15,7 +15,10 @@ class Router
 
 	public function route( Request $request ) {
 		while ($route = $this->current()) {
-			if( $route !== false && $route->matchMethod($request->method) && $route->matchUrl($request->url) ) {
+			if( 
+				$route !== false &&
+				$route->matchMethod($request->method()) && 
+				$route->matchUrl($request->url()) ) {
 				return $route;
 			}
 			$this->next();
