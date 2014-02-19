@@ -1,0 +1,10 @@
+"
+" For Seaf Project Vimrc file
+"
+source ~/.vimrc
+
+let s:path = expand('<sfile>:p:h').'/snippets/php.snip'
+
+
+"call neosnippet#commands#_source(s:path)
+autocmd FileType php call  neosnippet#commands#_source(s:path)
