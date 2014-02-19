@@ -48,9 +48,29 @@ class Base
      */
     protected function initialize()
     {
+        $this->register('extension', 'Seaf\Extension\ExtensionManager', function( $instance ) ues($self){
+            $instance->setSeafBase($self);
+            $instance->initialize();
+        });
+
+
         foreach ($this->builtinActions as  $name) {
             $this->dispatcher->setMethod( $name, array($this, 'action'.ucfirst($name)) );
         }
+    }
+
+    /**
+     * Register Factories
+     *
+     * description of register
+     *
+     * @params $name, $factory, $callback
+     * return $this;
+     */
+    public function register($name, $factory, $callback) 
+    {
+        $this->uicontainer->addFactory( $name, $factory, $callback );
+        return $this;
     }
 
     /**
@@ -93,8 +113,6 @@ class Base
 		  return $this->dispatcher->run($name, $params);
 		}
 	}
-	
-	
 }
     
     

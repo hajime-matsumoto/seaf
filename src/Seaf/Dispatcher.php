@@ -21,7 +21,7 @@ class Dispatcher
 	/**
 	 * @var array
 	 */
-	protected $methods = array();
+	public $methods = array();
 
 	/**
 	 * @var array
@@ -81,7 +81,7 @@ class Dispatcher
 	 * @param array $params
 	 * @retun mixed
 	 */
-	public function run($name, $params)
+	public function run($name, $params = array())
 	{
 		$output = '';
 
