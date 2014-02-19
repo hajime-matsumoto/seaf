@@ -1,0 +1,14 @@
+"
+" For Seaf Project Vimrc file
+"
+source ~/.vimrc
+
+let s:path = expand('<sfile>:p:h').'/snippets/php.snip'
+
+
+"call neosnippet#commands#_source(s:path)
+autocmd FileType php call  neosnippet#commands#_source(s:path)
+
+let g:quickrun_config['php.unit']['command'] = '/export/project/seaf/vendor/bin/phpunit'
+let g:quickrun_config['php.unit']['cmdopt'] = '-c /export/project/seaf/tests'
+let g:quickrun_config['php.unit']['exec'] = '%c %o %s'
