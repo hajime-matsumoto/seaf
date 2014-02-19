@@ -1,3 +1,9 @@
+
+
+
+
+
+
 snippet php
 abbr seaf-php-file-header
 	<?php
@@ -6,7 +12,7 @@ abbr seaf-php-file-header
 	/**
 	 * Seaf: Simple Easy Acceptable micro-framework.
 	 *
-	 * ${1:shot description}
+	 * ${1:short description}
 	 *
 	 * ${2:long description}
 	 *
@@ -15,4 +21,79 @@ abbr seaf-php-file-header
 	 */
 	 
 	${3:code}
+
+snippet names
+    namespace Seaf${1};
+	
+	${2}
+snippet class
+	/**
+	 * ${2:#:short description}
+	 *
+	 * ${3:#:long description}
+	 */
+    class ${1} 
+    {
+        ${4}
+    }
+
+snippet static_public_method
+	/**
+	 * ${1:short description}
+	 *
+	 * ${8:description}
+	 * @param ${2:#:type} ${3:#:var} ${4:#:}
+	 */
+	public static function ${5} (${6}) 
+	{
+		${7}
+	}
+	${9}
+snippet property_static
+	/**
+	 * ${4:#:description}
+	 * @var ${3:#:type}
+	 */
+	static ${1:#:public} $${2:#:var};
+	${0}
+
+
+snippet constructor
+	/**
+	 * ${6:constructor}
+	 *
+	 * ${7:description}
+	 * @param ${5:#:type} ${5:#:var} ${5:#:}
+	 * @retun ${5:#:type} ${5:#:var}
+	 */
+	${1:public} function __construct(${2}) 
+	{
+		${3}
+	}
+	${4}
+
+snippet method
+	/**
+	 * ${6:constructor}
+	 *
+	 * ${7:description}
+	 * @param ${5:#:type} ${5:#:var} ${5:#:}
+	 * @retun ${5:#:type} ${5:#:var}
+	 */
+	${1:public} function ${2}(${3})
+	{
+		${9:#:}
+	}
+
+
+snippet property
+	/**
+	 * ${4:#:description}
+	 * @var ${3:#:type}
+	 */
+	${1:#:public} $${2:#:var};
+
+
+
+
 

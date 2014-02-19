@@ -1,16 +1,13 @@
 <?php
 namespace Seaf\Tests;
 
+use Seaf\Seaf;
 use Monolog\Logger;
 
 class SeafTest extends \PHPUnit_Framework_TestCase
 {
-  private $seaf;
-
-  public function setup(){
-  }
-
-  public function testSingleton( ) {
-      echo 'hello';
-  }
+	public function testGetInstance() {
+		$instance = Seaf::getInstance( );
+		$this->assertInstanceOf('Seaf\Seaf', $instance);
+	}
 }
