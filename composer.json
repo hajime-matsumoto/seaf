@@ -1,9 +1,9 @@
 {
-  "name": "seaf",
+  "name": "hajime-matsumoto/seaf",
   "description": "Simple Easy Acceptable Framework",
   "keywords": ["framework"],
   "type": "library",
-  "licents": "MIT",
+  "license": "MIT",
   "homepage": "http://hazime.org",
   "authors": [
     {
