@@ -92,6 +92,20 @@ class Container
         $instance = call_user_func($factory);
         return $instance;
     }
+	public function repInstance($name, $factory, $params = array(),  $callback = false) 
+    {
+        if ( !is_callable($factory) && !is_string($factory) && is_array($factory) ){
+            $this->factories[$name][1] = $factory;
+
+            if(isset( $this->instances[$name] )) {
+                unset($this->instances[$name]);
+            }
+
+           return $this->getInstance($name);
+        }
+
+        die('未実装なrepInstance');
+	}
 
     /**
      * Get Shared Instance
@@ -104,7 +118,6 @@ class Container
     public function getInstance($name) 
     {
         if(isset($this->instances[$name])) return $this->instances[$name];
-
         return $this->instances[$name] = $this->newInstance($name);
     }
 	
@@ -145,6 +158,5 @@ class Container
 
 
 		return $newFactory;
-	}
-
+    }
 }

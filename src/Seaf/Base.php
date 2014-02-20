@@ -6,7 +6,12 @@
  *
  * Base Class
  *
- * Base Class
+ * 最初から持っているもの
+ *
+ * UIContainer 
+ * - environment = Seaf\Environment
+ * - extensionManager = Seaf\Extension\ExtensionManager
+ * newEnvironment = environmentを置き換えます
  *
  * @copyright Copyright (c) 2014, Hajime MATSUMOTO <mail@hazime.org>
  * @license   MIT, http://mail@hazime.org
@@ -14,6 +19,7 @@
  
 namespace Seaf;
 use Seaf\UI\Container as UIContainer;
+use Seaf\Extension\ExtensionManager;
 
 /**
  * Base Class
@@ -81,18 +87,23 @@ class Base
         $this->dispatcher->init();
         $this->uicontainer->init();
 
-        $this->register('extension', 'Seaf\Extension\ExtensionManager', function( $instance ) use($self){
-            $instance->setSeafBase($self);
-            $instance->initialize();
-            $self->exten('env', 'Seaf\Extension\ENV');
-            $self->enable('env');
-            $self->exten('test', 'Seaf\Extension\TestExtension');
-            $self->exten('http', 'Seaf\Extension\HTTP\Http');
-        });
-
+        // Create Builtin Actions
         foreach ($this->builtinActions as  $name) {
             $this->dispatcher->setMethod( $name, array($this, 'action'.ucfirst($name)) );
         }
+
+        // Make Environment
+        $this->register('environment', 'Seaf\Environment');
+
+        // Make ExtensionManager
+        $em = new ExtensionManager( );
+        $em->setSeafBase($this);
+        $em->initialize();
+
+        // BuiltIn
+        $self->exten('test', 'Seaf\Extension\TestExtension');
+        $self->exten('http', 'Seaf\Extension\HTTP\Http');
+
     }
 
     /**
@@ -209,7 +220,10 @@ class Base
 	/**
 	 * Catch All Method Call
 	 *
-	 * Dispatcherを使ってメソッドをディスパッチする
+     * Dispatcherを使ってメソッドをディスパッチする
+     * UIContainrからオブジェクトを取得する
+     * 
+     * - newXXXX インスタンスを置き換える
 	 *
 	 * @param string $name 
 	 * @retun mixed 
@@ -226,6 +240,19 @@ class Base
 		  return $this->dispatcher->run($name, $params);
         }
 
+        if(preg_match('/^new([A-Z].+)/', $name, $m)) {
+            // 引数なしリニューアル
+            if ( $params[0] instanceof \Seaf\Seaf ) {
+                $this->uicontainer->clearInstance();
+                return $this->uicontainer->newInstance();
+            }
+
+            array_unshift($params, lcfirst($m[1]));
+            array_pop($params);
+            return call_user_func_array(
+                array($this->uicontainer, 'repInstance'), $params
+            );
+        }
         return $this->uicontainer->getInstance($name);
 	}
 }
