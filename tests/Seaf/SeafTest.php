@@ -2,21 +2,134 @@
 namespace Seaf\Tests;
 
 use Seaf\Seaf;
+use Seaf\Base;
+use Seaf\Config\Config;
+use Seaf\Environment\Environment;
+use Seaf\Loader\FileSystemLoader;
 
 class SeafTest extends \PHPUnit_Framework_TestCase
 {
-	public function testGetInstance() {
+	public function testGetInstance() 
+	{
 		$instance = Seaf::getInstance( );
 		$this->assertInstanceOf('Seaf\Seaf', $instance);
 	}
 
-	public function testExtension() {
-		$ext = Seaf::extension();
-		$this->assertInstanceOf('Seaf\Extension\ExtensionManager', $ext);
+	/**
+	 * @expectedException \Seaf\Loader\Exception\FileDoseNotExist
+	 */
+	public function testFileSystemLoaderNotExist( )
+	{
+		$loader = new FileSystemLoader(dirname(__FILE__));
+		$loader->open('dose_not_exist.php');
+	}
 
-		Seaf::exten('test', 'Seaf\Extension\TestExtension');
-		Seaf::enable('test');
+	public function testFileSystemLoaderExist( )
+	{
+		$loader = new FileSystemLoader(
+			dirname(__FILE__).'/files'
+		);
+		$output =  $loader->read('dose_exist.php');
+		$this->assertEquals('dose exist', trim($output));
+	}
 
-		Seaf::echoHelloWorld();
+	public function testConfig( )
+	{
+		$loader = new FileSystemLoader(
+			dirname(__FILE__).'/files'
+		);
+		$config = new Config( );
+		$config->setFileLoader( $loader );
+		$config->loadPHPFile('config.php');
+
+		$config->setConfig('development.app.rec.rec', 'test');
+
+		$this->assertArrayHasKey(
+			'app',
+			$config->getConfig('development')
+		);
+		$this->assertArrayHasKey(
+			'env',
+			$config->getConfig('development.app')
+		);
+	}
+
+	public function testEnvironment( )
+	{
+		$env = 'development';
+		$loader = new FileSystemLoader(dirname(__FILE__).'/files');
+
+		$config = new Config();
+		$config->setFileLoader($loader);
+		$config->loadPHPFile('config.php');
+
+		$environment = new Environment( $env, $config);
+
+		$this->assertInstanceOf('Seaf\Environment\Environment', $environment);
+	}
+
+	public function testBase( )
+	{
+		$base = new Base(
+			array(
+				'env' => 'development',
+				'config' => 'config.php',
+				'root' => dirname(__FILE__).'/files'
+			)
+		);
+		$this->assertInstanceOf('Seaf\Config\Config', $base->getConfig() );
+		$this->assertArrayHasKey(
+			'env',
+			$base->getConfig()->getConfig('development.app')
+		);
+
+		// test dispatch filter
+		$base->action('test', function( $name = 'hajime'){
+			return 'test:'.$name.':';
+		});
+		$base->before('test', function($params, &$out){
+			$out.= 'before:test';
+		});
+		$base->after('test', function($params, &$out){
+			$out.= 'after:test';
+		});
+
+		$out = $base->test( 'hajime' );
+		$this->assertEquals('before:testtest:hajime:after:test', $out);
+	}
+
+	public function testExtends( )
+	{
+		Seaf::init(
+			array(
+				'env' => 'development',
+				'config' => 'config.php',
+				'root' => dirname(__FILE__).'/files'
+			)
+		);
+
+		$routes = array();
+
+		Seaf::action('route', function($pat, $func) use (&$routes){
+			$routes[$pat] = $func;
+		});
+
+		Seaf::action('start', function($url) use (&$routes) {
+			return call_user_func($routes[$url]);
+		});
+		Seaf::before('start', function($req, &$out){
+			$out = '<h1>TITLE</h1>';
+		});
+		Seaf::after('start', function($req, &$out){
+			$out.= '<footer>(c)2014</footer>';
+			echo $out;
+		});
+
+		Seaf::route('/',function(){
+			return "index";
+		});
+
+		$this->expectOutputString('<h1>TITLE</h1>index<footer>(c)2014</footer>');
+		Seaf::start('/');
 	}
 }

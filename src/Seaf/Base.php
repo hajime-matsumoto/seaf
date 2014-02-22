@@ -6,253 +6,94 @@
  *
  * Base Class
  *
- * 最初から持っているもの
- *
- * UIContainer 
- * - environment = Seaf\Environment
- * - extensionManager = Seaf\Extension\ExtensionManager
- * newEnvironment = environmentを置き換えます
- *
  * @copyright Copyright (c) 2014, Hajime MATSUMOTO <mail@hazime.org>
  * @license   MIT, http://mail@hazime.org
  */
  
 namespace Seaf;
-use Seaf\UI\Container as UIContainer;
-use Seaf\Extension\ExtensionManager;
+
+use Seaf\Environment\Environment;
+use Seaf\Exception\Exception;
 
 /**
  * Base Class
- *
- * Base Class Of Seaf
  */
-
 class Base 
 {
-	/**
-	 * Dispatchar
-	 * @var object
-	 */
-    private $dispatcher;
+    private $env;
+    private $root;
+    private $config;
+    private $isInitialized = false;
 
-    /**
-     * @var array 
-     */
-    protected $builtinActions;
-
-    /**
-     * description of uicontainer
-     * @var mixed uicontainer
-     */
-    protected $uicontainer;
-
-    /**
-     * description of helpers
-     * @var mixed helpers
-     */
-    protected $helpers=array();
-    
-
-	/**
-	 * constructor
-	 */
-	public function __construct() 
-	{
-        $this->dispatcher = new Dispatcher();
-        $this->uicontainer = new UIContainer();
-        $this->builtinActions = array();
-        $this->initialize();
+    public function __construct( $initializer = false)
+    {
+        if( $initializer !== false ) 
+        {
+            $this->init( $initializer );
+        }
     }
 
-    /**
-     * short description of init
-     *
-     * description of init
-     *
-     * @params 
-     * return null
-     */
-    public function init() 
+    public function init( $initializer )
     {
-        $this->initialize();
-        return null;
-    }
-
-    /**
-     * initialize base
-     */
-    protected function initialize()
-    {
-        $self = $this; 
-        $this->dispatcher->init();
-        $this->uicontainer->init();
-
-        // Create Builtin Actions
-        foreach ($this->builtinActions as  $name) {
-            $this->dispatcher->setMethod( $name, array($this, 'action'.ucfirst($name)) );
+        if( is_array($initializer) )
+        {
+            $this->env    = $initializer['env'];
+            $this->root   = $initializer['root'];
+            $this->config = $initializer['config'];
         }
 
-        // Make Environment
-        $this->register('environment', 'Seaf\Environment');
-
-        // Make ExtensionManager
-        $em = new ExtensionManager( );
-        $em->setSeafBase($this);
-        $em->initialize();
-
-        // BuiltIn
-        $self->exten('test', 'Seaf\Extension\TestExtension');
-        $self->exten('http', 'Seaf\Extension\HTTP\Http');
-
-    }
-
-    /**
-     * Register Factories
-     *
-     * description of register
-     *
-     * @params $name, $factory, $callback
-     * return $this;
-     */
-    public function register($name, $factory, $params = array(), $callback = false) 
-    {
-        $this->uicontainer->addFactory( $name, $factory, $params, $callback );
-        return $this;
-    }
-
-    /**
-     * Set Helper
-     *
-     * description of setHelper
-     *
-     * @params $key, $func = false
-     * return $this;
-     */
-    public function setHelper($key, $func = false) 
-    {
-        if(is_array($key)) return $this->setHelpers($key, $func);
-        $this->helpers[$key] = $func;
-        return $this;
-    }
-
-    /**
-     * short description of setHelpers
-     *
-     * description of setHelpers
-     *
-     * @params $map, $object = false
-     * return null
-     */
-    public function setHelpers($map, $object = false) 
-    {
-        foreach($map as $key=>$func) {
-            if(is_object($object)) {
-                $this->setHelper($key, array($object, $func));
-            }
-        }
-        return $this;
-    }
-
-    /**
-     * Set Action
-     *
-     * description of setAction
-     *
-     * @params $key, $func = false
-     * return $this;
-     */
-    public function setAction($key, $func = false) 
-    {
-        if(is_array($key)) return $this->setActions($key, $func);
-        $this->dispatcher->setMethod($key, $func);
-        return $this;
-    }
-
-    /**
-     * short description of setActions
-     *
-     * description of setActions
-     *
-     * @params $map, $object = false
-     * return null
-     */
-    public function setActions($map, $object = false) 
-    {
-        foreach($map as $key=>$func) {
-            if(is_object($object)) {
-                $this->setAction($key, array($object, $func));
-            }
-        }
-        return $this;
-    }
-
-    /**
-     * create hook
-     */
-    public function after($name, $callback) 
-    {
-        $this->dispatcher->hook($name, 'after', $callback);
-    }
-	
-    /**
-     * create hook
-     */
-    public function before($name, $callback) 
-    {
-        $this->dispatcher->hook($name, 'before', $callback);
-    }
-
-    /**
-     */
-    public function actionHelloWild($name)
-    {
-        return "hello wild ".$name;
-    } 
-
-    public function execute( $func, $params ){
-        return $this->dispatcher->execute($func, $params);
-    }
-
-
-
-
-
-	/**
-	 * Catch All Method Call
-	 *
-     * Dispatcherを使ってメソッドをディスパッチする
-     * UIContainrからオブジェクトを取得する
-     * 
-     * - newXXXX インスタンスを置き換える
-	 *
-	 * @param string $name 
-	 * @retun mixed 
-	 */
-	public function __call($name, array $params = array())
-    {
-        if(isset($this->helpers[$name])) {
-            return call_user_func_array($this->helpers[$name], $params);
+        if( !is_object($this->env) )
+        {
+            $this->env = new Environment( $this->env );
+            $this->env->getFactory('fileLoader')->setParams(
+                array( $this->root )
+            );
+            $this->getConfig( )
+                ->setFileLoader($this->getFileLoader())
+                ->loadPHPFile( $this->config);
         }
 
-		$callback = $this->dispatcher->getMethod($name);
+        $this->isInitialized = true;
+    }
 
-		if (is_callable($callback)){
-		  return $this->dispatcher->run($name, $params);
+    public function action( $name, $func ) 
+    {
+        $this->env->setAction( $name, $func );
+    }
+
+    public function filter( $type, $name, $func ) 
+    {
+        $this->env->addFilter( $type, $name, $func );
+    }
+
+    public function before( $name, $func )
+    {
+        $this->filter( 'before', $name, $func );
+    }
+
+    public function after( $name, $func )
+    {
+        $this->filter( 'after', $name, $func );
+    }
+
+
+
+    public function __call( $name, $params )
+    {
+        if( is_callable($this->env->getAction($name)) )
+        {
+            return $this->env->run( $name, $params );
         }
 
-        if(preg_match('/^new([A-Z].+)/', $name, $m)) {
-            // 引数なしリニューアル
-            if ( $params[0] instanceof \Seaf\Seaf ) {
-                $this->uicontainer->clearInstance();
-                return $this->uicontainer->newInstance();
-            }
-
-            array_unshift($params, lcfirst($m[1]));
-            array_pop($params);
-            return call_user_func_array(
-                array($this->uicontainer, 'repInstance'), $params
+        $prefix = substr($name, 0, 3);
+        if( in_array($prefix, array('get','set','new','del')) )
+        {
+            return $this->env->component(
+                $prefix,
+                lcfirst(substr($name, 3)),
+                $params
             );
         }
-        return $this->uicontainer->getInstance($name);
-	}
+        throw new Exception('invalid method, components or Helper '. $name);
+    }
 }
