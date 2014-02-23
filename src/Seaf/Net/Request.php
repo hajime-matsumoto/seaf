@@ -94,6 +94,14 @@ class Request
 	 */
 	public function getBase( )
 	{
+		if( empty($this->url_base) )
+		{
+			$script = ArrayHelper::get($this->SERVER, 'SCRIPT_NAME', false);
+			if( false !== $script ) 
+			{
+				$this->url_base = dirname($script);
+			}
+		}
 		return $this->url_base;
 	}
 
