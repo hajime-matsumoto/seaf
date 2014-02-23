@@ -27,21 +27,15 @@ class App extends Base {
 
 		$web->set('twig', $twig);
 
-		$web->route('/ra/(@page)', function($page ) use ($web) {
+		$web->route('/@page', function($page ) use ($web) {
 			if($page == null) $page = 'index';
-			$tpl = '/ra/'.$page.".twig";
-			try {
-				echo $web->get('twig')->render( $tpl );
-			} catch(Twig_Error_Loader $e) {
-				$web->notFound();
-			}
-		});
-		$web->route('/(@page)', function($page ) use ($web) {
-			if($page == null) $page = 'index';
+			if($page == 'ra') $page = 'ra/index';
+
 			$tpl = $page.".twig";
 			try {
 				echo $web->get('twig')->render( $tpl );
 			} catch(Twig_Error_Loader $e) {
+				exit($tpl);
 				$web->notFound();
 			}
 		});
