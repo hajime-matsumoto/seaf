@@ -2,9 +2,9 @@
 namespace Seaf\Tests;
 
 use Seaf\Seaf;
-use Seaf\Base;
+use Seaf\Core\Base;
 use Seaf\Config\Config;
-use Seaf\Environment\Environment;
+use Seaf\Core\Environment;
 use Seaf\Loader\FileSystemLoader;
 
 class SeafTest extends \PHPUnit_Framework_TestCase
@@ -48,6 +48,7 @@ class SeafTest extends \PHPUnit_Framework_TestCase
 			'app',
 			$config->getConfig('development')
 		);
+
 		$this->assertArrayHasKey(
 			'env',
 			$config->getConfig('development.app')
@@ -56,28 +57,30 @@ class SeafTest extends \PHPUnit_Framework_TestCase
 
 	public function testEnvironment( )
 	{
+		$root_path = dirname(__FILE__).'/files';
 		$env = 'development';
-		$loader = new FileSystemLoader(dirname(__FILE__).'/files');
-
-		$config = new Config();
-		$config->setFileLoader($loader);
-		$config->loadPHPFile('config.php');
-
-		$environment = new Environment( $env, $config);
-
-		$this->assertInstanceOf('Seaf\Environment\Environment', $environment);
+		$environment = new Environment( );
+		$environment->setEnvironmentName( $env );
+		$environment
+			->factory('get', 'fileLoader')
+			->setParams(array($root_path)
+		);
+		$environment->component('get', 'config')
+			->setFileLoader( $environment->component('get', 'fileLoader') )
+			->loadPHPFile('config.php');
+		$this->assertInstanceOf('Seaf\Core\Environment', $environment);
 	}
 
 	public function testBase( )
 	{
-		$base = new Base(
-			array(
-				'env' => 'development',
-				'config' => 'config.php',
-				'root' => dirname(__FILE__).'/files'
-			)
+		$root_path = dirname(__FILE__).'/files';
+		$env = 'development';
+		$base = new Base( );
+		$base->init( $root_path, $env );
+
+		$this->assertInstanceOf(
+			'Seaf\Config\Config', $base->getConfig() 
 		);
-		$this->assertInstanceOf('Seaf\Config\Config', $base->getConfig() );
 		$this->assertArrayHasKey(
 			'env',
 			$base->getConfig()->getConfig('development.app')
@@ -100,25 +103,19 @@ class SeafTest extends \PHPUnit_Framework_TestCase
 
 	public function testExtends( )
 	{
-		Seaf::init(
-			array(
-				'env' => 'development',
-				'config' => 'config.php',
-				'root' => dirname(__FILE__).'/files'
-			)
-		);
-
-		$routes = array();
+		$root_path = dirname(__FILE__).'/files';
+		$env = 'development';
+		Seaf::init( $root_path, $env );
 
 		Seaf::action('route', function($pat, $func) use (&$routes){
 			$routes[$pat] = $func;
 		});
 
-		Seaf::action('start', function($url) use (&$routes) {
-			return call_user_func($routes[$url]);
-		});
 		Seaf::before('start', function($req, &$out){
 			$out = '<h1>TITLE</h1>';
+		});
+		Seaf::action('start', function($url) use (&$routes) {
+			return call_user_func($routes[$url]);
 		});
 		Seaf::after('start', function($req, &$out){
 			$out.= '<footer>(c)2014</footer>';

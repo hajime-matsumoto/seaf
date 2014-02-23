@@ -19,3 +19,4 @@
 * td-agent
     curl -L http://toolbelt.treasure-data.com/sh/install-ubuntu-precise.sh | sh 
 
+* ./vendor/bin/phpdoc.php -d src/Seaf -t doc/Seaf

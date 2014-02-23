@@ -13,14 +13,25 @@
 
 namespace Seaf;
 
+use Seaf\Core\Base;
+
 
 class Seaf
 {
+    /**
+     * Singleton Instance
+     * @var object
+     */
     static private $instance;
+
+    /**
+     * Seaf::Base
+     * @var object
+     */
     private $base;
     
     /**
-     * Delegation to base
+     * When It Is Called, Delegated Call To $base 
      *
      * @param name  $name 
      * @param array  $params params
@@ -43,7 +54,7 @@ class Seaf
     }
 
     /**
-     * construct
+     * construct for singleton
      */
     private function __construct() 
     {

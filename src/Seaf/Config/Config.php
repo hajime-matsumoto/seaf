@@ -3,6 +3,7 @@
 namespace Seaf\Config;
 
 use Seaf\Loader\FileSystemLoader;
+use Seaf\Util\ArrayHelper;
 
 class Config
 {
@@ -32,63 +33,16 @@ class Config
 	{
 		foreach( $data as $key=>$value )
 		{
-			$this->_setConfig( $key, $value, $this->configs );
+			$this->setConfig( $key, $value );
 		}
 	}
 	public function setConfig( $key, $value )
 	{
-		return $this->_setConfig($key, $value, $this->configs );
+		return ArrayHelper::parseSet( $this->configs, $key, $value );
 	}
 
-	public function _setConfig( $key, $value, &$ref )
+	public function getConfig( $key, $default = null )
 	{
-		if( false === ($pos = strpos($key, '.')) )
-		{
-			if( !is_array( $value ) )
-			{
-				$ref[$key] = $value;
-			}
-			else
-			{
-				if( 
-					!isset($ref[$key]) 
-					|| 
-					!is_array($ref[$key]) 
-				) $ref[$key] = array();
-
-				foreach( $value as $k => $v )
-				{
-					$this->_setConfig( $k, $v, $ref[$key] );
-				}
-			}
-		}
-		else
-		{
-			return $this->_setConfig(
-				substr($key, $pos+1),
-				$value ,
-				$ref[substr($key,0,$pos)]
-			);
-		}
-	}
-
-	public function getConfig( $key )
-	{
-		return $this->_getConfig( $key, $this->configs );
-	}
-
-	public function _getConfig( $key, &$ref )
-	{
-		if( false === ($pos = strpos($key, '.')) )
-		{
-			return $ref[$key];
-		}
-		else
-		{
-			return $this->_getConfig(
-				substr($key, $pos+1),
-				$ref[substr($key,0,$pos)]
-			);
-		}
+		return ArrayHelper::parseGet( $this->configs, $key, $default );
 	}
 }
