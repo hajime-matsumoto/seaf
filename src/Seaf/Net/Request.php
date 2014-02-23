@@ -8,67 +8,125 @@
 
 namespace Seaf\Net;
 
-use ArrayObject;
+use Seaf\Util\ArrayHelper;
 
 /**
  * Request Controll Object
  */
-class Request extends ArrayObject 
+class Request
 {
+	/**
+	 * requested datas
+	 */
+	private $params = array();
 
-	public  function __construct($data = array())
+	/**
+	 * @var string
+	 */
+	private $url_base;
+	private $url;
+	private $method;
+
+
+	private $POST,$GET,$SERVER,$COOKIES,$FILES;
+
+	public  function __construct( )
 	{
-		parent::__construct($data);
 		$this->POST   = $_POST;
-		$this->COOKIE = $_POST;
-		$this->FILES  = $_FILES;
 		$this->GET    = $_GET;
 		$this->SERVER = $_SERVER;
+		$this->COOKIE = $_POST;
+		$this->FILES  = $_FILES;
 	}
 
+	/**
+	 * Getter
+	 */
 	public function __get($key) 
 	{
-		if( isset($this[$key]) ) return $this[$key];
-
 		if( method_exists( $this, $method = 'get'.ucfirst($key) ) ) 
 		{
 			return call_user_func( array($this,$method), $key );
 		}
 
+		throw new \Exception( $key . ' dose not access ' );
 		return null;
 	}
+
+	/**
+	 * Setter
+	 */
 	public function __set($key, $value)
 	{
-		$this[$key] = $value;
+		if( method_exists( $this, $method = 'set'.ucfirst($key) ) ) 
+		{
+			return call_user_func( array($this,$method), $value );
+		}
+		return null;
 	}
 
+	/**
+	 * @param string
+	 */
+	public function setBase( $url )
+	{
+		$this->url_base = $url;
+	}
+
+	/**
+	 * @param string
+	 */
 	public function setUrl( $url )
 	{
 		$this->url = $url;
 	}
+
+	/**
+	 * @param string
+	 */
 	public function setMethod( $method )
 	{
 		$this->method = $method;
 	}
 
+	/**
+	 * @return string
+	 */
+	public function getBase( )
+	{
+		return $this->url_base;
+	}
+
+	/**
+	 * @return string
+	 */
 	public function getUrl()
 	{
-		return  $this->env('REQUEST_URI');
+		if( empty($this->url) ) 
+		{
+			$this->url = ArrayHelper::get( $this->SERVER, 'REQUEST_URI', '/');
+		}
+
+		if( strpos( $this->url, $this->getBase() ) === 0 )
+		{
+			$this->url = substr($this->url, strlen($this->getBase()) );
+		}
+
+		return $this->url;
 	}
 
 	public function getMethod()
 	{
-		if(isset($this['method'])) return $this->method;
-		if ( isset($this->SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']) ) {
-			return $this->SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
-		}elseif (isset($this->REQUEST['_method'])) {
-			return $this->REQUEST['method'];
-		}
-		return $this->env('REQUEST_METHOD', 'GET');
-	}
+		if( !empty($this->method) ) return $this->method;
 
-	private function env($var, $default = '') 
-	{
-		return isset($this->SERVER[$var]) ? $this->SERVER[$var]: $default;
+		if ( isset($this->SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']) ) 
+		{
+			return $this->SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
+		}
+		elseif (isset($this->params['_method'])) 
+		{
+			return $this->params['_method'];
+		}
+		return ArrayHelper::get('REQUEST_METHOD', 'GET');
 	}
 }

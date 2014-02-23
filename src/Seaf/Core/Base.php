@@ -64,9 +64,29 @@ class Base
         $this->env->setEnvironmentName( $env );
 
         /* Load Config File */
+
         $this->getConfig( )
             ->setFileLoader( $this->getFileLoader() )
             ->loadPHPFile( self::$configPath );
+
+        /* get/set to config */
+        $this->map('get', array($this->getConfig(),'getConfig'));
+        $this->map('set', array($this->getConfig(),'setConfig'));
+
+        /* set configs */
+        $this->set('app.root', $root_path);
+        $this->set('app.env', $env);
+        $this->set('view.path', '{{app.root}}/views');
+        $this->set('tmp.path', '{{app.root}}/tmp');
+        $this->set('cache.path', '{{tmp.path}}/cache');
+
+
+        /* builtin extensions */
+        $this->exten('web','Seaf\Net\WebExtension');
+        $this->exten('err', 'Seaf\Util\ErrorExtension');
+
+        /* Error Handler */
+        $this->enable('err');
 
         $this->isInitialized = true;
     }
@@ -126,6 +146,11 @@ class Base
     {
         return $this->env->component('get', $name);
     }
+    public function map( $name, $func )
+    {
+        return $this->env->map($name, $func);
+    }
+    
     public function act( $name )
     {
         $args = func_get_args();
@@ -145,8 +170,12 @@ class Base
      * @param string 
      * @param string
      */
-    public function exten( $prefix, $class )
+    public function exten( $prefix, $class = null)
     {
+        if( $class === null ) 
+        {
+            return $this->env->component('get','ext'.$prefix);
+        }
         $self = $this;
         $this->env->factory(
             'register', 
@@ -166,8 +195,14 @@ class Base
      */
     public function enable( $prefix )
     {
-        $extension = $this->env->component('get','ext'.$prefix);
+        return $extension = $this->env->component('get','ext'.$prefix);
     }
+
+    public function env( )
+    {
+        return $this->env;
+    }
+
 
     /**
      * Provids How To Access Environment
@@ -177,6 +212,14 @@ class Base
      */
     public function __call( $called_name, $called_params )
     {
+        if( is_callable($this->env->getMethod( $called_name)) )
+        {
+            return call_user_func_array(
+                $this->env->getMethod($called_name),
+                $called_params
+            );
+        }
+
         if( is_callable($this->env->action('get', $called_name)) )
         {
             return $this->env->run( $called_name, $called_params );

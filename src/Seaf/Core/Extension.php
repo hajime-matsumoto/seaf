@@ -73,6 +73,15 @@ abstract class Extension
 	{
 		return $this->base->act( $this->prefix($name) );
 	}
+    public function map( $name, $func )
+    {
+        return $this->base->map( $this->prefix($name), $func);
+    }
+
+	public function action($name, $func)
+	{
+		return $this->base->action( $this->prefix($name), $func );
+	}
 
 	public function __get($name)
 	{
@@ -81,6 +90,11 @@ abstract class Extension
 
 	public function __call( $name, $params )
 	{
+		if( is_callable( 
+			$this->base->env()->action( 'get', $this->prefix($name))
+		)){
+			$name = $this->prefix($name);
+		}
 		return call_user_func_array(
 			array(
 				$this->base,

@@ -4,8 +4,9 @@ namespace Seaf\Util;
 
 class ArrayHelper
 {
-	static public function get(array $target, $key, $default = null)
+	static public function get($target, $key, $default = null)
 	{
+		if( !is_array($target) ) return $default;
 		return isset($target[$key]) ? $target[$key]: $default;
 	}
 

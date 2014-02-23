@@ -14,6 +14,21 @@ class WebExtension extends Extension
 		$this->register('router'  , 'Seaf\Net\Router');
 	}
 
+	public function actionRoute( $route, $func = null )
+	{
+		if( $func == null && is_array($route) )
+		{
+			foreach( $route as $k => $v )
+			{
+				$this->actionRoute( $k, $v );
+			}
+		}
+		else
+		{
+			$this->comp('router')->map($route, $func);
+		}
+	}
+
 	public function actionMap( $patterm, $func )
 	{
 		$this->comp('router')->map( $patterm, $func );
@@ -74,7 +89,8 @@ class WebExtension extends Extension
 		$this->response
 			->status(404)
 			->write(
-				'<h1>404 Not Found</h1>'
+				'<h1>404 Not Found</h1>'.
+				'<section style="padding:10px">URL:'.$this->request->url.'</section>'
 				.str_repeat(' ', 512)
 			)->send();
 	}

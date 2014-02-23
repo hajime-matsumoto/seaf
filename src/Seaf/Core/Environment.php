@@ -4,6 +4,7 @@ namespace Seaf\Core;
 
 use Seaf\Factory\FactoryContainer;
 use Seaf\Component\ComponentContainer;
+use Seaf\Util\ArrayHelper;
 
 /**
  * Seaf Environment.
@@ -30,6 +31,11 @@ class Environment
 	 * @var object
 	 */
 	private $actionDispatcher;
+
+	/**
+	 * maped method
+	 */
+	private $methods=array();
 
 
 	/**
@@ -132,6 +138,19 @@ class Environment
 			),
 			$args
 		);
+	}
+
+	/**
+	 * map medhot
+	 */
+	public function map( $name, $func )
+	{
+		$this->methods[$name] = $func;
+	}
+
+	public function getMethod($name)
+	{
+		return ArrayHelper::get($this->methods, $name, false);
 	}
 
 

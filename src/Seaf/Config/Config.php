@@ -25,8 +25,10 @@ class Config
 	public function loadPHPFile( $filename )
 	{
 		$data = $this->getFileLoader( )->getPath( $filename );
-		$data = include $data;
-		$this->setConfigArray( $data );
+		if( $data ) {
+			$data = include $data;
+			$this->setConfigArray( $data );
+		}
 	}
 
 	public function setConfigArray( $data )
@@ -43,6 +45,11 @@ class Config
 
 	public function getConfig( $key, $default = null )
 	{
-		return ArrayHelper::parseGet( $this->configs, $key, $default );
+		$data =  ArrayHelper::parseGet( $this->configs, $key, $default );
+		if(!is_string($data)) return $data;
+		$self = $this;
+		return preg_replace_callback('/\{\{(.*)\}\}/', function($m) use($self){
+			return $self->getConfig($m[1]);
+		}, $data);
 	}
 }
