@@ -18,7 +18,6 @@ class App extends Base {
 		// view機能を有効にする
 		$loader = new Twig_Loader_Filesystem($this->get('view.path'));
 		$twig = new Twig_Environment($loader,array('cache'=>$this->get('cache.path')));
-		$this->set('twig', $twig);
 
 		/*----------  Routing ---------------*/
 		// web機能を有効にする
@@ -26,12 +25,26 @@ class App extends Base {
 		$web  = $this->exten('web');
 		$self = $this;
 
-		$web->route(array(
-			'/' => function() use ($web, $self, $twig) {
-				$web->response->header('Content-Type', 'text/plain');
-				$self->get('twig')->render('index.html');
+		$web->set('twig', $twig);
+
+		$web->route('/ra/(@page)', function($page ) use ($web) {
+			if($page == null) $page = 'index';
+			$tpl = '/ra/'.$page.".twig";
+			try {
+				echo $web->get('twig')->render( $tpl );
+			} catch(Twig_Error_Loader $e) {
+				$web->notFound();
 			}
-		));
+		});
+		$web->route('/(@page)', function($page ) use ($web) {
+			if($page == null) $page = 'index';
+			$tpl = $page.".twig";
+			try {
+				echo $web->get('twig')->render( $tpl );
+			} catch(Twig_Error_Loader $e) {
+				$web->notFound();
+			}
+		});
 	}
 
 	public function run( )

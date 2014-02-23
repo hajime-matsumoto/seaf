@@ -1,0 +1,91 @@
+div#container{
+  height: 1600px;
+  background: url('bg.png')
+}
+div#container .head {
+  height: 204px;
+  background: url('head.png')
+}
+
+div.staff .name,
+div.staff .staff-kana,
+div.staff .staff-name,
+div.staff .staff-description {
+    letter-spacing: 0em;
+}
+div.staff .staff-kana,
+div.staff .staff-name {
+    font-size: 120%;
+}
+div.staff .staff-kana {
+    font-size: 90%;
+}
+div.staff .staff-description {
+	line-height: 1.6em;
+}
+div.staff .staff-name {
+    font-weight: bold;
+    color: #A20010;
+    font-size: 140%;
+}
+div.staff .name {
+    font-weight: bold;
+    font-size: 140%;
+    font-family:'Hiragino Mincho ProN', serif;
+    margin-bottom: 7px;
+}
+div.staff .staff-kana {
+	font-size: 120%;
+    margin-bottom: 1em;
+}
+div.staff .staff-name {
+    margin-bottom: 6px
+}
+
+.staff#mizui {
+	margin-left: 420px;
+	width: 540px;
+}
+
+div.staff.staff2 {
+	width: 400px;
+	float: left;
+	margin-top: 50px;
+	margin-left: 70px
+}
+div.staff2-wrapper {
+	width: 970px;
+	height: 270px;
+}
+div.staff3-wrapper .staff-name,
+div.staff3-wrapper .name {
+	font-size: 125%;
+}
+div.staff3-wrapper .staff-kane,
+div.staff3-wrapper .staff-name,
+div.staff3-wrapper .name {
+	margin-bottom: 0px;
+	margin-left: 0px;
+}
+div.staff3-wrapper {
+	clear:both;
+	margin-top: 20px;
+	width: 970px;
+	height: 90px;
+	padding-left: 65px
+}
+#hajime-wrapper {
+	height: 130px;
+}
+div.staff3-wrapper .staff3{
+	font-size: 90%;
+	margin-left: 0px;
+	float: left;
+	width: 220px;
+	height: 90px;
+}
+#hajime {
+	margin-top:20px;
+	font-size: 110%;
+	width: 400px;
+}
