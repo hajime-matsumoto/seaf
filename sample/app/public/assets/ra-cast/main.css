@@ -1,0 +1,81 @@
+div#container{
+  height: 1200px;
+  background: url('ra_cast_list.gif')
+}
+div#container .head {
+  height: 202px;
+  background: url('bg-head.gif')
+}
+
+div.cast .name {
+    color: #A20010;
+    font-weight: bold;
+    font-size: 150%;
+    font-family:'Hiragino Mincho ProN', serif;
+}
+div.cast .name,
+div.cast .cast-kana,
+div.cast .cast-name,
+div.cast .cast-description {
+    margin-bottom: 1em;
+    letter-spacing: 0.2em;
+}
+div.cast .cast-name {
+    margin-bottom: 3px
+}
+div.cast .cast-kana,
+div.cast .cast-name {
+    font-weight: bold;
+    font-size: 120%;
+}
+div.cast .cast-kana {
+    font-size: 90%;
+    letter-spacing: 0em;
+}
+div.cast .cast-description {
+    line-height: 1.4em;
+}
+div.cast#mayuka {
+    width: 480px;
+    margin-left: 430px;
+}
+
+div.cast2 .cast-name {
+    margin-bottom: 0px;
+}
+div.cast2#otoko {
+    margin-top : 135px;
+    margin-left: 245px;
+}
+div.cast2#misato {
+    margin-top : -105px;
+    margin-left: 525px;
+}
+div.cast2#lina {
+    margin-top : -105px;
+    margin-left: 810px;
+}
+div.cast3 .name {
+    margin-bottom: 10px
+}
+
+div.cast3#kasumi {
+    margin-top: 245px;
+    margin-left: 80px;
+}
+div.cast3#yuko {
+    margin-top: -97px;
+    margin-left: 250px;
+}
+div.cast3#haha {
+    margin-top: -97px;
+    margin-left: 420px;
+}
+div.cast3#sakaya {
+    margin-top: -97px;
+    margin-left: 590px;
+}
+div.cast3#hukurou {
+    margin-top: -97px;
+    margin-left: 760px;
+}

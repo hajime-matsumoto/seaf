@@ -1,0 +1,115 @@
+#myGallery{
+	width:100%;
+}
+/* Plugin Name: Responsive Tile Gallery
+Author: Andrew Mead
+Date: 10/17/2012 */
+
+/*Start theme customizatoin*/
+
+.rtg-current-category {
+    /*Color for the current category*/
+    background-color:#777 !important;
+    /*Fort for the current category*/
+    color:white !important;
+}
+
+.rtg-categories > li > a {
+    /*Color for the categories*/
+    background-color:#1c9bd7;
+    /*Font color for the categories*/
+    color:white;
+}
+
+/* captions customization */
+/* style for the caption paragraph */
+.rtg-images > div > div > p {
+    background: rgba(0, 0, 0, .6); /*for ie7 and ie8 transparency, change ieCaptionOpacity.png (applied in rtg.js)*/
+    color: white;
+    font-size: 18px;
+    font-family: 'open sans', Arial;
+    font-weight: 300;
+    padding:5px 0px;
+    text-align: center;
+    text-transform: uppercase;
+}
+/* style for links in your paragraphs */
+.rtg-images > div > div > p > a {
+    background-color: #0875a8;
+    color: white;
+    padding: 1px 8px;
+    text-decoration: none;
+}
+/* hey, you! If you want to add a span or something of that nature for smaller text, add it here :)*/
+/*.rtg-images > div > div > p > someTagName {
+    font-size: 14px;
+}*/
+
+/*End of theme customization*/
+/*EDIT PAST THIS LINE AT YOUR OWN RISK!*/
+/*Category style*/
+.rtg-categories {
+    padding: 10px 0 0 0;
+    list-style-type:none;
+}
+.rtg-categories > li {
+    display:inline-block;
+    height:30px;
+    margin-right:10px;
+}
+.rtg-categories > li > a {
+    padding:3px 7px;
+    text-decoration:none;
+    font-family:arial, sans-serif;
+    font-weight:300;
+    font-size:13px;
+    letter-spacing:1px;
+}
+
+/*Image style*/
+.rtg-images {
+    position:relative;
+}
+.rtg-images > div {
+    width:960px;
+    height:565px;
+    position:absolute;
+    /*top:0px;
+    left:0px;*/
+    visibility:hidden;
+}
+.rtg-images > div > span {
+	position:absolute;
+	top:0;
+	left:0;
+	width:960px;
+	height:565px;
+	background-color:black;
+	z-index:2;
+	opacity:1;
+	background-image:url('../images/plus.png');
+	background-repeat:no-repeat;
+	background-position:center; 
+
+}
+.rtg-images > div > a > img {
+    border:none;
+    opacity:1;
+    position:absolute;
+    z-index:3;
+}
+
+/*caption selectors*/
+.rtg-images > div > div {
+    position: absolute;
+    bottom: 0px;
+    z-index: 4;
+    margin:0px;
+    visibility: hidden;
+    width:100%;
+    cursor: default;
+}
+.rtg-images > div > div > p {
+    margin:0px;
+    width:100%;
+}

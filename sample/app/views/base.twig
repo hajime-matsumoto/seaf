@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang='ja'>
+	<head>
+		<title>水井真希公式ホームページ | Maki Mizui Official Site</title>
+		<meta charset='utf-8'>
+		<meta content='width=device-width, initial-scale=1.0' name='viewport'>
+		<link href='/assets/stylesheets/bootstrap.min.css' rel='stylesheet'>
+		<link href='/assets/stylesheets/bootstrap-responsive.min.css' rel='stylesheet'>
+		<link href='/assets/stylesheets/kwicks-slider.css' rel='stylesheet'>
+		<link href='/assets/stylesheets/style.css' rel='stylesheet'>
+		<script src='/assets/scripts/jquery-1.9.1.min.js'></script>
+		<script src='/assets/scripts/jquery.flexslider-min.js'></script>
+		<script src='/assets/scripts/jquery.kwicks-1.5.1.js'></script>
+		<script src='/assets/scripts/scrolltopcontrol.js'></script>
+		<!--[if lt IE 9]>
+		<script src='/assets/scripts/html5shiv.js'></script>
+		<![endif]-->
+		{% block addheader %}{% endblock %}
+	</head>
+    <body id='top'>
+      <div class='container'>
+        <header class='pagetop'>
+          <div class='row'>
+            <div class='span6 pull-right'>
+              <nav>
+                <div class='navbar navbar-inverse'>
+                  <div class='navbar-inner pull-center'>
+                    <div class='container'>
+                      <button class='btn btn-navbar' data-target='.nav-collapse' data-toggle='collapse' type='button'>
+                        <span class='icon-bar'></span>
+                        <span class='icon-bar'></span>
+                        <span class='icon-bar'></span>
+                      </button>
+                    </div>
+                    <div class='nav-collapse collapse'>
+                      <ul class='nav'>
+                        <li>
+                          <a href='index'>Home</a>
+                        </li>
+                        <li>
+                          <a href='works'>Works</a>
+                        </li>
+                        <li>
+                          <a href='gallery'>Gallery</a>
+                        </li>
+                        <li>
+                          <a href='http://blog.livedoor.jp/mmizui' target='_blank'>Blog</a>
+                        </li>
+                        <li>
+                          <a href='contact'>Contact</a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </nav>
+            </div>
+            <div class='span6 pull-right'>
+              <hgroup>
+                <h1>
+                  <a href='/'>
+                    Maki Mizui
+                    <span class='small'>Official Website</span>
+                  </a>
+                </h1>
+                <h2>水井真希 公式ホームページ</h2>
+              </hgroup>
+            </div>
+          </div>
+        </header>
+        <!-- slider -->
+{% block content %}
+{% endblock %}
+      <footer>
+        <div class='container'>
+          <div class='toplink'>
+            <a href='#top'>
+              <span>Back to top</span>
+            </a>
+          </div>
+          <div class='inner'>
+            <div class='container'>
+              <nav>
+                <ul>
+                  <li>
+                    <a href='index'>Home</a>
+                  </li>
+                  <li>
+                    <a href='works'>Workd</a>
+                  </li>
+                  <li>
+                    <a href='gallery'>Gallery</a>
+                  </li>
+                  <li>
+                    <a href='http://blog.livedoor.jp/mmizui' target='_blank'>Blog</a>
+                  </li>
+                  <li>
+                    <a href='contact'>Contact</a>
+                  </li>
+                </ul>
+              </nav>
+              <small>2013 &copy; mmizui.com</small>
+            </div>
+          </div>
+        </div>
+      </footer>
+      <script src='assets/scripts/bootstrap.min.js'></script>
+    </body>
+  </head>
+</html>

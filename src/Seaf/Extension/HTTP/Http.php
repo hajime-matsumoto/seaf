@@ -69,7 +69,7 @@ class Http extends Extension
             'stop' => 'stop',
             'notFound' => 'notFound',
             'staticFile' => 'staticFile',
-            'renderer' => 'renderer'
+            'render' => 'render'
         ), $this);
         return $this;
 
@@ -83,10 +83,10 @@ class Http extends Extension
         $this->base->router()->map( $pattern, $callback);
     }
 
-    public function renderer($documents)
+    public function render($documents)
     {
         $base = $this->base;
-        $base->after('renderer', function($params, &$output) use($base, $documents){
+        $base->after('render', function($params, &$output) use($base, $documents){
             echo $output;
         });
         return $documents;
@@ -124,21 +124,31 @@ class Http extends Extension
         $this->base->response()->status($code)->write(ob_get_clean())->send();
     }
 
-    public function notFound( ){
+    public function notFound( $filepath ){
         $this->base->response()
             ->status(404)
-            ->write( '<h1>404 Not Found</h1>'. str_repeat(' ', 512))
+            ->write( '<h1>404 Not Found</h1>'.$filepath.str_repeat(' ', 512))
             ->send();
     }
 
     public function staticFile( $filepath) {
-        $dirpath = $this->base->envGet("dirs.static", "./");
+        $dirpath = $this->base->environment()->get("dirs.static", "./");
         $filepath= $dirpath.'/'.$filepath;
 
-        if( !file_exists($filepath) ) $this->base->notFound();
+        if( !file_exists($filepath) ) $this->base->notFound($filepath);
+
+        // 拡張子もみる
+        if(preg_match('/css$/', $filepath) ){
+            $mime = 'text/css';
+        }elseif(preg_match('/js$/', $filepath)){
+            $mime = 'text/javascript';
+        }else{
+            $mime =  mime_content_type($filepath);
+        }
+
         $this->base->response()
             ->status(200)
-            ->header('Content-Type', mime_content_type($filepath) )
+            ->header('Content-Type', $mime)
             ->write(file_get_contents($filepath))
             ->send();
     }
