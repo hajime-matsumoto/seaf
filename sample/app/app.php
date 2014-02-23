@@ -27,7 +27,7 @@ class App extends Base {
 
 		$web->set('twig', $twig);
 
-		$web->route('/@page', function($page ) use ($web) {
+		$web->route('/@page:*', function($page ) use ($web) {
 			if($page == null) $page = 'index';
 			if($page == 'ra') $page = 'ra/index';
 
