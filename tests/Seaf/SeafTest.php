@@ -129,4 +129,32 @@ class SeafTest extends \PHPUnit_Framework_TestCase
 		$this->expectOutputString('<h1>TITLE</h1>index<footer>(c)2014</footer>');
 		Seaf::start('/');
 	}
+
+	public function testNet( )
+	{
+		$root_path = dirname(__FILE__).'/files';
+		$env = 'development';
+		Seaf::init( $root_path, $env );
+
+		Seaf::exten('web','Seaf\Net\WebExtension');
+		Seaf::enable('web');
+
+		Seaf::webMap('/', function(){
+			echo 'hello web';
+		});
+		Seaf::webMap('/user/@id(/@name)', function($id, $name){
+			echo 'hello '.$id.' '.$name;
+		});
+
+		// For Test Override Stop
+		// Usual exit($body);
+		Seaf::action('stop',function($body){
+			echo $body;
+		});
+
+		Seaf::comp('webRequest')->url = '/user/100/hajime';
+
+		$this->expectOutputString('hello 100 hajime');
+		Seaf::webStart();
+	}
 }

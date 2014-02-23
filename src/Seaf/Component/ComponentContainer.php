@@ -27,14 +27,17 @@ class ComponentContainer
 	 * @param string $name
 	 * @param array $params
 	 */
-	public function factory( $action, $name, $params = array() )
+	public function factory( $action )
 	{
+		$args = func_get_args();
+		array_shift($args);
+
 		return call_user_func_array(
 			array(
 				$this->factoryContainer,
 				$action
 			),
-			array($name) + $params
+			$args
 		);
 	}
 
@@ -47,7 +50,7 @@ class ComponentContainer
 	{
 		return 
 			isset($this->components[$name]) ||
-			$this->factories->has($name);
+			$this->factoryContainer->has($name);
 	}
 
 	/**

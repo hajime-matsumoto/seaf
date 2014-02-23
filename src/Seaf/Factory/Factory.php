@@ -29,7 +29,9 @@ class Factory
 		$instance = $this->createInstance();
 		if( is_callable($this->callback) ) 
 		{
-			$this->callback( $instance );
+			call_user_func(
+				$this->callback, $instance
+			);
 		}
 		return $instance;
 	}

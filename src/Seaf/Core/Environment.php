@@ -27,11 +27,9 @@ class Environment
 
 	/**
 	 * Action Dispatcher
+	 * @var object
 	 */
 	private $actionDispatcher;
-
-	private $filters = array();
-	private $actions = array();
 
 
 	/**
@@ -49,6 +47,10 @@ class Environment
 		);
 
 		$this->actionDispatcher = new Dispatcher( );
+
+		$this->action('set','stop',function($body){
+			exit($body);
+		});
 	}
 
 	/**
@@ -65,12 +67,16 @@ class Environment
 	 * Access Factory Container Function 
 	 *
 	 * @param string $action
-	 * @param string $name
-	 * @param array $params
 	 */
-	public function factory( $action, $name, $params = array())
+	public function factory( $action )
 	{
-		return $this->componentContainer->factory( $action, $name, $params );
+		$args = func_get_args();
+		return call_user_func_array(
+			array(
+				$this->componentContainer,
+				'factory'
+			), $args
+		);
 	}
 
 	/**

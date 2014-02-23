@@ -116,6 +116,58 @@ class Base
         $this->filter( 'after', $action_name, $func );
     }
 
+    public function register( $name, $context, $params = array(), $func = null)
+    {
+        $this->env->factory(
+            'register', $name, $context, $params, $func
+        );
+    }
+    public function comp( $name )
+    {
+        return $this->env->component('get', $name);
+    }
+    public function act( $name )
+    {
+        $args = func_get_args();
+        array_shift($args);
+
+        if( is_callable($this->env->action('get', $name)) )
+        {
+            return $this->env->run( $name, $args );
+        }
+
+        throw new Exception(
+            'invalid Action '. $name
+        );
+    }
+
+    /**
+     * @param string 
+     * @param string
+     */
+    public function exten( $prefix, $class )
+    {
+        $self = $this;
+        $this->env->factory(
+            'register', 
+            'ext'.$prefix, 
+            $class, 
+            array(),
+            function($instance) use ($prefix, &$self) {
+                $instance->exten( $prefix, $self );
+                return $instance;
+            }
+        );
+    }
+
+    /**
+     * @param string 
+     * @param string
+     */
+    public function enable( $prefix )
+    {
+        $extension = $this->env->component('get','ext'.$prefix);
+    }
 
     /**
      * Provids How To Access Environment
@@ -138,6 +190,12 @@ class Base
                 lcfirst(substr($called_name, 3)),
                 $called_params
             );
+        }
+
+        /* get component */
+        if( $this->env->component('has', $called_name) )
+        {
+            return $this->env->component('get', $called_name);
         }
 
         throw new Exception(

@@ -28,7 +28,9 @@ class FactoryContainer
 	 * @param mixed $params
 	 * @param mixed $callback
 	 */
-	public function register( $name, $context = null, $params = array(), $callback = false)
+	public function register( 
+		$name, $context = null, $params = array(), $callback = false
+	)
 	{
 		if( $context == null && is_array($name) )
 		{
