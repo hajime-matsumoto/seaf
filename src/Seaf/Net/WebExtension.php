@@ -94,4 +94,12 @@ class WebExtension extends Extension
 				.str_repeat(' ', 512)
 			)->send();
 	}
+
+	public function actionHalt( $message, $code = 200 )
+	{
+		$this->response
+			->status( $code )
+			->write( $message )
+			->send( );
+	}
 }
