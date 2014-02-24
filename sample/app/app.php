@@ -12,6 +12,9 @@ use Seaf\Net\WebApp;
 
 class App extends WebApp 
 {
+    /**
+     * @var object
+     */
     private $twig;
 
     public function __construct( $env = 'development' )
@@ -35,6 +38,7 @@ class App extends WebApp
         }
         $this->twig = $twig;
     }
+
 
     /**
      * 出力前の調整フィルター

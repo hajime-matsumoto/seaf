@@ -18,6 +18,9 @@ use Seaf\Core\Base;
 
 class Seaf
 {
+    const ENV_DEVELOPMENT='development';
+    const ENV_PRODUCTION='production';
+
     /**
      * Singleton Instance
      * @var object
