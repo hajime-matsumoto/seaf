@@ -34,11 +34,14 @@ class App extends Base {
 		$web->set('twig', $twig);
 
 		/*----------  パス変換フィルタ ---------------*/
-		$web->after('start', function($params, &$out) use ($web){
-			$data = ob_get_clean();
-			ob_start();
-			echo  preg_replace('/(src|href)=([\'"])[\/]/','$1=$2'.$web->request->base.'/', $data);
-		});
+		if( $web->request->base )
+		{
+			$web->after('start', function($params, &$out) use ($web){
+				$data = ob_get_clean();
+				ob_start();
+				echo  preg_replace('/(src|href)=([\'"])[\/]/','$1=$2'.$web->request->base.'/', $data);
+			});
+		}
 
 		/*----------  ほぼ静的ページ ---------------*/
 		$web->route('/@page:*', function($page ) use ($web) {
