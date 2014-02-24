@@ -84,6 +84,7 @@ class Base
         /* builtin extensions */
         $this->exten('web','Seaf\Net\WebExtension');
         $this->exten('err', 'Seaf\Util\ErrorExtension');
+        $this->exten('mail', 'Seaf\Mail\MailExtension');
 
         /* Error Handler */
         $this->enable('err');

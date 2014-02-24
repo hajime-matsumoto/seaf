@@ -26,6 +26,14 @@ abstract class Extension
 					array($this, $action)
 				);
 			}
+			if( strpos($action, 'map') === 0 )
+			{
+				$action_name = substr($action, 3);
+				$base->map(
+					$prefix.$action_name,
+					array($this, $action)
+				);
+			}
 		}
 
 		$this->init( $prefix, $base );
@@ -90,9 +98,14 @@ abstract class Extension
 
 	public function __call( $name, $params )
 	{
-		if( is_callable( 
-			$this->base->env()->action( 'get', $this->prefix($name))
-		)){
+		if(	
+			is_callable($this->base->env()->getMethod( $this->prefix($name)))
+		){
+			$name = $this->prefix($name);
+		}
+		else if( 
+			is_callable($this->base->env()->action( 'get', $this->prefix($name)))
+		){
 			$name = $this->prefix($name);
 		}
 		return call_user_func_array(

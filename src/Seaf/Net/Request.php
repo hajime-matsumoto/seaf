@@ -26,6 +26,7 @@ class Request
 	private $url_base;
 	private $url;
 	private $method;
+	private $body;
 
 
 	private $POST,$GET,$SERVER,$COOKIES,$FILES;
@@ -87,6 +88,16 @@ class Request
 	public function setMethod( $method )
 	{
 		$this->method = $method;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getBody( )
+	{
+		if(!empty($this->body) ) return $this->body;
+
+		return $this->body = file_get_contents('php://input');
 	}
 
 	/**

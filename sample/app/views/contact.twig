@@ -2,6 +2,11 @@
 {% block addheader %}
 {% endblock%}
 {% block content %}
+		<script>
+			MMIZUI={url: "{{ base_url }}"}
+		</script>
+		<script src="/assets/contact_form.js"></script>
+		<script src="/assets/contact_app.js"></script>
         <div class='row'>
           <div class='span12'>
             <div class='pagetitle'>
@@ -18,12 +23,12 @@
                 <span>コンタクトフォーム</span>
               </h1>
               <p>ご意見、ご質問、メッセージ等々お気軽にお問い合わせください。</p>
-              <form action='/confirm' class='form-horizontal' method='post'>
+              <form id="contact_form" action='/confirm' class='form-horizontal' method='post' onSubmit="return false">
                 <fieldset>
                   <div class='control-group'>
                     <label class='control-label'>お名前</label>
                     <div class='controls'>
-                      <input class='input-xlarge' id='name' name='name' type='text' value=''>
+                      <input data-bind='value:name' class='input-xlarge' id='name' name='name' type='text' value=''>
                     </div>
                   </div>
                   <div class='control-group'>
@@ -32,7 +37,7 @@
                       メールアドレス
                     </label>
                     <div class='controls'>
-                      <input class='input-xlarge' id='mail' name='mail' type='text' value=''>
+                      <input data-bind='value:mail' class='input-xlarge' id='mail' name='mail' type='text' value='' required>
                     </div>
                   </div>
                   <div class='control-group'>
@@ -41,12 +46,12 @@
                       メッセージ
                     </label>
                     <div class='controls'>
-                      <textarea class='input-xlarge' id='message' name='message' rows='4'></textarea>
+                      <textarea data-bind="value:message" class='input-xlarge' id='message' name='message' rows='4' required></textarea>
                     </div>
                   </div>
                   <div class='form-actions'>
-                    <button class='btn btn-info' type='submit'>送信</button>
-                    <button class='btn' type='reset'>キャンセル</button>
+                    <button data-bind='click:sendMessage' class='btn btn-info' >送信</button>
+                    <button data-bind='click:sendCancel' class='btn' type='reset'>キャンセル</button>
                   </div>
                 </fieldset>
               </form>
