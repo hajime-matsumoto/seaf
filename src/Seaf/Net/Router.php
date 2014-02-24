@@ -21,7 +21,7 @@ class Router
 	protected  $routes = array();
 
 	/**
-	 * Create A Route
+	 * Matching
 	 *
 	 * @param object $request
 	 */

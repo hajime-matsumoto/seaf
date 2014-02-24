@@ -1,93 +1,109 @@
 <?php
+/* vim: set expandtab ts=4 sw=4 sts=4: et*/
+
 /**
- * Sample Application
+ * Web Application
  */
 require_once dirname(__FILE__).'/../../vendor/autoload.php';
 
 use Seaf\Core\Base;
+use Seaf\Net\WebApp;
 
 
-class App extends Base {
+class App extends WebApp 
+{
+    private $twig;
 
-	public function __construct( $env = 'development' )
-	{
-		parent::__construct( );
+    public function __construct( $env = 'development' )
+    {
+        parent::__construct( dirname(__FILE__), $env );
 
-		$this->init( dirname(__FILE__), $env);
+    }
 
-		/*----------  View ---------------*/
-		// view機能を有効にする
-		$loader = new Twig_Loader_Filesystem($this->get('view.path'));
-		$twig = new Twig_Environment($loader,array('cache'=>$this->get('cache.path')));
+    /**
+     * Initialize
+     */
+    public function init( )
+    {
+        /*----------  Twig ---------------*/
+        $loader = new Twig_Loader_Filesystem($this->get('view.path'));
+        $twig = new Twig_Environment($loader,array('cache'=>$this->get('cache.path')));
 
-		if( $this->get('app.env') != 'production') 
-		{
-			$twig->clearCacheFiles();
-		}
+        if( $this->get('app.env') != 'production') 
+        {
+            $twig->clearCacheFiles();
+        }
+        $this->twig = $twig;
+    }
 
-		/*----------  Routing ---------------*/
-		// web機能を有効にする
-		$this->enable('web');
-		$web  = $this->exten('web');
-		$self = $this;
+    /**
+     * 出力前の調整フィルター
+     *
+     * @after start
+     */
+    public function changePathFilter( $params, &$output )
+    {
+        if( $this->request->base )
+        {
+            /* パスの変換処理 */
+            $data = ob_get_clean();
+            ob_start();
+            echo  preg_replace('/(src|href)=([\'"])[\/]/','$1=$2'.$this->request->base.'/', $data);
+        }
+    }
 
-		$web->set('twig', $twig);
+    /**
+     * テンプレートのみページを出力
+     *
+     * @route /@page:*
+     * @method POST|GET
+     */
+    public function showPage( $page ) 
+    {
+        if($page == null) $page = 'index';
+        if($page == 'ra') $page = 'ra/index';
 
-		/*----------  パス変換フィルタ ---------------*/
-		if( $web->request->base )
-		{
-			$web->after('start', function($params, &$out) use ($web){
-				$data = ob_get_clean();
-				ob_start();
-				echo  preg_replace('/(src|href)=([\'"])[\/]/','$1=$2'.$web->request->base.'/', $data);
-			});
-		}
+        $tpl = $page.".twig";
+        try {
+            echo $this->twig->render( $tpl, 
+                array('base_url'=>$this->request->base)
+            );
+        } catch(Twig_Error_Loader $e) {
+            return true;
+        }
+    }
 
-		/*----------  ほぼ静的ページ ---------------*/
-		$web->route('/@page:*', function($page ) use ($web) {
-			if($page == null) $page = 'index';
-			if($page == 'ra') $page = 'ra/index';
+    /**
+     * メール送信
+     *
+     * @route /sendMail
+     * @method PUT
+     */
+    public function sendMail( )
+    {
+        $mail = $this->exten('mail');
+        $query = $this->request->body;
+        $params = array();
 
-			$tpl = $page.".twig";
-			try {
-				echo $web->get('twig')->render( $tpl, 
-					array('base_url'=>$web->request->base)
-				);
-			} catch(Twig_Error_Loader $e) {
-				return true;
-			}
-		});
+        parse_str( $query, $params);
 
-		/*----------  メール送信  ---------------*/
-		$web->route('/sendMail', function() use ($web, $self) {
-			$query = $web->request->body;
-			$params = array();
+        if( empty($params['mail']) ) 
+        {
+            $this->web->halt('不正なアクセスを検知しました');
+        }
 
-			parse_str( $query, $params);
+        $mail->sendTo(
+            $this->get('admin.mail'),
+            $this->get('admin.mail'),
+            'コンタクトありがとうございます。',
+            $this->twig->render('mail/mail.twig', $params)
+        );
+        $mail->sendTo(
+            $params['mail'],
+            $this->get('admin.mail'),
+            'コンタクトありがとうございます。',
+            $this->twig->render('mail/mail.twig', $params)
+        );
+    }
 
-			if( empty($params['mail']) ) 
-			{
-				$web->halt('不正なアクセスを検知しました');
-			}
-
-			$mail = $this->exten('mail');
-			$mail->sendTo(
-				$self->get('admin.mail'),
-				$self->get('admin.mail'),
-				'コンタクトありがとうございます。',
-				$web->get('twig')->render('mail/mail.twig', $params)
-			);
-			$mail->sendTo(
-				$params['mail'],
-				$self->get('admin.mail'),
-				'コンタクトありがとうございます。',
-				$web->get('twig')->render('mail/mail.twig', $params)
-			);
-		});
-	}
-
-	public function run( )
-	{
-		$this->webStart();
-	}
 }

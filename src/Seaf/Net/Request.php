@@ -149,6 +149,6 @@ class Request
 		{
 			return $this->params['_method'];
 		}
-		return ArrayHelper::get('REQUEST_METHOD', 'GET');
+		return ArrayHelper::get($this->SERVER,'REQUEST_METHOD', 'GET');
 	}
 }
