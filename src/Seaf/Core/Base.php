@@ -4,33 +4,30 @@
 /**
  * Seaf: Simple Easy Acceptable micro-framework.
  *
- * Base Class Definition
- *
- * @copyright Copyright (c) 2014, Hajime MATSUMOTO <mail@hazime.org>
- * @license   MIT, http://mail@hazime.org
+ * ベースクラス定義
+ * @author HAjime MATSUMOTO <mail@hazime.org>
+ * @copyright Copyright (c) 2014, Seaf
+ * @license   MIT, http://seaf.hazime.org
  */
  
 namespace Seaf\Core;
 
 use Seaf\Exception\Exception;
+use Seaf\Util\DispatchHelper;
 
 /**
- * Base Class
+ * ベースクラス
  *
- * Has A Seaf\Environment\Environment.
- * Controring Environment.
- * Using Environment
+ * 機能を集合管理するEnvironmentへのアクセスを
+ * コントロールするクラス。
+ *
+ * 全ての機能はこのクラスを通してアクセスされる。
  */
 class Base 
 {
     /**
-     * Path To Config From Root
-     * @var string
-     */
-    static public $configPath = 'config.php';
-
-    /**
-     * @var object Seaf\Environment\Environment
+     * Environment
+     * @var object 
      */
     private $env;
 
@@ -41,178 +38,123 @@ class Base
 
 
     /**
-     * Create Environment Object
+     * コンストラクタ
      */
     public function __construct( )
     {
-        $this->env = new Environment( );
+        $this->initBase( );
     }
 
     /**
-     * Initialize Environment
-     *
-     * @param string $root_path 
-     * @param string $env {development|production}
+     * 初期化処理
      */
-    public function init( $root_path = '.', $env = Seaf::ENV_DEVELOPMENT )
+    public function initBase(  )
     {
-        /* Change FileLoader Params */
-        $this->env
-            ->factory('get', 'fileLoader')
-            ->setParams(array( $root_path ) );
+        //== Environmentクラスのインスタンスを生成する
+        $this->env = new Environment( $this );
 
-        $this->env->setEnvironmentName( $env );
+        //== Environmentクラスに必要なオブジェクトを登録する
+        $this->env->register('config', 'Seaf\Config\Config');
 
-        /* Load Config File */
+        //== Environmentクラスに必要なメソッドを登録する 
 
-        $this->getConfig( )
-            ->setFileLoader( $this->getFileLoader() )
-            ->loadPHPFile( self::$configPath );
 
-        /* get/set to config */
-        $this->map('get', array($this->getConfig(),'getConfig'));
-        $this->map('set', array($this->getConfig(),'setConfig'));
+        //== ビルトインのエクステンションを仕込む
+        $this->env->addExtension('web','Seaf\Net\WebExtension');
+        $this->env->addExtension('err','Seaf\Util\ErrorExtension');
+        $this->env->addExtension('mail','Seaf\Mail\MailExtension');
 
-        /* set configs */
-        $this->set('app.root', $root_path);
-        $this->set('app.env', $env);
+        //== 環境にメソッドを追加する
+        
+        // コンフィグへのアクセス
+        $this->env->bind(
+            array(
+                'get' => 'getConfig',
+                'set' => 'setConfig'
+            ), $this->env->getComponent('config')
+        );
+
+        // 環境へのアクセス設定
+        $this->env->bind(
+            array(
+                'report'        => 'report' // 現在の状態を報告する
+                ,'useExtension' => 'useExtension' // エクステンションを使用する
+                ,'register'     => 'register'
+                ,'mapMethod'    => 'mapMethod'
+                ,'hasMethod'    => 'hasMethod'
+                ,'hasComponent' => 'hasComponent'
+                ,'getComponent' => 'getComponent'
+                ,'addHook'      => 'addHook'
+            ), $this->env
+        );
+
+        // ベースへのアクセス設定
+        $this->env->bind(
+            array(
+                'after' => function($method, $function){
+                    $this->addHook( $method.'.after', $function );
+                },
+                'before' => function($method, $function){
+                    $this->addHook( $method.'.before', $function );
+                }
+            )
+        );
+
+        /* 設定を登録する */
         $this->set('view.path', '{{app.root}}/views');
         $this->set('tmp.path', '{{app.root}}/tmp');
         $this->set('cache.path', '{{tmp.path}}/cache');
 
+        // 自分を取得させるメソッド
+        $this->env->mapMethod('getBase', function() {
+            return $this;
+        });
 
-        /* builtin extensions */
-        $this->exten('web','Seaf\Net\WebExtension');
-        $this->exten('err', 'Seaf\Util\ErrorExtension');
-        $this->exten('mail', 'Seaf\Mail\MailExtension');
+        // 間に合わせ処理
+        $this->env->mapMethod('debug', function($log) {
+            vprintf( $log, array_slice(func_get_args(),1));
+        });
+        // レポートをつぶす
+        //$this->env->mapMethod('report', function() {
+         //   vprintf( $log, array_slice(func_get_args(),1));
+        //});
+        $this->env->mapMethod('stop', function($body) {
+            exit($body);
 
-        /* Error Handler */
-        $this->enable('err');
-
+            echo $body;
+            // For PHP UNIT
+            if( ob_get_length() == 0 ) ob_start();
+        });
         $this->isInitialized = true;
     }
 
     /**
-     * Set Action To Environment
-     *
-     * @param string $action_name
-     * @param mixed $func callback
-     */
-    public function action( $action_name, $func ) 
-    {
-        $this->env->action('set', $action_name, $func );
-    }
-
-    /**
-     * Set Action's Filter
-     *
-     * @param strint $filter_type
-     * @param string $action_name
-     * @param mixed $func callback
-     */
-    public function filter( $filter_type, $action_name, $func ) 
-    {
-        $this->env->filter('add', $filter_type, $action_name, $func );
-    }
-
-    /**
-     * Short Hand To Set Action's Befor Filter
-     *
-     * @param string $action_name
-     * @param mixed $func callback
-     */
-    public function before( $action_name, $func )
-    {
-        $this->filter( 'before', $action_name, $func );
-    }
-
-    /**
-     * Short Hand To Set Action's After Filter
-     *
-     * @param string $action_name
-     * @param mixed $func callback
-     */
-    public function after( $action_name, $func )
-    {
-        $this->filter( 'after', $action_name, $func );
-    }
-
-    public function register( $name, $context, $params = array(), $func = null)
-    {
-        $this->env->factory(
-            'register', $name, $context, $params, $func
-        );
-    }
-    public function comp( $name )
-    {
-        return $this->env->component('get', $name);
-    }
-    public function map( $name, $func )
-    {
-        return $this->env->map($name, $func);
-    }
-    
-    public function act( $name )
-    {
-        $args = func_get_args();
-        array_shift($args);
-
-        if( is_callable($this->env->action('get', $name)) )
-        {
-            return $this->env->run( $name, $args );
-        }
-
-        throw new Exception(
-            'invalid Action '. $name
-        );
-    }
-
-    /**
-     * @param string 
-     * @param string
-     */
-    public function exten( $prefix, $class = null)
-    {
-        if( $class === null ) 
-        {
-            return $this->env->component('get','ext'.$prefix);
-        }
-        $self = $this;
-        $this->env->factory(
-            'register', 
-            'ext'.$prefix, 
-            $class, 
-            array(),
-            function($instance) use ($prefix, &$self) {
-                $instance->exten( $prefix, $self );
-                return $instance;
-            }
-        );
-    }
-
-    /**
-     * @param string 
-     * @param string
-     */
-    public function enable( $prefix )
-    {
-        return $extension = $this->env->component('get','ext'.$prefix);
-    }
-
-    public function env( )
-    {
-        return $this->env;
-    }
-
-
-    /**
-     * Provids How To Access Environment
+     * 動的なメソッドを取り扱う
      *
      * @param string $called_name
      * @param array $called_params
      */
     public function __call( $called_name, $called_params )
     {
+        if( $this->env->hasMethod( $called_name ) )
+        {
+            // ディスパッチされる事を通知したい。
+            return $this->env->run( $called_name, $called_params );
+            return DispatchHelper::dispatch(
+                $this->env->getMethod( $called_name ), $called_params
+            );
+        }
+
+        if( $this->env->hasComponent( $called_name ) )
+        {
+            return $this->env->getComponent( $called_name );
+        }
+
+        throw new Exception(
+            '%sは登録されていません。',
+            $called_name);
+        /*
+
         if( is_callable($this->env->getMethod( $called_name)) )
         {
             return call_user_func_array(
@@ -236,14 +178,11 @@ class Base
             );
         }
 
-        /* get component */
         if( $this->env->component('has', $called_name) )
         {
             return $this->env->component('get', $called_name);
         }
+         */
 
-        throw new Exception(
-            'invalid method, components or Helper '. $called_name
-        );
     }
 }

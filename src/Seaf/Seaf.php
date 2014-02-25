@@ -4,37 +4,49 @@
 /**
  * Seaf: Simple Easy Acceptable micro-framework.
  *
- * Main Class Of Seaf
+ * Seafのメインになるクラスを定義する
  *
  * @author HAjime MATSUMOTO <mail@hazime.org>
- * @copyright Copyright (c) 2014, Hajime MATSUMOTO <mail@hazime.org>
- * @license   MIT, http://mail@hazime.org
+ * @copyright Copyright (c) 2014, Seaf
+ * @license   MIT, http://seaf.hazime.org
  */
 
 namespace Seaf;
 
 use Seaf\Core\Base;
+use Seaf\util\DispatchHelper;
 
 
+/**
+ * Seafメインクラス
+ *
+ * スタティックな呼び出しだけ可能
+ * 内部的にはSeaf\Baseインスタンスを持ち
+ * __callStaticを使用して処理を委譲している
+ */
 class Seaf
 {
+    /**
+     * リリース状態を判定するフラグ
+     */
     const ENV_DEVELOPMENT='development';
     const ENV_PRODUCTION='production';
 
     /**
-     * Singleton Instance
+     * シングルトンインスタンス
      * @var object
      */
     static private $instance;
 
     /**
-     * Seaf::Base
+     * Seaf\Baseオブジェクト
      * @var object
      */
     private $base;
 
     /**
-     * construct for singleton
+     * 外部から呼び出さない用にコンストラクタは
+     * privateにする
      */
     private function __construct() 
     {
@@ -42,17 +54,21 @@ class Seaf
     }
 
     /**
-     * Get Singleton Instance
+     * シングルトンインスタンスを取得する
+     *
+     * @return object
      */
     static public function getInstance () 
     {
         if (self::$instance) return self::$instance;
+
         self::$instance = new Seaf();
         return self::$instance;
     }
 
     /**
-     * When It Is Called, Delegated Call To $base 
+     * それ以外の呼び出しはBaseクラスに委譲する。
+     * 委譲の方法はディスパッチャが管理する。
      *
      * @param name  $name 
      * @param array  $params params
@@ -61,6 +77,6 @@ class Seaf
     static public function __callStatic($name, array $params = array()) 
     {
         $seaf = self::getInstance();
-        return call_user_func_array(array($seaf->base, $name), $params);
+        return DispatchHelper::dispatch( array($seaf->base, $name), $params );
     }
 }

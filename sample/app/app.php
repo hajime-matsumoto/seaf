@@ -26,7 +26,7 @@ class App extends WebApp
     /**
      * Initialize
      */
-    public function init( )
+    public function initWebApp( )
     {
         /*----------  Twig ---------------*/
         $loader = new Twig_Loader_Filesystem($this->get('view.path'));
@@ -43,7 +43,7 @@ class App extends WebApp
     /**
      * 出力前の調整フィルター
      *
-     * @after start
+     * @hook webStop before
      */
     public function changePathFilter( $params, &$output )
     {
@@ -85,7 +85,11 @@ class App extends WebApp
      */
     public function sendMail( )
     {
-        $mail = $this->exten('mail');
+        $this->useExtension('mail');
+
+        $this->report();
+
+        $mail = $this->useExtension('mail');
         $query = $this->request->body;
         $params = array();
 
@@ -108,6 +112,8 @@ class App extends WebApp
             'コンタクトありがとうございます。',
             $this->twig->render('mail/mail.twig', $params)
         );
+
+        $this->debug('メールを送信しました');
     }
 
 }

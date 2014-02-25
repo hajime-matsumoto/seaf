@@ -37,7 +37,10 @@ class WebApp extends Base
     {
         parent::__construct( );
 
-        $this->_init( $root, $env);
+        $this->set('app.root', $root);
+        $this->set('app.env', $env);
+
+        $this->init();
     }
 
     /**
@@ -51,22 +54,19 @@ class WebApp extends Base
     /**
      * Web初期化処理
      */
-    public function init( )
+    public function initWebApp( )
     {
     }
 
-    private function _init( $root, $env )
+    private function init( )
     {
-        parent::init( $root, $env);
-
         // web機能を有効にする
-        $this->enable('web');
-        $this->web  = $this->exten('web');
-        $this->request = $this->web->request;
-        $this->response = $this->web->response;
+        $this->useExtension('web');
 
-        // 初期化処理
-        $this->init();
+        // メンバ変数に主要なオブジェクトを登録
+        $this->request  = $this->web()->request;
+        $this->response = $this->web()->response;
+        $this->router   = $this->web()->router;
 
         // アノテーションを取得
         $annotations = AnnotationHelper::getMethodsAnnotation( $this );
@@ -74,13 +74,12 @@ class WebApp extends Base
         // アノテーションへの処理
         array_walk( $annotations, function( $anot, $method ) {
 
-            // @afterがあればフィルタに登録する
-            if( array_key_exists('after',$anot) ) {
-                $this->web->after( $anot['after'], array($this,$method ));
-            }
-            // @beforeがあればフィルタに登録する
-            if( array_key_exists('before',$anot) ) {
-                $this->web->before( $anot['before'], array($this,$method ));
+            // @hookがあればフィルタに登録する
+            if( array_key_exists('hook',$anot) ) {
+                if( preg_match("/\s*([^\s]*)\s*([^\s]*)/", $anot['hook'], $m) )
+                {
+                    $this->web()->addHook($m[1].'.'.$m[2], array($this,$method));
+                }
             }
             // @routeがあればルーティングする
             if( array_key_exists('route',$anot) ) {
@@ -89,9 +88,11 @@ class WebApp extends Base
                 }else{
                     $pattern = $anot['route'];
                 }
-                $this->web->route( $pattern, array($this,$method) );
+                $this->web()->route( $pattern, array($this,$method) );
             }
         });
+
+        $this->initWebApp();
     }
 
 }
