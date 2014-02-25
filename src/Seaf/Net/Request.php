@@ -113,6 +113,8 @@ class Request
 				$this->url_base = dirname($script);
 			}
 		}
+
+		if( $this->url_base == "/" )  return false;
 		return $this->url_base;
 	}
 
@@ -126,11 +128,12 @@ class Request
 			$this->url = ArrayHelper::get( $this->SERVER, 'REQUEST_URI', '/');
 		}
 
-		if( strpos( $this->url, $this->getBase() ) === 0 )
+		if($this->getBase() && strpos( $this->url, $this->getBase() ) === 0 )
 		{
 			$this->url = substr($this->url, strlen($this->getBase()) );
 		}
 
+		if( !$this->url) return "/";
 		return $this->url;
 	}
 
@@ -146,6 +149,6 @@ class Request
 		{
 			return $this->params['_method'];
 		}
-		return ArrayHelper::get('REQUEST_METHOD', 'GET');
+		return ArrayHelper::get($this->SERVER,'REQUEST_METHOD', 'GET');
 	}
 }

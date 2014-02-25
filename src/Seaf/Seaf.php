@@ -18,6 +18,9 @@ use Seaf\Core\Base;
 
 class Seaf
 {
+    const ENV_DEVELOPMENT='development';
+    const ENV_PRODUCTION='production';
+
     /**
      * Singleton Instance
      * @var object
@@ -29,18 +32,13 @@ class Seaf
      * @var object
      */
     private $base;
-    
+
     /**
-     * When It Is Called, Delegated Call To $base 
-     *
-     * @param name  $name 
-     * @param array  $params params
-     * @return mixed
+     * construct for singleton
      */
-    static public function __callStatic($name, array $params = array()) 
+    private function __construct() 
     {
-        $seaf = self::getInstance();
-        return call_user_func_array(array($seaf->base, $name), $params);
+        $this->base = new Base();
     }
 
     /**
@@ -54,10 +52,15 @@ class Seaf
     }
 
     /**
-     * construct for singleton
+     * When It Is Called, Delegated Call To $base 
+     *
+     * @param name  $name 
+     * @param array  $params params
+     * @return mixed
      */
-    private function __construct() 
+    static public function __callStatic($name, array $params = array()) 
     {
-        $this->base = new Base();
+        $seaf = self::getInstance();
+        return call_user_func_array(array($seaf->base, $name), $params);
     }
 }
