@@ -1,16 +1,117 @@
-* Make Simple Eash Acceptable Frame Work
+# Seafとは
 
-* setup
-curl -s http://getcomposer.org/installer | php
-php composer.phar install
+日本国産で大規模から小規模の仕事、
+遊びにも使いやすく、学習コストの低い
+フレームワークです。
+
+と、堂々と言えるプロジェクトを目指しています。
+
+# 特徴
+
+* 国産フレームワーク例外メッセージからソースコード内のコメントまで日本語です。
+* 開発業務で実際に使用予定です。
+* 一緒に開発しながら使ってもらえればサポートします。
+
+# 品質目標
+
+* 自由なスタイルで使用できる（MVC風, Sinatra風, など)
+* 他ライブラリと安全に組み合わせられる ( Monolog, Twig, など)
+
+# フレームワークのイメージ
+
+世に言う、マイクロフレームワークの概念ですが、
+その思想のままに大規模開発へも対応出来るようにしてゆきます。
+
+# 設計指針
+
+* フレームワークにしばられない！
+使用者は作成者の思いがけない使い方をする可能性があり、
+それが使用者および作成者の発見、技術向上につながるので、
+使われ方を考えるより単体での機能を単純にして、自由に組み合わせてつかえるようにする。
+
+* 学習コストは最小に。
+いらないメソッド、プロパティは増やさない。
+ソースコードレビューで常に、なにを削除できるか考える。
+
+* 自由度の代償は払わない
+自由に組み合わせた結果、トラック不能なエラーを起さない為に、現在の状態、例外処理時の情報収集を徹底し、わかりやすい形で伝える。
+
+* 優秀なライブラリを安全に取り込む
+ライブラリはどんどん使用してゆくが、そのライブラリがいつまで使えるか、
+致命的な問題があった時にとりかえなければならなくなる。
+その時には影響範囲が明確にできること、取り換え後のテストが単体で行えること、
+運用時に影響が出ていないかを監視できること、それらを実現する手順を用意する。
+
+# 機能
+
+## メソッドはほとんど上書き可能
+	Seaf::addMethod($メソッド名, $コールバック)
+	Seaf::メソッド名()
+
+## クラスの登録と使用
+	Seaf::register( $名前, $クラス名, $インスタンス作成時のコールバック )
+
+	取り出し方 | インスタンスは常に同じものが返ります
+	Seaf::名前() or Seaf::getComponent(名前)
+
+## メソッドとクラスの登録のカプセル化
+カプセル化した物をエクステンションと呼ぶ。
+これはSeaf\Core\Extensionを継承し、DocCommentに@component 名前 クラス名
+@bind メソッド名とする事で
+Seaf::getComponent(プレフィックス付名前) 
+Seaf::プレフィックス付メソッド名()
+で呼び出せるようになる
+
+	/**
+	 * @component request Seaf\Net\Request
+	 */
+	class エクステンション extends Seaf\Core\Extention
+	{
+		/**
+		 * @bind メソッド名
+		 */
+		 public function なんでも( ) 
+		 {
+	--
+	Seaf::addExtension('プレフィックス', 'クラス名')
+	
+	Seaf::useExtension('プレフィックス') # ここでSeafが拡張される
+
+	Seaf::getComponent('プレフィックス+エクステンション') 
+	Seaf::プレフィックスメソッド名()
+
+## 解析
+	Seaf::report() # 現在登録されているメソッド、エクステンションなどの情報が出力される
+	
+# 開発中のエクステンション
+* config
+* web 
+ - ルーティングハンドリング
+ - リクエストハンドリング
+ - レスポンスハンドリング
+* err
 
 
-* コンセプト
-Frameworkを作る為のFramework = Seaf!
+# インストール
 
-* VIM
-vim -u etc/vimrc 
+## composer
+	$ curl -s http://getcomposer.org/installer | php
+	$ php composer.phar install
+	# composer.jsonに追加
+	{
+	  "require": {
+		"hajime-matsumoto/seaf",
+	  },
+	}
 
-    dir/etc
-        etc/vimrc # プロジェクト用のVIM
-        etc/snippets # プロジェクト用のsnippets
+	<?php
+	require_once '/path/to/vendor/autoload.php';
+	use Seaf\Seaf;
+
+	Seaf::report();
+	
+	Seafの動作状況がダンプされれば成功
+
+## 開発メンバー
+募集中です。東京近郊であれば、会ってミーティングできます。
+

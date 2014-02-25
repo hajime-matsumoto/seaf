@@ -1,105 +1,162 @@
 <?php
+/* vim: set expandtab ts=4 sw=4 sts=4: */
+
+/**
+ * Seaf: Simple Easy Acceptable micro-framework.
+ *
+ * ウェブエクステンションクラス定義
+ *
+ * @author HAjime MATSUMOTO <mail@hazime.org>
+ * @copyright Copyright (c) 2014, Seaf
+ * @license   MIT, http://seaf.hazime.org
+ */
 
 namespace Seaf\Net;
 
 use Seaf\Core\Extension;
 use Seaf\Core\Base;
 
+/**
+ * WEBエクステンションクラス
+ *
+ * レジストされるコンポーネント
+ *
+ * @component request Seaf\Net\Request
+ * @component response Seaf\Net\Response
+ * @component router Seaf\Net\Router
+ */
 class WebExtension extends Extension
 {
-	public function init( $prefix, $base )
-	{
-		$this->register('request' , 'Seaf\Net\Request');
-		$this->register('response', 'Seaf\Net\Response');
-		$this->register('router'  , 'Seaf\Net\Router');
-	}
+    /**
+     * エクステンションを初期化する
+     */
+    public function initExtension( )
+    {
+    }
 
-	public function actionRoute( $route, $func = null )
-	{
-		if( $func == null && is_array($route) )
-		{
-			foreach( $route as $k => $v )
-			{
-				$this->actionRoute( $k, $v );
-			}
-		}
-		else
-		{
-			$this->comp('router')->map($route, $func);
-		}
-	}
+    /**
+     * URLパターンを登録する。
+     *
+     * @param string $pattern
+     * @param callback $pattern
+     * @bind route
+     * @usePrefix false
+     */
+    public function actionRoute( $pattern, $func = null )
+    {
+        if( $func == null && is_array($route) )
+        {
+            foreach( $route as $k => $v )
+            {
+                $this->actionRoute( $k, $v );
+            }
+        }
+        else
+        {
+            $this->router->map($pattern, $func);
+        }
+    }
 
-	public function actionMap( $patterm, $func )
-	{
-		$this->comp('router')->map( $patterm, $func );
-	}
+    public function actionMap( $patterm, $func )
+    {
+        $this->comp('router')->map( $patterm, $func );
+    }
 
-	public function actionStart( )
-	{
-		$dispatched = false;
-		$self   = $this;
-		$req    = $this->request;
-		$res    = $this->response;
-		$router = $this->router;
 
-		if( ob_get_length() > 0 )
-		{
-			$res->write(ob_get_clean());
-		}
+    /**
+     * Webフレームワークをスタートする
+     *
+     * @bind start
+     * @usePrefix false
+     */
+    public function actionStart( )
+    {
+        $dispatched = false;
+        $req    = $this->request;
+        $res    = $this->response;
+        $router = $this->router;
 
-		ob_start();
+        if( ob_get_length() > 0 )
+        {
+            $res->write(ob_get_clean());
+        }
 
-		$this->after('start', function() use ($self) {
-			$self->act('stop');
-		});
+        ob_start();
 
-		// Route the request
-		while ($route = $router->route($req)) 
-		{
-			$params = array_values($route->params);
-			array_push($params, $route);
+        $this->after('start', function() {
+            $this->stop();
+        });
 
-			$continue = call_user_func_array(
-				$route->callback,
-				$params
-			);
+        // Route the request
+        while ($route = $router->route($req)) 
+        {
+            $params = array_values($route->params);
+            array_push($params, $route);
 
-			$dispatched = true;
+            $continue = call_user_func_array(
+                $route->callback,
+                $params
+            );
 
-			if (!$continue) break;
+            $dispatched = true;
 
-			$router->next();
-		}
+            if (!$continue) break;
 
-		if (!$dispatched) {
-			$this->act('notFound');
-		}
-	}
+            $router->next();
+        }
 
-	public function actionStop( $code = 200 )
-	{
-		$this->response
-			->status( $code )
-			->write( ob_get_clean() )
-			->send( );
-	}
+        if (!$dispatched) {
+            $this->act('notFound');
+        }
+    }
 
-	public function actionNotFound( )
-	{
-		$this->response
-			->status(404)
-			->write(
-				'<h1>404 Not Found</h1>'.
-				'<section style="padding:10px">URL:'.$this->request->url.'</section>'
-				.str_repeat(' ', 512)
-			)->send();
-	}
+    /**
+     * Web処理を終了する
+     *
+     * @bind stop
+     * @usePrefix false
+     */
+    public function actionStop( $code = 200 )
+    {
+        // for phpunit issu
+        if( ob_get_length() == 0 )
+        {
+            ob_start();
+        }
+        $this->response
+            ->status( $code )
+            ->write( ob_get_clean() )
+            ->send( );
+    }
 
-	public function actionHalt( $message, $code = 200 )
-	{
-		$this->response
-			->status( $code )
-			->write( $message )
-			->send( );
-	}
+    /**
+     * 404表示をする
+     *
+     * @bind notFound
+     * @usePrefix false
+     */
+    public function actionNotFound( )
+    {
+        $this->response
+            ->status(404)
+            ->write(
+                '<h1>404 Not Found</h1>'.
+                '<section style="padding:10px">URL:'.$this->request->url.'</section>'
+                .str_repeat(' ', 512)
+            )->send();
+    }
+
+    /**
+     * 強制終了
+     *
+     * @bind notFound
+     * @usePrefix false
+     */
+    public function actionHalt( $message, $code = 200 )
+    {
+        $this->response
+            ->status( $code )
+            ->write( $message )
+            ->send( );
+    }
 }
