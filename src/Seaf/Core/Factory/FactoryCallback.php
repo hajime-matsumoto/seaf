@@ -13,10 +13,12 @@
 
 namespace Seaf\Core\Factory;
 
+use Seaf\Util\DispatchHelper;
+
 /**
  * コールバックのファクトリクラス
  */
-class FactoryClassName extends Factory
+class FactoryCallback extends Factory
 {
     /**
      * インスタンスを生成する

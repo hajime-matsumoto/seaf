@@ -139,7 +139,7 @@ abstract class Extension
         // 例： stop webStopが登録されていたとして、自分のエクステンション
         // プレフィックスがwebであれば、$this->stop としても$this->webStop
         // が呼ばれる。stopが使いたければ$this->base->stopとして実行する。
-        elseif( is_callable( array($this->base, $this->prefix($name)) ) )
+        elseif( $this->base->hasMethod( $this->prefix($name))  )
         {
             $name = $this->prefix($name);
         }

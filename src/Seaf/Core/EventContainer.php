@@ -42,7 +42,7 @@ class EventContainer extends Container
      */
     public function addHook( $name, $callback = null )
     {
-        $this->hookContainer->store( $name, $callback, $push = true );
+        $this->hookContainer->stack( $name, $callback );
     }
 
     /**
@@ -52,10 +52,43 @@ class EventContainer extends Container
     {
         if( $this->hookContainer->has( $name ) )
         {
-            foreach( $this->hookContainer->restoreMulti( $name ) as $event )
+            foreach( $this->hookContainer->restore( $name ) as $event )
             {
                 $continue = DispatchHelper::dispatch($event, $params);
             }
         }
     }
+
+    public function report()
+    {
+        printf("\n登録されているフック\n");
+        foreach( $this->hookContainer->getRef() as $k => $v ) {
+            $methods = array();
+            foreach( $v as $event ) {
+                if(is_array($event)) {
+                    list($class,$method) = $event;
+                    $func = new \ReflectionMethod(
+                        get_class($class), $method
+                    );
+                    $method = get_class($class).'::'.$func->getName();
+                    $method.= " in ";
+                    $method.= $func->getFileName();
+                    $method.= " line ";
+                    $method.= $func->getStartLine();
+                }else{
+                    $func = new \ReflectionFunction($event);
+                    $method = $func->getShortName();
+                    $method.= " in ";
+                    $method.= $func->getFileName();
+                    $method.= " line ";
+                    $method.= $func->getStartLine();
+                }
+                $methods[] = $method;
+            }
+        
+            printf("%s : %s\n", $k, implode($methods));
+        }
+    }
+
+
 }

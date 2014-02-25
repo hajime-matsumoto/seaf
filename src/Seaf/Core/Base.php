@@ -42,13 +42,13 @@ class Base
      */
     public function __construct( )
     {
-        $this->init( );
+        $this->initBase( );
     }
 
     /**
      * 初期化処理
      */
-    public function init(  )
+    public function initBase(  )
     {
         //== Environmentクラスのインスタンスを生成する
         $this->env = new Environment( $this );
@@ -81,6 +81,7 @@ class Base
                 ,'useExtension' => 'useExtension' // エクステンションを使用する
                 ,'register'     => 'register'
                 ,'mapMethod'    => 'mapMethod'
+                ,'hasMethod'    => 'hasMethod'
                 ,'hasComponent' => 'hasComponent'
                 ,'getComponent' => 'getComponent'
                 ,'addHook'      => 'addHook'
@@ -98,26 +99,32 @@ class Base
                 }
             )
         );
-        // 間に合わせ処理
-        $this->env->mapMethod('debug', function($log) {
-            vprintf( $log, array_slice(func_get_args(),1));
-        });
-        $this->env->mapMethod('stop', function($body) {
-            echo $body;
-            // For PHP UNIT
-            if( ob_get_length() == 0 ) ob_start();
-        });
-
-        // 自分を取得させるメソッド
-        $this->env->mapMethod('getBase', function() {
-            return $this;
-        });
 
         /* 設定を登録する */
         $this->set('view.path', '{{app.root}}/views');
         $this->set('tmp.path', '{{app.root}}/tmp');
         $this->set('cache.path', '{{tmp.path}}/cache');
 
+        // 自分を取得させるメソッド
+        $this->env->mapMethod('getBase', function() {
+            return $this;
+        });
+
+        // 間に合わせ処理
+        $this->env->mapMethod('debug', function($log) {
+            vprintf( $log, array_slice(func_get_args(),1));
+        });
+        // レポートをつぶす
+        //$this->env->mapMethod('report', function() {
+         //   vprintf( $log, array_slice(func_get_args(),1));
+        //});
+        $this->env->mapMethod('stop', function($body) {
+            exit($body);
+
+            echo $body;
+            // For PHP UNIT
+            if( ob_get_length() == 0 ) ob_start();
+        });
         $this->isInitialized = true;
     }
 
@@ -136,6 +143,11 @@ class Base
             return DispatchHelper::dispatch(
                 $this->env->getMethod( $called_name ), $called_params
             );
+        }
+
+        if( $this->env->hasComponent( $called_name ) )
+        {
+            return $this->env->getComponent( $called_name );
         }
 
         throw new Exception(

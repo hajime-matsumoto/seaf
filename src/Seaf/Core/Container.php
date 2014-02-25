@@ -26,6 +26,11 @@ class Container
     private $contents = array();
 
     /**
+     * スタックインデックス
+     */
+    private $stack_idx = array();
+
+    /**
      * 格納
      *
      * 第三引数が真なら配列として被った値を保持する
@@ -34,33 +39,49 @@ class Container
      * @param mixed $value
      * @param bool 
      */
-    public function store( $name, $value, $push = false )
+    public function store( $name, $value, $to_stack = false )
     {
-        if( !$this->has($name) || $push == false)
+        if( !$this->has($name) || $to_stack == false)
         {
             $this->contents[$name] = $value;
             return;
         }
 
-        $this->push( $name,$value);
+        $this->stack( $name,$value);
         return;
     }
 
     /**
-     * プッシュで格納
+     * スタックする
      *
      * @param string $name
      * @param mixed $value
      */
-    public function push( $name, $value )
+    public function stack( $name, $value )
     {
-        // 配列にする
-        if( !is_array($this->contents[$name]) )
+        // スタックが開始されていれば追記
+        if(isset($this->stack_idx[$name]))
         {
-            $this->contents[$name] = array($this->contents[$name]);
+            $this->stack_idx[$name]++;
+            array_push(
+                $this->contents[$name], 
+                $value 
+            );
+            return;
         }
 
-        array_push( $this->contents[$name], $value );
+        // スタックが開始されていなくて、もう値が存在する場合
+        if( !empty($this->contents[$name]) )
+        {
+            $this->stack_idx[$name] = 2;
+            $this->contents[$name] = array($this->contents[$name]);
+        }
+        else
+        {
+            $this->stack_idx[$name] = 1;
+            $this->contents[$name] = array( );
+        }
+        $this->contents[$name][] = $value;
     }
 
     /**
@@ -94,32 +115,6 @@ class Container
         }
 
         return $this->contents[$name];
-    }
-
-    /**
-     * 取得(配列)
-     *
-     * @param string $name
-     * @return array 
-     */
-    public function restoreMulti( $name )
-    {
-        if( !$this->has($name) )
-        {
-            throw new ContainerException(
-                sprintf(
-                    "%sは格納されていません。\n存在するキーは{%s}です。",
-                    $name,
-                    implode( ",", array_keys($this->contents))
-                )
-            );
-        }
-
-        $data =  $this->contents[$name];
-        if(!is_array($data)) {
-            return array($data);
-        }
-        return $data;
     }
 
     /**

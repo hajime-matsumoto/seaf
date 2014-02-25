@@ -199,6 +199,7 @@ class Environment
         $cc = $this->compContainer;
         $ec = $this->extensionContainer;
         $mc = $this->methodContainer;
+        $evc = $this->eventContainer;
 
         printf("\n=== コンポーネント ===\n");
         $cc->report();
@@ -216,6 +217,8 @@ class Environment
             }
             printf("%s : %s\n", $k, $method);
         }
+        printf("\n=== イベント === \n");
+        $evc->report();
 
     }
 
