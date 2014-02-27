@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang='ja'>
+  <head>
+    <title>水井真希公式ホームページ | Maki Mizui Official Site</title>
+    <meta charset='utf-8'>
+    <meta content='width=device-width, initial-scale=1.0' name='viewport'>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+    <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <!--[if lt IE 9]>
+    <script src='/assets/scripts/html5shiv.js'></script>
+    <![endif]-->
+    <style>
+    .ui-menu { width: 200px}
+    </style>
+  </head>
+  <body>
+    <h1>
+      管理画面
+      <small><a href="/logout">ログアウト</a></small>
+    </h1>
+
+    <h2>ニュース更新</h2>
+
+    <form action="/update_news" method="post">
+    <div>
+    <textarea name="news" style="width:700px;height: 300px">{{news}}</textarea>
+    </div>
+    <div>
+    <button>保存</button>
+    </div>
+    </form>
+
+  </body>
+</head>
+</html>
