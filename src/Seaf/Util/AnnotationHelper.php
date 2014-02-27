@@ -9,6 +9,8 @@
 
 namespace Seaf\Util;
 
+use Seaf\Annotation\AnnotationClass;
+
 use ReflectionMethod;
 use ReflectionClass;
 
@@ -17,6 +19,22 @@ use ReflectionClass;
  */
 class AnnotationHelper
 {
+    static $annotation_cache = array();
+
+    public static function get( $class )
+    {
+        if(is_object($class))
+        {
+            $class = get_class($class);
+        }
+        if(isset($annotation_cacne[$class]))
+        {
+            return $annotation_cacne[$class];
+        }
+        return $annotation_cacne[$class] = new AnnotationClass( $class );
+    }
+
+
     public static function getClassAnnotation( $class )
     {
         $class = new ReflectionClass( $class );
@@ -46,7 +64,7 @@ class AnnotationHelper
             if( !$isAnnotation ) continue;
 
             // @key[space]$valueのはず
-            list($key, $value) = explode(' ', substr($line,1), 2);
+            list($key, $value) = preg_split('/[\s]+/', substr($line,1), 2);
 
             // 同じkeyのアノテーションがあった時の対応
             if( isset($annotation[$key]) ) {

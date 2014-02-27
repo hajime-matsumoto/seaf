@@ -2,19 +2,17 @@
 
 namespace Seaf\Exception;
 
-use Seaf\Core\Exception\Exception as CoreException;
+use Exception as PHPException;
 
-class Exception extends CoreException
+class Exception extends PHPException
 {
-    public function __construct( )
+    public function __construct( $message )
     {
-        $args = func_get_args();
-        /*
-        ob_start();
-        \Seaf\Seaf::report();
-        $report = ob_get_clean();
-        array_push($args, $report);
-         */
-        call_user_func_array(array('parent','__construct'), $args);
+        if( func_num_args() > 0 )
+        {
+            $message = vsprintf( $message, array_slice( func_get_args(), 1 ) );
+        }
+
+        parent::__construct( $message );
     }
 }

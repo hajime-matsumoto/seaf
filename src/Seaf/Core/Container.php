@@ -127,4 +127,12 @@ class Container
         return $this->contents;
     }
 
+    /**
+     * 配列を返す
+     */
+    public function toArray( )
+    {
+        return $this->contents;
+    }
+
 }

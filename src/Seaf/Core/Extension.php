@@ -48,52 +48,16 @@ abstract class Extension
      */
     private $base;
 
-    public function init( $prefix, Base $base )
+
+    public function initializeExtension( $prefix, Environment $env )
     {
         // Environmentを保存
-        $this->base = $base;
+        $this->base = $env->get('base');
 
         $this->prefix = $prefix;
+
+        $this->base->set('ext.'.$prefix,$this);
         Seaf::debug('%sが初期化されました。', get_class($this));
-
-        $base->register( $prefix, function(){ return $this; } );
-
-        // クラスアノテーションを解析する
-        $anot =  AnnotationHelper::getClassAnnotation( $this );
-        if(array_key_exists('component', $anot)) 
-        {
-            $comps = $anot['component'];
-            if( !is_array($comps) ) $comps = array($comps);
-            foreach( $comps as $comp )
-            {
-                if( preg_match('/\s*([^\s]*)\s*([^\s]*)/', $comp, $m)) 
-                {
-                    $name = $m[1];
-                    $class = $m[2];
-                    $base->register( $this->prefix($name), $class );
-                }
-            }
-        }
-
-        // メソッドアノテーションを解析する
-        array_walk(
-            AnnotationHelper::getMethodsAnnotation( $this ),
-            function( $anot, $method ) use ($base) {
-                // バインド対象のメソッドを探す
-                if(array_key_exists('bind', $anot) && !empty($anot['bind'])) {
-                    $method_name = $anot['bind'];
-
-                    // @usePrefix が 文字列falseでない限り
-                    // プレフィックスを有効にする
-                    if( array_key_exists('usePrefix', $anot) && $anot !== 'false') {
-                        $method_name = $this->prefix($method_name);
-                    }
-                    $base->mapMethod( $method_name, array( $this, $method ) );
-                }
-            }
-        );
-
-        $this->initExtension( );
     }
 
     /**
@@ -102,9 +66,25 @@ abstract class Extension
      * @param string $name
      * @return string
      */
-    private function prefix($name)
+    protected function prefix($name)
     {
         return $this->prefix.ucfirst($name);
+    }
+
+    /**
+     * onをオーバーライド
+     */
+    public function on( $name, $func )
+    {
+        $this->base->on($this->prefix($name), $func);
+    }
+
+    /**
+     * triggerをオーバーライド
+     */
+    public function trigger( $name )
+    {
+        $this->base->trigger($this->prefix($name) );
     }
 
     /**
@@ -115,9 +95,9 @@ abstract class Extension
      */
     public function __get($name)
     {
-        if( $this->base->hasComponent($this->prefix($name)) )
+        if( $this->base->isRegistered($this->prefix($name)) )
         {
-            return $this->base->getComponent($this->prefix($name));
+            return $this->base->retrieve($this->prefix($name));
         }
 
         return $this->base->$name;
@@ -139,7 +119,7 @@ abstract class Extension
         // 例： stop webStopが登録されていたとして、自分のエクステンション
         // プレフィックスがwebであれば、$this->stop としても$this->webStop
         // が呼ばれる。stopが使いたければ$this->base->stopとして実行する。
-        elseif( $this->base->hasMethod( $this->prefix($name))  )
+        elseif( $this->base->isMaped( $this->prefix($name))  )
         {
             $name = $this->prefix($name);
         }
@@ -147,5 +127,5 @@ abstract class Extension
         return $this->base->__call($name, $params);
     }
 
-    abstract protected function initExtension();
+    //abstract protected function initExtension();
 }

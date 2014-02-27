@@ -1,52 +1,57 @@
 <?php
 namespace Seaf\Tests;
 
-use Seaf\Base;
+use Seaf\Core\Base;
 
 class BaseTest extends \PHPUnit_Framework_TestCase
 {
-	public function testDispatch() 
-	{
-		$base = new Base();
+    public function setup()
+    {
+        $this->base = new Base();
+    }
 
-		$base->before('helloWild',function(&$params, &$output){
-			$output = '<h1>';
-		});
-		$base->after('helloWild',function(&$params, &$output){
-			$output.= '</h1>';
-		});
+    public function testMapingMethod()
+    {
+        $base = $this->base;
 
-		$result = $base->helloWild('hajime');
+        $base->map('helloWorld', function(){
+            return 'Hello Wild';
+        });
 
+        $this->assertEquals('Hello Wild', $base->helloWorld());
+    }
 
-		$this->assertEquals('<h1>hello wild hajime</h1>', $result);
-	}
+    public function testRegistory()
+    {
+        $base = $this->base;
+        $base->set('name','seaf');
+        $this->assertEquals('seaf', $base->get('name')); 
+    }
 
-	public function testExtension()
-	{
-		$base = new Base();
-		$em = $base->extension();
-		$this->assertInstanceOf('Seaf\Extension\ExtensionManager', $em);
+    public function testExtensions()
+    {
+        $base = $this->base;
+        $base->useExtension('err');
+        $self = $this;
+        $cnt = 0;
+        $base->setErrorHandler(function()use(&$cnt){
+            $cnt++;
+        });
+        ob_start();
+        echo AAA;
+        echo AAA;
+        echo AAA;
+        echo AAA;
+        ob_end_clean();
+        $this->assertEquals(4, $cnt);
+    }
 
-		// Register Test EXT
-		$base->extension()->register('test', 'Seaf\Extension\TestExtension');
-		// Enable Test Extension
-		$base->extension()->enable('test');
+    public function testReports()
+    {
+        $base = $this->base;
+        $base->useDebugMode();
 
-		$base->init();
-		$base->extension(); // Extensionを有効にする
-		$base->exten('test', 'Seaf\Extension\TestExtension');
-		$base->enable('test'); // Test Extensionを有効にする
-
-
-		$base->echoHelloWorld();
-		$this->assertEquals("Hello World", $base->retHelloWorld());
-
-		// filter test
-		$base->after('retHelloWorld', function($params, &$output) {
-			$output.='!!';
-		});
-
-		$this->assertEquals("Hello World!!", $base->retHelloWorld());
-	}
+        $dump = $base->dump();
+        $this->assertTrue(is_array($dump['methods']));
+    }
 }

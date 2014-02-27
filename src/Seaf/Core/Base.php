@@ -1,6 +1,4 @@
 <?php
-/* vim: set expandtab ts=4 sw=4 sts=4: */
-
 /**
  * Seaf: Simple Easy Acceptable micro-framework.
  *
@@ -14,6 +12,8 @@ namespace Seaf\Core;
 
 use Seaf\Exception\Exception;
 use Seaf\Util\DispatchHelper;
+use Seaf\Config\Config;
+use Seaf\Exception\InvalidCall;
 
 /**
  * ベースクラス
@@ -23,7 +23,100 @@ use Seaf\Util\DispatchHelper;
  *
  * 全ての機能はこのクラスを通してアクセスされる。
  */
-class Base 
+class Base
+{
+    /**
+     * Environment
+     * @var object 
+     */
+    private $env;
+
+    /**
+     * コンストラクタ
+     */
+    public function __construct( )
+    {
+        $this->initializeBase();
+    }
+
+    /**
+     * 初期化処理
+     */
+    public function initializeBase()
+    {
+        // ------------------------------------
+        // Environmentの設定
+        $this->env = new Environment( );
+        $env = $this->env;
+
+        // 自分を取得する
+        $env->set('base', $this);
+        // ------------------------------------
+
+        // ------------------------------------
+        // 透過的に呼び出せるメソッドを定義
+        $env->bind(
+            array(
+                'map',
+                'remap',
+                'isMaped',
+                'bind',
+                'register',
+                'isRegistered',
+                'retrieve',
+                'set',
+                'get',
+                'extend',
+                'addExtension',
+                'useExtension',
+                'trigger',
+                'on',
+                'off'
+            ), $env
+        );
+        // ------------------------------------
+
+        // ------------------------------------
+        // ビルトインのエクステンションを仕込む
+        $this->addExtension('err','Seaf\Util\ErrorExtension');
+        $this->addExtension('dev','Seaf\Core\DevExtension');
+        $this->addExtension('log','Seaf\Log\LogExtension');
+        $this->addExtension('web','Seaf\Net\WebExtension');
+        $this->addExtension('mail','Seaf\Mail\MailExtension');
+        // ------------------------------------
+    }
+
+    /**
+     * デバッグモードに切り替える
+     */
+    public function useDebugMode()
+    {
+        $this->useExtension('dev');
+        $this->set('debug.mode', true);
+    }
+
+
+    /**
+     * 定義されていないメソッドはEnvironmentに任せる
+     */
+    public function __call( $name, $params )
+    {
+        if(!$this->env->isMaped($name)){
+            throw new InvalidCall("%sは未定義の呼び出しです。", $name);
+        }
+        return $this->env->callArgs( $name, $params );
+    }
+
+}
+/**
+ * ベースクラス
+ *
+ * 機能を集合管理するEnvironmentへのアクセスを
+ * コントロールするクラス。
+ *
+ * 全ての機能はこのクラスを通してアクセスされる。
+ */
+class Base2
 {
     /**
      * Environment
@@ -186,3 +279,5 @@ class Base
 
     }
 }
+
+/* vim: set expandtab ts=4 sw=4 sts=4: */

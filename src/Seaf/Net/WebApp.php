@@ -63,34 +63,34 @@ class WebApp extends Base
         // web機能を有効にする
         $this->useExtension('web');
 
+        $web = $this->web = $this->get('ext.web');
+
         // メンバ変数に主要なオブジェクトを登録
-        $this->request  = $this->web()->request;
-        $this->response = $this->web()->response;
-        $this->router   = $this->web()->router;
+        $this->request  = $web->request;
+        $this->response = $web->response;
+        $this->router   = $web->router;
 
         // アノテーションを取得
-        $annotations = AnnotationHelper::getMethodsAnnotation( $this );
+        $anot = AnnotationHelper::get( $this );
 
-        // アノテーションへの処理
-        array_walk( $annotations, function( $anot, $method ) {
-
-            // @hookがあればフィルタに登録する
-            if( array_key_exists('hook',$anot) ) {
-                if( preg_match("/\s*([^\s]*)\s*([^\s]*)/", $anot['hook'], $m) )
+        foreach($anot->getMethodAnnotation() as $method=>$anot)
+        {
+            if( array_key_exists('SeafURL', $anot) )
+            {
+                if( array_key_exists('SeafMethod', $anot) )
                 {
-                    $this->web()->addHook($m[1].'.'.$m[2], array($this,$method));
+                    $anot['SeafURL'] = $anot['SeafMethod'].' '.$anot['SeafURL'];
                 }
+                $web->route($anot['SeafURL'], array($this,$method));
             }
-            // @routeがあればルーティングする
-            if( array_key_exists('route',$anot) ) {
-                if( array_key_exists('method',$anot) ) {
-                    $pattern = sprintf("%s %s",$anot['method'],$anot['route']);
-                }else{
-                    $pattern = $anot['route'];
-                }
-                $this->web()->route( $pattern, array($this,$method) );
+
+            if( array_key_exists('SeafHookOn', $anot) )
+            {
+                list( $target, $when ) = preg_split('/\s+/', $anot['SeafHookOn'], 2);
+                $web->on( $target.'.'.$when, array($this,$method));
             }
-        });
+        }
+
 
         $this->initWebApp();
     }

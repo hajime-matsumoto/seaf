@@ -14,6 +14,9 @@
 namespace Seaf\Util;
 
 use Seaf\Util\Exception\DispatchException;
+use ReflectionMethod;
+use ReflectionFunction;
+use ReflectionException;
 
 
 /**
@@ -43,5 +46,47 @@ class DispatchHelper
             }
         }
         return call_user_func_array( $function, $params );
+    }
+
+    /**
+     * メソッドをディスパッチする
+     */
+    public static function invokeMethodArgs( $class, $method, $params)
+    {
+        try
+        {
+            $function = new ReflectionMethod( $class, $method );
+        }
+        catch( ReflectionException $e )
+        {
+            throw new DispatchException(
+                "%sの%sというメソッドが呼び出せません。\n %s", get_class($class), $method, (string) $e
+            );
+        }
+        return $function->invokeArgs( $class, $params );
+    }
+
+    /**
+     * 関数をディスパッチする
+     */
+    public static function invokeArgs( $function, $params)
+    {
+        if( is_array($function) )
+        {
+            list( $class, $method ) = $function;
+            return self::invokeMethodArgs( $class, $method, $params );
+        }
+
+        try
+        {
+            $function = new ReflectionFunction( $function );
+            return $function->invokeArgs(  $params );
+        }
+        catch( ReflectionException $e )
+        {
+            throw new DispatchException(
+                "%sというメソッドが呼び出せません。", $function
+            );
+        }
     }
 }

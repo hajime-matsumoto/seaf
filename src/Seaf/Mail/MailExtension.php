@@ -26,7 +26,7 @@ class MailExtension extends Extension
     }
 
     /**
-     * @bind sendTo
+     * @SeafBind sendTo
      */
     public function mapSendTo( $to, $subject, $body,  $from,  $headers = array())
     {

@@ -15,6 +15,7 @@ namespace Seaf\Net;
 
 use Seaf\Core\Extension;
 use Seaf\Core\Base;
+use Seaf\Util\DispatchHelper;
 
 /**
  * WEBエクステンションクラス
@@ -30,8 +31,22 @@ class WebExtension extends Extension
     /**
      * エクステンションを初期化する
      */
-    public function initExtension( )
+    public function initializeExtension( $prefix, $env )
     {
+        parent::initializeExtension( $prefix, $env);
+
+        $base = $env->get('base');
+
+        // 基本的なオブジェクトを登録する
+        $base->register(
+            $this->prefix("router"), 'Seaf\Router\Router'
+        );
+        $base->register(
+            $this->prefix("request"), 'Seaf\Request\Request'
+        );
+        $base->register(
+            $this->prefix("response"), 'Seaf\Net\Response'
+        );
     }
 
     /**
@@ -39,8 +54,7 @@ class WebExtension extends Extension
      *
      * @param string $pattern
      * @param callback $pattern
-     * @bind route
-     * @usePrefix false
+     * @SeafBind route
      */
     public function actionRoute( $pattern, $func = null )
     {
@@ -57,17 +71,11 @@ class WebExtension extends Extension
         }
     }
 
-    public function actionMap( $patterm, $func )
-    {
-        $this->comp('router')->map( $patterm, $func );
-    }
-
 
     /**
      * Webフレームワークをスタートする
      *
-     * @bind start
-     * @usePrefix false
+     * @SeafBind start
      */
     public function actionStart( )
     {
@@ -75,6 +83,10 @@ class WebExtension extends Extension
         $req    = $this->request;
         $res    = $this->response;
         $router = $this->router;
+        $self = $this;
+
+        // ルータを巻き戻す
+        $router->reset();
 
         if( ob_get_length() > 0 )
         {
@@ -83,9 +95,11 @@ class WebExtension extends Extension
 
         ob_start();
 
-        $this->after('start', function() {
-            $this->stop();
+        $this->on('start.after', function() use ($self){
+            $self->stop();
         });
+
+        $this->trigger('start.before');
 
         // Route the request
         while ($route = $router->route($req)) 
@@ -93,7 +107,7 @@ class WebExtension extends Extension
             $params = array_values($route->params);
             array_push($params, $route);
 
-            $continue = call_user_func_array(
+            $continue = DispatchHelper::invokeArgs(
                 $route->callback,
                 $params
             );
@@ -106,23 +120,21 @@ class WebExtension extends Extension
         }
 
         if (!$dispatched) {
-            $this->act('notFound');
+            $this->notFound();
         }
+
+        $this->trigger('start.after');
     }
 
     /**
      * Web処理を終了する
      *
-     * @bind stop
-     * @usePrefix false
+     * @SeafBind stop
      */
     public function actionStop( $code = 200 )
     {
-        // for phpunit issu
-        if( ob_get_length() == 0 )
-        {
-            ob_start();
-        }
+        $this->trigger('stop.before');
+
         $this->response
             ->status( $code )
             ->write( ob_get_clean() )
@@ -132,8 +144,7 @@ class WebExtension extends Extension
     /**
      * 404表示をする
      *
-     * @bind notFound
-     * @usePrefix false
+     * @SeafBind notFound
      */
     public function actionNotFound( )
     {
@@ -149,8 +160,7 @@ class WebExtension extends Extension
     /**
      * 強制終了
      *
-     * @bind notFound
-     * @usePrefix false
+     * @SeafBind halt
      */
     public function actionHalt( $message, $code = 200 )
     {

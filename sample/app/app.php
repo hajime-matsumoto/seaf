@@ -29,8 +29,12 @@ class App extends WebApp
     public function initWebApp( )
     {
         /*----------  Twig ---------------*/
-        $loader = new Twig_Loader_Filesystem($this->get('view.path'));
-        $twig = new Twig_Environment($loader,array('cache'=>$this->get('cache.path')));
+        $loader = new Twig_Loader_Filesystem(
+            $this->get('app.root').'/views'
+        );
+        $twig = new Twig_Environment($loader,array(
+            'cache'=>$this->get('app.root').'/tmp/cache'
+        ));
 
         if( $this->get('app.env') != 'production') 
         {
@@ -43,9 +47,9 @@ class App extends WebApp
     /**
      * 出力前の調整フィルター
      *
-     * @hook webStop before
+     * @SeafHookOn stop before
      */
-    public function changePathFilter( $params, &$output )
+    public function changePathFilter( )
     {
         if( $this->request->base )
         {
@@ -59,8 +63,8 @@ class App extends WebApp
     /**
      * テンプレートのみページを出力
      *
-     * @route /@page:*
-     * @method POST|GET
+     * @SeafURL /@page:*
+     * @SeafMethod POST|GET
      */
     public function showPage( $page ) 
     {
@@ -80,16 +84,14 @@ class App extends WebApp
     /**
      * メール送信
      *
-     * @route /sendMail
-     * @method PUT
+     * @SeafURL /sendMail
+     * @SeafMethod PUT
      */
     public function sendMail( )
     {
         $this->useExtension('mail');
 
-        $this->report();
-
-        $mail = $this->useExtension('mail');
+        $mail = $this->get('ext.mail');
         $query = $this->request->body;
         $params = array();
 
@@ -114,6 +116,17 @@ class App extends WebApp
         );
 
         $this->debug('メールを送信しました');
+    }
+
+    /**
+     * 何もマッチしなかった場合
+     *
+     * @SeafURL *
+     */
+    public function notFound( )
+    {
+        $this->web->notFound();
+        return false;
     }
 
 }

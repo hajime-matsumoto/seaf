@@ -1,6 +1,4 @@
 <?php
-/* vim: set expandtab ts=4 sw=4 sts=4: */
-
 /**
  * Seaf: Simple Easy Acceptable micro-framework.
  *
@@ -13,385 +11,341 @@
 
 namespace Seaf\Core;
 
-use Seaf\Exception\Exception;
-use Seaf\Factory\Factory;
 use Seaf\Util\DispatchHelper;
+use Seaf\Util\AnnotationHelper;
+use Seaf\Exception\InvalidCall;
+use Seaf\Exception\MethodAlreadyExists;
 
 /**
  * Environmentクラス
  *
- * 全機能を保持するクラス
- *
- * - メソッドマッピング
- * - インスタンスコンテナ
+ * 1.メソッドを管理する
+ * 2.依存性を管理する
  */
 class Environment
 {
-    /**
-     * @var object
-     */
-    protected $base;
-
-    /**
-     * コンポーネントコンテナ
-     * @var object
-     */
-    private $compContainer;
-
-    /**
-     * エクステンション用のコンテナ
-     * @var object
-     */
-    private $extensionContainer;
-
-    /**
-     * メソッドコンテナ
-     * @var object
-     */
+    private $registory;
     private $methodContainer;
-
-    /**
-     * イベントコンテナ
-     * @var object
-     */
     private $eventContainer;
+    private $DIContainer;
 
     /**
      * コンストラクタ
      */
-    public function __construct( $base )
+    public function __construct()
     {
-        $this->base = $base;
-        $this->compContainer      = new ComponentContainer( );
-        $this->extensionContainer = new ComponentContainer( );
-        $this->methodContainer    = new Container( );
-        $this->eventContainer     = new EventContainer( );
+        $this->initializeEnvironment();
     }
 
     /**
-     * コンポーネントを登録する
-     *
-     * @param string
-     * @param mixed
-     * @param mixed
+     * 初期化
      */
-    public function register( $name, $context, $callback = null )
+    public function initializeEnvironment( )
     {
-        $this->compContainer->register( $name, $context, $callback );
-    }
+        //= レジストリの設定
+        $this->registory = new Container();
 
-    /**
-     * メソッドをバインドする
-     *
-     * @param array $list メソッドと関数名のマップ
-     * @param object $target バインドするオブジェクト
-     */
-    public function bind( $list, $target = null )
-    {
-        array_walk( $list, function( $function, $method ) use ($target){
+        //= メソッドの設定
+        $this->methodContainer = new MethodContainer( );
 
-            if( is_object($target) )
-            {
-                $function = array($target, $function);
-            }
-            $this->mapMethod( $method, $function);
+        // 未定義の呼び出しをハンドルするメソッドを登録する
+        $this->map('unDefinedCall',function( $name ){
+            throw new InvalidCall("%sは未定義の呼び出しです。", $name);
+        });
+
+        //= DIコンテナの設定
+        $this->DIContainer = new DIContainer( );
+
+        //= エクステンションコンテナの設定
+        $this->extensionContainer = new ExtensionContainer( );
+
+        //= イベントコンテナの設定
+        $this->eventContainer = new EventContainer( );
+
+        //= オーバーライド可能なメソッドを定義する
+        $logs = "";
+        $this->setByRef('logs', $logs);
+        $this->map('debug', function($message) use(&$logs) {
+            $logs[] = $message;
         });
     }
 
     /**
-     * コンポーネントを取得する
+     * レジストリセット
+     */
+    public function set( $name, $key )
+    {
+        $this->registory->store($name, $key);
+    }
+
+    /**
+     * レジストリを参照でセットする
+     */
+    public function setByRef( $name, &$value )
+    {
+        $this->registory->store($name, $value);
+    }
+
+    /**
+     * レジストリゲット
+     */
+    public function get( $name, $default = false )
+    {
+        if( $this->registory->has($name) )
+        {
+            return $this->registory->restore($name);
+        }
+        return $default;
+    }
+
+    /**
+     * メソッドをマップする(上書き禁止)
+     *
+     * @param string $name
+     * @param mixed $function
+     */
+    public function map( $name, $function )
+    {
+        if( $this->methodContainer->has($name) )
+        {
+            throw new MethodAlreadyExists("%sは既に定義されています。", $name);
+        }
+        $this->methodContainer->store( $name, $function);
+    }
+
+    /**
+     * メソッドをマップする(上書きOK)
+     *
+     * @param string $name
+     * @param mixed $function
+     */
+    public function remap( $name, $function )
+    {
+        $this->methodContainer->store( $name, $function);
+    }
+
+    /**
+     * メソッドがマップされているか
+     *
+     * @param string $name
+     * @return bool
+     */
+    public function isMaped( $name )
+    {
+        return $this->methodContainer->has( $name );
+    }
+
+    /**
+     * メソッドを呼び出す(引数を配列でまとめる)
+     *
+     * @param string $name 呼び出すメソッドの名前
+     * @param array $params 呼び出されるメソッドの引数リスト
+     */
+    public function callArgs( $name, $params )
+    {
+        array_unshift($params,$name);
+        return DispatchHelper::invokeMethodArgs( $this, 'call', $params);
+    }
+
+    /**
+     * メソッドを呼び出す
+     *
+     * @param string $name 呼び出すメソッドの名前
+     * @param mixed $param,... 呼び出されるメソッドの引数リスト
+     */
+    public function call( $name )
+    {
+        if( $this->methodContainer->has( $name ) )
+        {
+            $method = $this->methodContainer->restore( $name );
+        }
+        else
+        {
+            return $this->call('unDefinedCall', $name, array_slice(func_get_args(),1));
+        }
+        return DispatchHelper::invokeArgs( $method, array_slice(func_get_args(),1) );
+    }
+
+    /**
+     * DIパターン用のファクトリを登録する
+     *
+     * @param string $name
+     * @param mixed $factory
+     * @param mixed $callback
+     */
+    public function register( $name, $factory, $callback = null)
+    {
+        if( is_object($factory) )
+        {
+            $this->DIContainer->store( $name, $factory );
+        }
+        else
+        {
+            $this->DIContainer->addFactory( $name, $factory, $callback );
+        }
+    }
+
+    /**
+     * DIに登録されているか
+     */
+    public function isRegistered($name)
+    {
+        return $this->DIContainer->has($name);
+    }
+
+    /**
+     * DIを取得する
      *
      * @param string $name
      * @return object
      */
-    public function getComponent( $name )
+    public function retrieve( $name )
     {
-        $comp = $this->compContainer->getComponent( $name );
-        return $comp;
+        return $this->DIContainer->retrieve( $name );
     }
 
     /**
-     * コンポーネントがあるか？
+     * エクステンションの追加
      *
-     * @param string $name
-     * @return bool
+     * @param string $prefix
+     * @param mixed $factory
+     * @param object $target
      */
-    public function hasComponent( $name )
+    public function addExtension( $prefix, $factory )
     {
-        return $this->compContainer->hasComponent( $name );
+        $this->extensionContainer->addFactory( 
+            $prefix,
+            $factory,
+            function($ext) use($prefix){
+                $this->extend( $prefix, $ext );
+            }
+        );
     }
 
-
     /**
-     * メソッドをマップする
-     *
-     * @param string $medhot
-     * @param callback $function
+     * エクステンションの有効化
      */
-    public function mapMethod( $method, $function )
+    public function extend( $prefix, $ext )
     {
-        $this->methodContainer->store($method, $function);
+        $annotation = AnnotationHelper::get($ext);
+
+        $classAnot  = $annotation->getClassAnnotation();
+
+        // 初期化メソッドが指定されているか調べる
+        if(isset($classAnot['SeafInitialize'])){
+            $initializer = $classAnot['SeafInitialize'];
+        }else{
+            $initializer = "initializeExtension";
+        }
+
+        DispatchHelper::invokeMethodArgs(
+            $ext,
+            $initializer,
+            array($prefix, $this)
+        );
+
+        $methodAnot = $annotation->getMethodAnnotation();
+        foreach($methodAnot as $method=>$anot)
+        {
+            if( array_key_exists('SeafBind', $anot) )
+            {
+                $withOutPrefix = isset($anot['SeafBindPrefix']) && $anot['SeafBindPrefix'] == "false";
+                if( !$withOutPrefix )
+                {
+                    $anot['SeafBind'] = $prefix.ucfirst($anot['SeafBind']);
+                }
+                $this->map($anot['SeafBind'], array($ext,$method));
+            }
+        }
     }
 
     /**
-     * メソッドは存在するか？
+     * エクステンションの使用
      *
-     * @param string $medhot
-     * @return bool
+     * @param string $prefix
      */
-    public function hasMethod( $method )
+    public function useExtension( $prefix )
     {
-        return $this->methodContainer->has($method);
+        $this->extensionContainer->retrieve( $prefix );
     }
 
     /**
-     * メソッドを取得
+     * イベントフックの登録
      *
-     * @param string $medhot
-     * @return callback
-     */
-    public function getMethod( $method )
-    {
-        return $this->methodContainer->restore($method);
-    }
-
-    /**
-     * イベントフックを追加
-     *
-     * @param string 
+     * @param type
      * @param callback
      */
-    public function addHook( $key, $function )
+    public function on( $type, $function )
     {
-        $this->eventContainer->addHook( $key, $function );
+        $this->eventContainer->stack($type, $function);
     }
 
     /**
-     * エクステンションを追加
+     * イベントフックの解除
      *
-     * @param string $name
-     * @return string $extension
+     * @param type
+     * @param callback
      */
-    public function addExtension( $name, $extension )
+    public function off( $type, $function )
     {
-        $this->extensionContainer->register( $name, $extension, function($ext) use ($name){
-            $prefix = $name;
-            $ext->init($prefix, $this->base ); // ExtensionにEnvironmentを与えて初期化させる
-        });
+        $this->eventContainer->remove($type, $function);
     }
 
     /**
-     * エクステンションを実体化させる
+     * イベントフックの呼び出し
      *
-     * @param string $name
-     * @return string $extension
+     * @param type
+     * @param callback
      */
-    public function useExtension( $name )
+    public function trigger( $type )
     {
-        return $this->extensionContainer->getComponent( $name );
-    }
-
-    /**
-     * 現在の状況をプリントする
-     */
-    public function report( )
-    {
-        $cc = $this->compContainer;
-        $ec = $this->extensionContainer;
-        $mc = $this->methodContainer;
-        $evc = $this->eventContainer;
-
-        printf("\n=== コンポーネント ===\n");
-        $cc->report();
-
-        printf("\n=== エクステンション === \n");
-        $ec->report();
-
-        printf("\n=== メソッド === \n");
-        printf("\n登録されているメソッド\n");
-        foreach( $mc->getRef() as $k => $v ) {
-            $method = "無名関数";
-            if(is_array($v)) {
-                list($class,$method) = $v;
-                $method = get_class($class)."::".$method;
-            }
-            printf("%s : %s\n", $k, $method);
+        if( !$this->eventContainer->has($type) )
+        {
+            return false;
         }
-        printf("\n=== イベント === \n");
-        $evc->report();
 
+        foreach( $this->eventContainer->restore($type) as $function )
+        {
+            $continue = DispatchHelper::invokeArgs( $function, array_slice(func_get_args(),1));
+            if( $continue === false ) break;
+        }
     }
 
+
     /**
-     * Bseからしか呼び出されない
+     * mapへのショートハンド
+     *
+     * @param array $list メソッドリスト
+     * @param mixed $object メソッドを所有するオブジェクト
      */
-    public function run( $name, &$params )
+    public function bind( $list, $object = null)
     {
-        // イベントを呼び出す
-        $trigger = array($this->eventContainer,'trigger');
+        $self = $this;
 
-        // イベント引数を作る
-        $output = "";
-        $triggerArgs = array(&$params, &$output);
+        array_walk( $list, function( $v, $k) use ($object, $self){
+            $isAssoc = is_string($k);
+            if(!$isAssoc) $k = $v;
 
-        DispatchHelper::dispatch( $trigger, array( $name.'.before', $triggerArgs));
-
-        // ディスパッチ
-        $result = DispatchHelper::dispatch($this->getMethod($name), $params);
-
-        $args = array(
-            $name.'.after',
-            array(&$params,&$output)
-        );
-        DispatchHelper::dispatch( $trigger, array( $name.'.after', $triggerArgs));
-
-        return $result;
-    }
-}
-
-
-
-class Environment2
-{
-    /**
-     * Environment Name
-     * @var string
-     */
-    private $envName;
-
-
-    /**
-     * Action Dispatcher
-     * @var object
-     */
-    private $actionDispatcher;
-
-    /**
-     * maped method
-     */
-    private $methods=array();
-
-
-    /**
-     * Construct Environment
-     */
-    public function __construct( )
-    {
-        $this->componentContainer = new ComponentContainer( 
-            new FactoryContainer(
-                array(
-                    'config'     => 'Seaf\Config\Config',
-                    'fileLoader' => 'Seaf\Loader\FileSystemLoader'
-                )
-            )
-        );
-
-        $this->actionDispatcher = new Dispatcher( );
-
-        $this->action('set','stop',function($body){
-            exit($body);
+            if($object != null){
+                if( is_string($object) ) $object = $this->retrieve($object);
+                $v = array($object, $v);
+            }
+            $self->map( $k, $v);
         });
     }
 
     /**
-     * Set Environment Name
-     *
-     * @param string 
+     * ダンプする
      */
-    public function setEnvironmentName( $env_name )
+    public function dump()
     {
-        $this->envName = $env_name;
-    }
-
-    /**
-     * Access Factory Container Function 
-     *
-     * @param string $action
-     */
-    public function factory( $action )
-    {
-        $args = func_get_args();
-        return call_user_func_array(
-            array(
-                $this->componentContainer,
-                'factory'
-            ), $args
-        );
-    }
-
-    /**
-     * Access Component Container Function 
-     *
-     * @param string $action
-     * @param string $name
-     * @param array $params
-     */
-    public function component( $action, $name, $params = array() )
-    {
-        return call_user_func_array(
-            array(
-                $this->componentContainer,
-                $action.'Component'
-            ),
-            array($name) + $params
-        );
-    }
-
-    /**
-     * Access Action Dispatcher  Function 
-     *
-     * @param string $action
-     */
-    public function action( $action )
-    {
-        $args = func_get_args();
-        array_shift($args);
-
-        return call_user_func_array(
-            array(
-                $this->actionDispatcher,
-                $action
-            ),
-            $args
-        );
-    }
-
-    /**
-     * Access Action Dispatcher Filter Function 
-     *
-     * @param string $action
-     */
-    public function filter( $action )
-    {
-        $args = func_get_args();
-        array_shift($args);
-        return call_user_func_array(
-            array(
-                $this->actionDispatcher,
-                $action.'Filter'
-            ),
-            $args
-        );
-    }
-
-    /**
-     * map medhot
-     */
-    public function map( $name, $func )
-    {
-        $this->methods[$name] = $func;
-    }
-
-    public function getMethod($name)
-    {
-        return ArrayHelper::get($this->methods, $name, false);
-    }
-
-
-    public function run( $name, &$params )
-    {
-        return DispatchHelper::dispatch(
-            $this->env->getMethod( $name ), $params
+        return array(
+            'registory' => $this->registory->toArray(),
+            'methods'   => $this->methodContainer->toArray(),
+            'DI'        => $this->DIContainer->toArray(),
+            'Extension' => $this->extensionContainer->toArray()
         );
     }
 }
+
+/* vim: set expandtab ts=4 sw=4 sts=4: */

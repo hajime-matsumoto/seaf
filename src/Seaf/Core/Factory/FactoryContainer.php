@@ -36,9 +36,9 @@ class FactoryContainer extends Container
      * @param mixed $context クラス名かコールバック関数
      * @param callable 
      */
-    public function register( $name, $context, $callback = null )
+    public function store( $name, $context, $callback = null )
     {
-        $this->store($name, compact('context','callback'));
+        parent::store($name, compact('context','callback'));
     }
 
     /**

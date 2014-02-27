@@ -63,6 +63,9 @@ class Seaf
         if (self::$instance) return self::$instance;
 
         self::$instance = new Seaf();
+        self::map('stop',function($body){
+            exit($body);
+        });
         return self::$instance;
     }
 
