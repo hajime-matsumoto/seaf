@@ -33,14 +33,14 @@ class WebApp extends Base
     protected $request;
     protected $response;
 
-    public function __construct( $root, $env = 'development' )
+    public function __construct( $root, $env = 'development', $init = true )
     {
         parent::__construct( );
 
         $this->set('app.root', $root);
         $this->set('app.env', $env);
 
-        $this->init();
+        if( $init == true ) $this->init();
     }
 
     /**
@@ -58,7 +58,7 @@ class WebApp extends Base
     {
     }
 
-    private function init( )
+    public function init( )
     {
         // web機能を有効にする
         $this->useExtension('web');

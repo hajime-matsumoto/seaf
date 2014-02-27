@@ -56,7 +56,7 @@ class AnnotationHelper
         for( $i = 0; $i<count($lines); $i++ )
         {
             // いらない部分を捨てる ( /, *, and \n)
-            $line = ltrim( trim($lines[$i],"\n /"), " *");
+            $line = ltrim( trim($lines[$i],"\n "), " *");
 
             // 先頭に@がなければアノテーションじゃない
             $isAnnotation = !empty($line) && $line[0] == "@";
@@ -65,6 +65,7 @@ class AnnotationHelper
 
             // @key[space]$valueのはず
             list($key, $value) = preg_split('/[\s]+/', substr($line,1), 2);
+            if( !$value ) var_dump($line);
 
             // 同じkeyのアノテーションがあった時の対応
             if( isset($annotation[$key]) ) {

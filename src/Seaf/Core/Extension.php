@@ -88,6 +88,15 @@ abstract class Extension
     }
 
     /**
+     * registerをオーバーライド
+     */
+    public function register( $name, $factory )
+    {
+        $this->base->register($this->prefix($name), $factory);
+    }
+
+
+    /**
      * エクステンションは自分が登録した
      * オブジェクトをプレフィックスレスで取得できる。
      *

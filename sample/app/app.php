@@ -66,80 +66,28 @@ class App extends WebApp
     /**
      * 管理画面へのアクセス
      *
-     * @SeafURL /admin
+     * @SeafURL /admin(/*)
      * @SeafMethod POST|GET
      */
     public function showAdmin()
     {
-        if( isset($_SESSION['authorized']) && $_SESSION['authorized'] === true ) 
-        {
-            $tpl = 'admin/index.twig';
-        }
-        else
-        {
-            $tpl = 'admin/login.twig';
-        }
-        $news = file_get_contents( $this->get('app.root')."/data/news.txt" );
-        echo $this->twig->render( $tpl, 
-            array(
-                'base_url'=>$this->request->base,
-                'news'=>$news
-            )
+        require_once $this->get('app.root').'/admin.php';
+        $admin = new Admin(
+            $this->get('app.root'),
+            $this->get('app.env'),
+            false
         );
+        $admin->register('twig', $this->twig);
+        $this->request->base .= '/admin';
+        $this->request->url = false;
+        $admin->register('webRequest', $this->request);
+        $admin->init();
+        $admin->useDebugMode();
+        $admin->run();
+
         return false;
     }
 
-    /**
-     * ログイン認証
-     *
-     * @SeafURL /login
-     * @SeafMethod POST
-     */
-    public function login()
-    {
-        $requested_password = $this->request->getParam('password');
-
-        if( $requested_password === 'deganjue' )
-        {
-            $_SESSION['authorized'] = true;
-        }
-        else
-        {
-            $_SESSION['authorized'] = false;
-        }
-
-        $this->web->redirect('/admin');
-    }
-
-    /**
-     * ログアウト認証
-     *
-     * @SeafURL /logout
-     * @SeafMethod GET
-     */
-    public function logout()
-    {
-        $_SESSION['authorized'] = false;
-        $this->web->redirect('/admin');
-    }
-
-    /**
-     * ニュース保存
-     *
-     * @SeafURL /update_news
-     * @SeafMethod POST
-     */
-    public function updateNews()
-    {
-        if( $_SESSION['authorized'] === true )  {
-            file_put_contents(
-                $this->get('app.root')."/data/news.txt",
-                $_POST['news']
-            );
-        }
-
-        $this->web->redirect('/admin');
-    }
     /**
      * テンプレートのみページを出力
      *
