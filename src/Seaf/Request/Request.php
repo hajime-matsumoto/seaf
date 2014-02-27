@@ -67,6 +67,18 @@ class Request
     }
 
     /**
+     * POSTデータを取得する
+     */
+    public function getParam( $name, $default = null )
+    {
+        if( isset($this->POST[$name]) )
+        {
+            return $this->POST[$name];
+        }
+       return $default;
+    }
+
+    /**
      * @param string
      */
     public function setBase( $url )

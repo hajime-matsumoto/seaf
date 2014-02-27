@@ -169,4 +169,21 @@ class WebExtension extends Extension
             ->write( $message )
             ->send( );
     }
+
+    /**
+     * リダイレクト
+     *
+     * @SeafBind redirect
+     */
+    public function actionRedirect( $url, $code = 303)
+    {
+        $base = $this->request->base;
+        $url = rtrim($base,'/').'/'.ltrim($url,'/');
+
+        $this->response
+            ->status( $code )
+            ->header('Location', $url)
+            ->write($url)
+            ->send();
+    }
 }
