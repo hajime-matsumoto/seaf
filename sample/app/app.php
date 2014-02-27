@@ -28,6 +28,9 @@ class App extends WebApp
      */
     public function initWebApp( )
     {
+        /*----------  Session  ---------------*/
+        session_start();
+
         /*----------  Twig ---------------*/
         $loader = new Twig_Loader_Filesystem(
             $this->get('app.root').'/views'
@@ -56,10 +59,87 @@ class App extends WebApp
             /* パスの変換処理 */
             $data = ob_get_clean();
             ob_start();
-            echo  preg_replace('/(src|href)=([\'"])[\/]/','$1=$2'.$this->request->base.'/', $data);
+            echo  preg_replace('/(src|href|action)=([\'"])[\/]/','$1=$2'.$this->request->base.'/', $data);
         }
     }
 
+    /**
+     * 管理画面へのアクセス
+     *
+     * @SeafURL /admin
+     * @SeafMethod POST|GET
+     */
+    public function showAdmin()
+    {
+        if( isset($_SESSION['authorized']) && $_SESSION['authorized'] === true ) 
+        {
+            $tpl = 'admin/index.twig';
+        }
+        else
+        {
+            $tpl = 'admin/login.twig';
+        }
+        $news = file_get_contents( $this->get('app.root')."/data/news.txt" );
+        echo $this->twig->render( $tpl, 
+            array(
+                'base_url'=>$this->request->base,
+                'news'=>$news
+            )
+        );
+        return false;
+    }
+
+    /**
+     * ログイン認証
+     *
+     * @SeafURL /login
+     * @SeafMethod POST
+     */
+    public function login()
+    {
+        $requested_password = $this->request->getParam('password');
+
+        if( $requested_password === 'deganjue' )
+        {
+            $_SESSION['authorized'] = true;
+        }
+        else
+        {
+            $_SESSION['authorized'] = false;
+        }
+
+        $this->web->redirect('/admin');
+    }
+
+    /**
+     * ログアウト認証
+     *
+     * @SeafURL /logout
+     * @SeafMethod GET
+     */
+    public function logout()
+    {
+        $_SESSION['authorized'] = false;
+        $this->web->redirect('/admin');
+    }
+
+    /**
+     * ニュース保存
+     *
+     * @SeafURL /update_news
+     * @SeafMethod POST
+     */
+    public function updateNews()
+    {
+        if( $_SESSION['authorized'] === true )  {
+            file_put_contents(
+                $this->get('app.root')."/data/news.txt",
+                $_POST['news']
+            );
+        }
+
+        $this->web->redirect('/admin');
+    }
     /**
      * テンプレートのみページを出力
      *
@@ -71,11 +151,15 @@ class App extends WebApp
         if($page == null) $page = 'index';
         if($page == 'ra') $page = 'ra/index';
 
+        $viewParams = array('base_url'=>$this->request->base);
+        if( $page == 'index')
+        {
+            $viewParams['news'] = file_get_contents( $this->get('app.root')."/data/news.txt" );
+        }
+
         $tpl = $page.".twig";
         try {
-            echo $this->twig->render( $tpl, 
-                array('base_url'=>$this->request->base)
-            );
+            echo $this->twig->render( $tpl, $viewParams);
         } catch(Twig_Error_Loader $e) {
             return true;
         }
