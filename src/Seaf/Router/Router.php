@@ -73,6 +73,18 @@ class Router
     public function route( $request )
     {
         $url = $request->getURL();
+        for( ; $this->idx<count($this->routes); $this->idx++)
+        {
+            $route = $this->routes[$this->idx];
+            $isMatch = 
+                $route->matchMethod($request->getMethod()) &&
+                $route->matchURL($request->getURL());
+            if( $isMatch )
+            {
+                return $route;
+            }
+        }
+
         // マウントがあるか調べる
         $mount = "";
         foreach( $this->mount as $path=>$app )
@@ -85,17 +97,6 @@ class Router
             }
         }
 
-        for( ; $this->idx<count($this->routes); $this->idx++)
-        {
-            $route = $this->routes[$this->idx];
-            $isMatch = 
-                $route->matchMethod($request->getMethod()) &&
-                $route->matchURL($request->getURL());
-            if( $isMatch )
-            {
-                return $route;
-            }
-        }
         return false;
     }
 

@@ -2,6 +2,7 @@
 require_once '../../../vendor/autoload.php';
 
 use Seaf\Seaf;
+use Seaf\Http\AssetManager;
 
 // ロガーをセット
 Seaf::logger()->addHandler(array('type'=>'PHPConsole'));
@@ -13,7 +14,9 @@ function d($var) {
     Seaf::d($var);
 }
 
+// -----------------------
 // WebAppを作成
+// -----------------------
 class App extends \Seaf\Http\WebApp
 {
     public function __construct( )
@@ -24,7 +27,7 @@ class App extends \Seaf\Http\WebApp
         $this->event()->addHook('after.start',function(){
             $c = ob_get_clean();
             ob_start();
-            echo str_replace('h','Haaaaaaaaaaa', $c);
+            echo str_replace('h','<link href="/web/assets/style.css" rel="stylesheet">Haaaaaaaaaaa', $c);
         });
 
         // セキュリティチェックとか
@@ -44,10 +47,18 @@ class App extends \Seaf\Http\WebApp
         });
     }
 }
-$app = new App();
 
-// Seafルータに登録する
+// アセットマネージャを起動
+$am = new AssetManager();
+$am->addPath(dirname(__FILE__).'/../assets');
+
+// アセットマネージャを "/assets" にマウント
+Seaf::http()->router()->mount( '/assets', $am);
+
+// WebAppを "/" にマウント
 Seaf::http()->router()->mount( '/', new App( ));
+
+
 
 // HTTPフレームワークを起動
 Seaf::http()->run();

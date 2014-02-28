@@ -91,7 +91,7 @@ class Environment
      */
     public function __call( $name, $params )
     {
-        $helperHandler = $this->di->get('helperHandler');
+        $helperHandler = $this->di('helperHandler');
         if( $helperHandler->isMaped($name) )
         {
             return $helperHandler->invokeArgs( $name, $params );
