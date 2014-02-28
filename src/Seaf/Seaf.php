@@ -53,6 +53,8 @@ class Seaf
         $this->base->register('logger','Seaf\Component\Logger', function($logger){
             $logger->setName('Seaf');
         });
+        // 有効化
+        $this->base->logger()->register();
 
         $this->base->di('registry')->set('name','Seaf');
 

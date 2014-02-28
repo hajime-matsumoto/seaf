@@ -11,6 +11,7 @@
 
 namespace Seaf\Router;
 
+use Seaf\Seaf;
 
 class Route
 {
@@ -122,6 +123,7 @@ class Route
         {
             $regex .= '/?';
         }
+
 
         if( preg_match('#^'.$regex.'(?:\?.*)?$#i', $url, $matches) )
         {

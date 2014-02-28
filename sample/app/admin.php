@@ -11,20 +11,28 @@ use Seaf\Net\WebApp;
 
 class Admin extends App
 {
-    /**
-     * 出力前の調整フィルター
-     *
-     * @SeafHookOn stop before
-     */
-    public function changePathFilter( )
+    public function __construct( )
     {
-        parent::changePathFilter();
+        parent::__construct( );
+        $this->router()->init();
+        $this->event()->init();
+
+        $this->router()->addRoute('GET /', array($this,'showAdmin'));
+        $this->router()->addRoute('POST /login', array($this,'login'));
+        $this->router()->addRoute('POST /update_news', array($this,'updateNews'));
+        $this->router()->addRoute('GET /logout', array($this,'logout'));
+        $this->event()->addHook('after.start',array($this,'changePathFilter'));
+    }
+
+    public function get($name)
+    {
+        return $this->registry()->get($name);
     }
 
     /**
      * 管理画面へのアクセス
      *
-     * @SeafURL /*
+     * @SeafURL GET /*
      * @SeafMethod POST|GET
      */
     public function showAdmin()
@@ -40,11 +48,10 @@ class Admin extends App
         $news = file_get_contents( $this->get('app.root')."/data/news.txt" );
         echo $this->twig->render( $tpl, 
             array(
-                'base_url'=>$this->request->base,
                 'news'=>$news
             )
         );
-        return true;
+        return false;
     }
 
     /**
@@ -55,7 +62,7 @@ class Admin extends App
      */
     public function login()
     {
-        $requested_password = $this->request->getParam('password');
+        $requested_password = $this->request()->get('password');
 
         if( $requested_password === 'deganjue' )
         {
@@ -66,7 +73,7 @@ class Admin extends App
             $_SESSION['authorized'] = false;
         }
 
-        $this->web->redirect('/');
+        $this->redirect('/');
     }
 
     /**
@@ -78,7 +85,7 @@ class Admin extends App
     public function logout()
     {
         $_SESSION['authorized'] = false;
-        $this->web->redirect('/');
+        $this->redirect('/');
     }
 
     /**
@@ -96,7 +103,7 @@ class Admin extends App
             );
         }
 
-        $this->web->redirect('/');
+        $this->redirect('/');
     }
 
 

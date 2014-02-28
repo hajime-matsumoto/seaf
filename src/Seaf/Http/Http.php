@@ -34,7 +34,8 @@ class Http extends Base
             'run'=>'_run',
             'stop'=>'_stop',
             'halt'=>'_halt',
-            'notfound'=>'_notfound'
+            'notfound'=>'_notfound',
+            'redirect'=>'_redirect'
         ));
     }
 
@@ -118,6 +119,24 @@ class Http extends Base
             ->reset( )
             ->status(200)
             ->write(ob_get_clean())
+            ->send( );
+    }
+
+    /**
+     * リダイレクト
+     */
+    public function _redirect( $url, $code = 303 )
+    {
+        $this->event()->trigger('before.stop');
+
+        Seaf::debug(get_class($this).'::run リダイレクト TO '.$url);
+
+
+
+        $this->response( )
+            ->reset( )
+            ->status($code)
+            ->header('Location', $this->request()->getBaseURL().'/'.ltrim($url,'/'))
             ->send( );
     }
 }

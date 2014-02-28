@@ -6,40 +6,45 @@
  */
 require_once dirname(__FILE__).'/../../vendor/autoload.php';
 
-use Seaf\Core\Base;
-use Seaf\Net\WebApp;
 
+use Seaf\Http\WebApp;
+use Seaf\Seaf;
 
-class App extends WebApp 
+class App extends WebApp
 {
     /**
      * @var object
      */
     protected $twig;
 
-    public function __construct( $env = 'development' )
+    public function __construct( )
     {
-        parent::__construct( dirname(__FILE__), $env );
+        parent::__construct( );
+        $this->registry()->set('app.root', dirname(__FILE__));
+        $this->initTwig();
 
+        $this->router()->addRoute('/(@page:*)', array($this,'showPage'));
+        $this->router()->addRoute('PUT /sendMail', array($this,'sendMail'));
+        $this->event()->addHook('after.start',array($this,'changePathFilter'));
     }
 
     /**
      * Initialize
      */
-    public function initWebApp( )
+    public function initTwig( )
     {
         /*----------  Session  ---------------*/
         if(session_id() === '') session_start();
 
         /*----------  Twig ---------------*/
         $loader = new Twig_Loader_Filesystem(
-            $this->get('app.root').'/views'
+            $this->registry()->get('app.root').'/views'
         );
         $twig = new Twig_Environment($loader,array(
-            'cache'=>$this->get('app.root').'/tmp/cache'
+            'cache'=>$this->registry()->get('app.root').'/tmp/cache'
         ));
 
-        if( $this->get('app.env') != 'production') 
+        if( $this->registry()->get('app.env') != 'production') 
         {
             $twig->clearCacheFiles();
         }
@@ -54,36 +59,19 @@ class App extends WebApp
      */
     public function changePathFilter( )
     {
-        if( $this->request->base )
+        if( $this->request()->getBaseURL() )
         {
             /* パスの変換処理 */
             $data = ob_get_clean();
             ob_start();
-            echo  preg_replace('/(src|href|action)=([\'"])[\/]/','$1=$2'.$this->request->base.'/', $data);
+            echo  preg_replace(
+                '/(src|href|action)=([\'"])[\/]/',
+                '$1=$2'.$this->request()->getBaseURL().'/',
+                $data
+            );
         }
     }
 
-    /**
-     * 管理画面へのアクセス
-     *
-     * @SeafURL /admin(/*)
-     * @SeafMethod POST|GET
-     */
-    public function showAdmin()
-    {
-        require_once $this->get('app.root').'/admin.php';
-        $admin = new Admin(
-            $this->get('app.root'),
-            $this->get('app.env')
-        );
-        $this->request->base .= '/admin';
-        $this->request->url = false;
-        $admin->register('webRequest', $this->request);
-        $admin->useDebugMode();
-        $admin->run();
-
-        return false;
-    }
 
     /**
      * テンプレートのみページを出力
@@ -96,16 +84,18 @@ class App extends WebApp
         if($page == null) $page = 'index';
         if($page == 'ra') $page = 'ra/index';
 
-        $viewParams = array('base_url'=>$this->request->base);
+        $viewParams = array('base_url'=>$this->request()->getBaseURL());
         if( $page == 'index')
         {
-            $viewParams['news'] = file_get_contents( $this->get('app.root')."/data/news.txt" );
+            $viewParams['news'] = 
+                file_get_contents( $this->registry()->get('app.root')."/data/news.txt" );
         }
 
         $tpl = $page.".twig";
         try {
             echo $this->twig->render( $tpl, $viewParams);
         } catch(Twig_Error_Loader $e) {
+            Seaf::debug($e->getMessage());
             return true;
         }
     }
@@ -118,33 +108,31 @@ class App extends WebApp
      */
     public function sendMail( )
     {
-        $this->useExtension('mail');
-
-        $mail = $this->get('ext.mail');
-        $query = $this->request->body;
+        $mail = $this->di('mail');
+        $query = file_get_contents('php://input');
         $params = array();
 
         parse_str( $query, $params);
 
         if( empty($params['mail']) ) 
         {
-            $this->web->halt('不正なアクセスを検知しました');
+            $this->halt('不正なアクセスを検知しました');
         }
 
         $mail->sendTo(
-            $this->get('admin.mail'),
-            $this->get('admin.mail'),
+            $this->registry()->get('admin.mail'),
+            $this->registry()->get('admin.mail'),
             'コンタクトありがとうございます。',
             $this->twig->render('mail/mail.twig', $params)
         );
         $mail->sendTo(
             $params['mail'],
-            $this->get('admin.mail'),
+            $this->registry()->get('admin.mail'),
             'コンタクトありがとうございます。',
             $this->twig->render('mail/mail.twig', $params)
         );
 
-        $this->debug('メールを送信しました');
+        Seaf::debug('メールを送信しました');
     }
 
     /**

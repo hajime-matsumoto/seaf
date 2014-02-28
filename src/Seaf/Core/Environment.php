@@ -65,6 +65,9 @@ class Environment
 
         // イベントコンポーネント
         $factory->register('event','Seaf\Component\Event');
+
+        // メールコンポーネント
+        $factory->register('mail','Seaf\Component\Mail');
     }
 
     /**

@@ -2,15 +2,20 @@
 /**
  * Executer
  */
+require_once dirname(__FILE__).'/../../../vendor/autoload.php';
+use Seaf\Seaf;
+
+Seaf::system()->setLang('ja');
+Seaf::logger()->addHandler(array('type'=>'PHPConsole'));
+
 require_once '../app.php';
-
-mb_language("japanese");
-mb_internal_encoding("UTF-8");
-
-$app = new App('development');
+require_once '../admin.php';
+$app = new App( );
 
 /* ----- Config ---------*/
-$app->set('admin.mail', "mail@hazime.org");
+$app->registry()->set('admin.mail', "mail@hazime.org");
 
 /* ----- Run ---------*/
-$app->run();
+Seaf::http()->router()->mount('/admin', new Admin());
+Seaf::http()->router()->mount('/', $app);
+Seaf::http()->run();

@@ -30,6 +30,11 @@ class Event
 
     public function __construct( )
     {
+        $this->init();
+    }
+
+    public function init()
+    {
         $this->eventContainer = new ArrayCollection();
     }
 

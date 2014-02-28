@@ -27,6 +27,11 @@ class Router
 
     public function __construct( )
     {
+        $this->init();
+    }
+
+    public function init()
+    {
         $this->routes = array();
         $this->mount = new ArrayCollection();
     }
