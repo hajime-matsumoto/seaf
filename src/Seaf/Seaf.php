@@ -1,10 +1,8 @@
 <?php
-/* vim: set expandtab ts=4 sw=4 sts=4: et*/
-
 /**
  * Seaf: Simple Easy Acceptable micro-framework.
  *
- * Seafのメインになるクラスを定義する
+ * Seafのメインクラスを定義する
  *
  * @author HAjime MATSUMOTO <mail@hazime.org>
  * @copyright Copyright (c) 2014, Seaf
@@ -14,7 +12,6 @@
 namespace Seaf;
 
 use Seaf\Core\Base;
-use Seaf\util\DispatchHelper;
 
 
 /**
@@ -51,6 +48,23 @@ class Seaf
     private function __construct() 
     {
         $this->base = new Base();
+
+        // ロガーコンポーネントを登録
+        $this->base->register('logger','Seaf\Component\Logger', function($logger){
+            $logger->setName('Seaf');
+        });
+
+        $this->base->di('registry')->set('name','Seaf');
+
+
+        // ダンパ
+        $this->base->register('dumper','Seaf\Component\Dumper');
+
+        // デバッガ
+        $this->base->register('debugger','Seaf\Component\Debugger');
+
+        // HTTP
+        $this->base->register('http','Seaf\Component\Http');
     }
 
     /**
@@ -63,9 +77,6 @@ class Seaf
         if (self::$instance) return self::$instance;
 
         self::$instance = new Seaf();
-        self::map('stop',function($body){
-            exit($body);
-        });
         return self::$instance;
     }
 
@@ -80,6 +91,12 @@ class Seaf
     static public function __callStatic($name, array $params = array()) 
     {
         $seaf = self::getInstance();
-        return DispatchHelper::dispatch( array($seaf->base, $name), $params );
+
+        return call_user_func_array(
+            array($seaf->base,$name),
+            $params
+        );
     }
 }
+
+/* vim: set expandtab ts=4 sw=4 sts=4: et*/

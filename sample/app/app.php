@@ -15,7 +15,7 @@ class App extends WebApp
     /**
      * @var object
      */
-    private $twig;
+    protected $twig;
 
     public function __construct( $env = 'development' )
     {
@@ -29,7 +29,7 @@ class App extends WebApp
     public function initWebApp( )
     {
         /*----------  Session  ---------------*/
-        session_start();
+        if(session_id() === '') session_start();
 
         /*----------  Twig ---------------*/
         $loader = new Twig_Loader_Filesystem(
@@ -74,14 +74,11 @@ class App extends WebApp
         require_once $this->get('app.root').'/admin.php';
         $admin = new Admin(
             $this->get('app.root'),
-            $this->get('app.env'),
-            false
+            $this->get('app.env')
         );
-        $admin->register('twig', $this->twig);
         $this->request->base .= '/admin';
         $this->request->url = false;
         $admin->register('webRequest', $this->request);
-        $admin->init();
         $admin->useDebugMode();
         $admin->run();
 

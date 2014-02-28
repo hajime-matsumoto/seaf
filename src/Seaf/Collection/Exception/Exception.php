@@ -2,32 +2,24 @@
 /**
  * Seaf: Simple Easy Acceptable micro-framework.
  *
- * Seafのベースクラスを定義する
+ * コレクション用の例外クラスを定義する
  *
  * @author HAjime MATSUMOTO <mail@hazime.org>
  * @copyright Copyright (c) 2014, Seaf
  * @license   MIT, http://seaf.hazime.org
  */
 
-namespace Seaf\Core;
+namespace Seaf\Collection\Exception;
 
-/**
- * 環境オブジェクト
- */
-use Seaf\Core\Environment;
+
+use Seaf\Exception\Exception as SeafException;
 
 
 /**
+ * コレクション用の例外
  */
-class Base extends Environment
+class Exception extends SeafException
 {
-
-    public function __construct( )
-    {
-        parent::__construct();
-
-    }
-
 }
 
 /* vim: set expandtab ts=4 sw=4 sts=4: et*/

@@ -9,7 +9,7 @@ require_once dirname(__FILE__).'/../../vendor/autoload.php';
 use Seaf\Net\WebApp;
 
 
-class Admin extends WebApp 
+class Admin extends App
 {
     /**
      * 出力前の調整フィルター
@@ -18,14 +18,9 @@ class Admin extends WebApp
      */
     public function changePathFilter( )
     {
-        if( $this->request->base )
-        {
-            /* パスの変換処理 */
-            $data = ob_get_clean();
-            ob_start();
-            echo  preg_replace('/(src|href|action)=([\'"])[\/]/','$1=$2'.$this->request->base.'/', $data);
-        }
+        parent::changePathFilter();
     }
+
     /**
      * 管理画面へのアクセス
      *
@@ -43,7 +38,7 @@ class Admin extends WebApp
             $tpl = 'admin/login.twig';
         }
         $news = file_get_contents( $this->get('app.root')."/data/news.txt" );
-        echo $this->retrieve('twig')->render( $tpl, 
+        echo $this->twig->render( $tpl, 
             array(
                 'base_url'=>$this->request->base,
                 'news'=>$news

@@ -2,8 +2,11 @@
 /**
  * Seaf: Simple Easy Acceptable micro-framework.
  *
- * @copyright Copyright (2) 2014, Hajime MATSUMOTO <mail@hazime.org>
- * @license   MIT, http://mail@hazime.org
+ * クラスを定義する
+ *
+ * @author HAjime MATSUMOTO <mail@hazime.org>
+ * @copyright Copyright (c) 2014, Seaf
+ * @license   MIT, http://seaf.hazime.org
  */
 
 namespace Seaf\Router;
@@ -12,9 +15,20 @@ namespace Seaf\Router;
 class Route
 {
     /**
+     * pattern
+     * @var string
+     */
+    private $pattern;
+
+    /**
      * @var mixed
      */
     public $callback;
+
+    /**
+     * @var string
+     */
+    private $methods;
 
     /**
      * @var array
@@ -31,17 +45,6 @@ class Route
      */
     public $splat;
 
-    /**
-     * pattern
-     * @var string
-     */
-    private $pattern;
-
-    /**
-     * @var string
-     */
-    private $methods;
-
 
     /**
      * @param string
@@ -54,6 +57,16 @@ class Route
         $this->callback = $callback;
         $this->methods = $methods;
         $this->params = array();
+    }
+
+    public function getCallback( )
+    {
+        $callback = $this->callback;
+        $params = $this->params;
+
+        return function() use( $callback, $params ) {
+            return call_user_func_array( $callback, $params );
+        };
     }
 
     /**
@@ -123,3 +136,5 @@ class Route
         return false;
     }
 }
+
+/* vim: set expandtab ts=4 sw=4 sts=4: et*/
