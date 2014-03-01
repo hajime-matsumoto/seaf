@@ -17,7 +17,8 @@
     "kriswallsmith/assetic": "v1.1.2",
     "mthaml/mthaml": "1.3.1",
     "php-console/php-console": "3.*",
-    "twig/twig": "1.*"
+    "twig/twig": "1.*",
+    "gumbyframework/gumby" : "*"
   },
   "require-dev": {
     "phpunit/phpunit": "3.7.*",

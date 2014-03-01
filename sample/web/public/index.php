@@ -27,7 +27,7 @@ class App extends \Seaf\Http\WebApp
         $this->event()->addHook('after.start',function(){
             $c = ob_get_clean();
             ob_start();
-            echo str_replace('h','<link href="/web/assets/style.css" rel="stylesheet">Haaaaaaaaaaa', $c);
+            echo $c;
         });
 
         // セキュリティチェックとか
@@ -43,14 +43,54 @@ class App extends \Seaf\Http\WebApp
 
         // メインコンテンツ
         $this->router()->addRoute('GET /(@page:*)',function(){
-            echo 'hi';
+?>
+<!DOCTYPE html>
+<head>
+<link href="/web/assets/layout.css" rel="stylesheet"/>
+</head>
+<body>
+
+<div class="row">
+    <div class="box span3">1</div>
+    <div class="box span3">2</div>
+    <div class="box span3">3</div>
+    <div class="box span3">4</div>
+</div>
+<div class="row">
+    <div class="box span9">5</div>
+    <div class="box span3">6</div>
+</div>
+<div class="row">
+    <div class="box span3">7</div>
+    <div class="box span9">8
+        <div class="row">
+            <div class="box span1">9</div>
+            <div class="box span8">0</div>
+        </div>
+    </div>
+</div>
+
+<article>
+<header>HEADER</header>
+<section>メイン</section>
+<aside>メニュー</aside>
+<footer>フッター</footer>
+</article>
+
+</body>
+
+<?php
         });
     }
 }
 
 // アセットマネージャを起動
-$am = new AssetManager();
-$am->addPath(dirname(__FILE__).'/../assets');
+$am = new AssetManager( array(
+    'paths'=>array(
+        dirname(__FILE__).'/../assets'
+    )
+));
+
 
 // アセットマネージャを "/assets" にマウント
 Seaf::http()->router()->mount( '/assets', $am);

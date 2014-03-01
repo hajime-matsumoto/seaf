@@ -14,6 +14,7 @@ namespace Seaf\Http;
 
 use Seaf\Seaf;
 use Seaf\Http\WebApp;
+use Seaf\Collection\ArrayCollection;
 
 /**
  * アセット管理クラス
@@ -37,15 +38,27 @@ class AssetManager extends WebApp
      */
     private $paths = array();
 
-    public function __construct( )
+    public function __construct( $config  = array())
     {
         parent::__construct();
 
-        // 実行されたディレクトリをパスに追加
-        $this->addPath(getcwd());
+        if( is_array($config) && !empty($config) )
+        {
+            $config = new ArrayCollection($config);
+            if( $config->has('paths') ) foreach($config->get('paths') as $path) {
+                $this->addPath($path);
+            }
+        }
+        else
+        {
+            // 実行されたディレクトリをパスに追加
+            $this->addPath(getcwd());
+        }
 
-        // とりあえず何でも受け付ける
-        $this->router()->addRoute('/@path:*', array($this, 'index'));
+
+        //
+        // 設定
+        //
 
         // Sassのコンパイルコマンド
         $this->registry()->set('sass.cmd', 'sass --compass --no-cache -s');
@@ -54,6 +67,11 @@ class AssetManager extends WebApp
         // coffeeのコンパイルコマンド
         $this->registry()->set('coffee.cmd', 'coffee -p -s');
         $this->registry()->set('coffee.min.cmd', 'coffee -p -s | uglifyjs');
+
+        // 
+        // ルーティング
+        //
+        $this->router()->addRoute('/@path:*', array($this, 'index'));
     }
 
     /**
@@ -85,7 +103,7 @@ class AssetManager extends WebApp
 
         $file = $this->findFile( $img, array($ext));
 
-        if( !$file ) $this->notfound;
+        if( !$file ) return true;
 
         $finfo = finfo_open(FILEINFO_MIME);
         $mime  = finfo_file($finfo,$file);
@@ -112,7 +130,8 @@ class AssetManager extends WebApp
         $js = $this->findJs($filePath);
         $this->trimExt($js, $ext); // 見つかったファイルの拡張子を取得
 
-        if( !$js ) $this->notfound();
+        if( !$js ) return true;
+
 
 
         // コンパイル
@@ -141,10 +160,16 @@ class AssetManager extends WebApp
         // .sass .scss を探す
         $sass = $this->findCss($filePath);
 
-        if( !$sass ) $this->notfound();
+        if( !$sass ) return true;
+
+        $loadPath = '';
+        foreach( $this->paths as $path )
+        {
+            $loadPath.= ' -I '.realpath($path);
+        }
 
         // コンパイル
-        $stdout = $this->compile( $this->registry()->get('sass.cmd'), $sass );
+        $stdout = $this->compile( $this->registry()->get('sass.cmd').$loadPath, $sass );
 
         Seaf::http()
             ->response()
