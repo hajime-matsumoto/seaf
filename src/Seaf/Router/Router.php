@@ -100,7 +100,7 @@ class Router
         {
             if( strpos($url,$path) === 0 ){
                 $app->request()->setBaseURL(
-                    rtrim($request->getBaseURL().$path,'/')
+                    $request->getBaseURL() == '/' ? $path: $request->getBaseURL().$path
                 );
                 return $app->run();
             }
