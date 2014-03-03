@@ -5,9 +5,6 @@
     el = $('#contact_form');
     validator = el.kendoValidator().data('kendoValidator');
     viewModel = kendo.observable({
-      name: "hajime",
-      mail: "mail@hazime.org",
-      message: "test",
       submit: function() {
         return false;
       },

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Seafフレームワーク</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset='utf-8'>
+
+    <!--[if lt IE 9]>
+    <script src='http://html5shim.googlecode.com/svn/trunk/html5.js'></script>
+    <![endif]-->
+    <link href="{{ base_url }}/sh.css" rel="stylesheet">
+    <script lang="javascript" src="{{ base_url }}/sh.js"></script>
+
+    <!-- For Font Awsome //-->
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+    <link href="{{ base_url }}/assets/app.css" rel="stylesheet">
+  </head>
+  <body>
+    <div id="root"> 
+      <header>
+        <div class="container">
+          <h1>
+            SEAF<small>PHPフレームワーク</small>
+          </h1>
+        </div>
+      </header>
+
+      <nav id="menu">
+        <aside id="toolbox">
+          <a id="menu-up" href="#"><i class="fa fa-hand-o-up"></i>TOP</a>
+          <a id="menu-toggle" href="#menu-container"><i class="fa fa-bars"></i>MENU</a>
+        </aside>
+
+        <div id="menu-container">
+          <div class="container">
+            <ul>
+              <li>
+                <a href="#">Seaf</a>
+              </li>
+              <li>
+                <a href="#welcom">はじめに</a>
+              </li>
+              <li>
+                <a href="#doc">ドキュメント</a>
+              </li>
+              <li>
+                <a href="#start">クイックスタート</a>
+              </li>
+              <li>
+                <a href="#log">開発の記録</a>
+              </li>
+              <li>
+                <a href="#licence">ライセンス</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </nav>
+
+      <div class="container">
+
+        <section id="welcom">
+          <h2>はじめに</h2>
+          <section class="contents">
+            <p>
+              ようこそ、このサイトはPHPフレームワーク"SEAF"の紹介をしています。
+            </p>
+          </section>
+          <h2>特徴</h2>
+          <section class="contents">
+            <p>
+              SEAFとは、PHPのフレームワークです。
+              純国産でソースコードのコメントすら日本語です。
+            </p>
+            <p>
+              SASSやCoffeeScriptにも対応しています。
+              RubyのSinatraやPHPのflightに影響を受けてたマイクロフレームワークですが、
+              これから大規模開発にも使えるように育ててゆきます。
+            </p>
+          </section>
+        </section>
+        <section id="doc">
+          <h2>ドキュメント</h2>
+          <section class="contents">
+          <p>
+          まだまだ、開発が完了していないので、完了してからリファレンスなどを書こうと思っています
+          </p>
+          </section>
+        </section>
+        <section id="start">
+          <h2>
+            クイックスタート
+            <small>
+              <a href="#"><i class="fa fa-arrow-up"></i></a>
+              <a href="#licence" class="fa fa-arrow-down"></i></a>
+            </small>
+          </h2>
+
+          <section class="contents">
+          <h3>コンポーザを使った場合</h3>
+          <pre class="brush:bash" title="コンポーザのインストールと初期化">
+curl -s http://getcomposer.org/installer | php
+php composer.phar init
+          </pre>
+          <pre class="brush:js highlight:[2]" title="composer.jsonのrequireセクション">
+"require": {
+  "hajime-matsumoto/seaf": "*"
+}
+          </pre>
+          <pre class="brush:bash" title="コンポーザでインストール">
+php composer.phar install
+          </pre>
+          </section>
+
+          <section class="contents">
+          <h3>Hello Worldしてみる</h3>
+          <pre class="brush:php">
+use Seaf\Seaf;
+
+// URL '/' にアクセスされた時のアクションを定義します。
+Seaf::http()->router()->map('/', function(){
+  echo 'hello wild';
+});
+
+Seaf::http()->start();
+          </pre>
+          </section>
+
+          <section class="contents">
+          <h3>Twig(テンプレートエンジン)を使う</h3>
+          <pre class="brush:php highlight:[15]">
+use Seaf\Seaf;
+
+// アプリケーションルートを定義
+define('APP_ROOT', realpath(dirname(__FILE__).'/..'));
+
+Seaf::registry()->set(array(
+    'app.root'   => APP_ROOT,
+    'app.env'    => APP_ENV,
+    'cache.path' => '{{app.root}}/tmp/cache',
+    'view.path'  => '{{app.root}}/views'
+));
+
+// URL '/' にアクセスされた時のアクションを定義します。
+Seaf::http()->router()->map('/', function(){
+  echo Seaf::view()->twig()->render('index.twig');
+});
+
+Seaf::http()->start();
+          </pre>
+          </section>
+
+          <section class="contents">
+          <h3>アセットマネージャを使う</h3>
+          <p>sass,coffeeスクリプトを使う場合は、別途インストールする</p>
+          <pre class="brush:bash">
+          gem install sass compass
+          npm install uglifyjs uglifycss coffee
+          </pre>
+          <pre class="brush:php highlight:[14,15,16,17,19,20]">
+use Seaf\Seaf;
+use Seaf\Http\AssetManager;
+
+// アプリケーションルートを定義
+define('APP_ROOT', realpath(dirname(__FILE__).'/..'));
+
+Seaf::registry()->set(array(
+    'app.root'   => APP_ROOT,
+    'app.env'    => APP_ENV,
+    'cache.path' => '{{app.root}}/tmp/cache',
+    'view.path'  => '{{app.root}}/views'
+));
+
+$am = new AssetManager( );
+$am->addPath(
+    Seaf::registry()->get('app.root').'/assets' // アセットファイル置き場
+);
+
+// アセットマネージャを "URL /assets" にマウントする
+Seaf::http()->router()->mount( '/assets', $am);
+
+// URL '/' にアクセスされた時のアクションを定義します。
+Seaf::http()->router()->map('/', function(){
+  echo Seaf::view()->twig()->render('index.twig');
+});
+
+Seaf::http()->start();
+          </pre>
+          </section>
+
+          <section class="contents">
+            <h3>ログをブラウザから確認する</h3>
+            <p>
+            <a href="https://chrome.google.com/webstore/detail/php-console/nfhmhhlpfleoednkpnnnkolmclajemef">php-console</a>というChromeのエクステンションを入れるとPHPとSeafの吐き出すエラーメッセージがchrome->要素を検証のコンソールで見ることができます。
+            </p>
+            <pre class="brush:php highlight:[14,15,16,17,18,19]">
+  use Seaf\Seaf;
+  use Seaf\Http\AssetManager;
+
+  // アプリケーションルートを定義
+  define('APP_ROOT', realpath(dirname(__FILE__).'/..'));
+
+  Seaf::registry()->set(array(
+      'app.root'   => APP_ROOT,
+      'app.env'    => APP_ENV,
+      'cache.path' => '{{app.root}}/tmp/cache',
+      'view.path'  => '{{app.root}}/views'
+  ));
+
+  // ロガーの設定
+  Seaf::logger()->addHandler(
+      array(
+          'type'=>'PHPConsole'
+      )
+  );
+
+  $am = new AssetManager( );
+  $am->addPath(
+      Seaf::registry()->get('app.root').'/assets' // アセットファイル置き場
+  );
+
+  // アセットマネージャを "URL /assets" にマウントする
+  Seaf::http()->router()->mount( '/assets', $am);
+
+  // URL '/' にアクセスされた時のアクションを定義します。
+  Seaf::http()->router()->map('/', function(){
+    echo Seaf::view()->twig()->render('index.twig');
+  });
+
+  Seaf::http()->start();
+            </pre>
+          </section>
+        </section>
+        <section id="licence">
+          <h2>
+            ライセンス
+            <small>
+              <a href="#"><i class="fa fa-arrow-up"></i></a>
+              <a href="#licence" class="fa fa-arrow-down"></i></a>
+            </small>
+          </h2>
+
+          <section class="contents">
+          <h3>The MIT License</h3>
+            <address>Copyright (c) [2014] [Hajime MATSUMOTO]</address>
+            <p>
+              以下に定める条件に従い、本ソフトウェアおよび関連文書のファイル（以下「ソフトウェア」）の複製を取得するすべての人に対し、ソフトウェアを無制限に扱うことを無償で許可します。これには、ソフトウェアの複製を使用、複写、変更、結合、掲載、頒布、サブライセンス、および/または販売する権利、およびソフトウェアを提供する相手に同じことを許可する権利も無制限に含まれます。
+            </p>
+            <p>
+              上記の著作権表示および本許諾表示を、ソフトウェアのすべての複製または重要な部分に記載するものとします。
+            </p>
+            <p>
+              ソフトウェアは「現状のまま」で、明示であるか暗黙であるかを問わず、何らの保証もなく提供されます。ここでいう保証とは、商品性、特定の目的への適合性、および権利非侵害についての保証も含みますが、それに限定されるものではありません。 作者または著作権者は、契約行為、不法行為、またはそれ以外であろうと、ソフトウェアに起因または関連し、あるいはソフトウェアの使用またはその他の扱いによって生じる一切の請求、損害、その他の義務について何らの責任も負わないものとします。
+            </p>
+          </section>
+        </section>
+
+
+        <footer>
+          <address>Copyright (c) 2014 Hajime MATSUMOTO &lt;mail@hazime.org&gt;</address>
+        </footer>
+
+      </div>
+    </div>
+
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script lang="javascript" src="{{ base_url }}/assets/app.js"></script>
+  </body>
+</html>
+
+<!-- vim: set ft=html : //-->

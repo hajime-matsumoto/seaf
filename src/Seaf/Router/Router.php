@@ -50,11 +50,20 @@ class Router
     /**
      * ルートを作成する
      *
-     * @param string
+     * @param mixed $pattern 配列で複数渡せる
      * @param callback 
      */
-    public function addRoute( $pattern, $callback )
+    public function map( $pattern, $callback = null )
     {
+        if( is_array($pattern) && $callback == null )
+        {
+            foreach( $pattern as $k => $v )
+            {
+                $this->map( $k, $v );
+            }
+            return;
+        }
+
         if (strpos($pattern, ' ') !== false) 
         {
             list($method, $url) = explode( ' ', trim($pattern), 2);
@@ -100,11 +109,17 @@ class Router
         return false;
     }
 
+    /**
+     * ルートをひとつ進める
+     */
     public function next()
     {
         $this->idx++;
     }
 
+    /**
+     * ルートインデックスを初期化
+     */
     public function reset()
     {
         $this->idx = 0;

@@ -61,8 +61,8 @@ class AssetManager extends WebApp
         //
 
         // Sassのコンパイルコマンド
-        $this->registry()->set('sass.cmd', 'sass --compass --no-cache -s');
-        $this->registry()->set('sass.min.cmd', 'sass --compass --no-cache -s | uglifycss');
+        $this->registry()->set('sass.cmd', 'sass --compass --cache-location '.Seaf::registry()->get('cache.path').' -s');
+        $this->registry()->set('sass.min.cmd', 'sass --compass --cache-location '.Seaf::registry()->get('cache.path').' -s | uglifycss');
 
         // coffeeのコンパイルコマンド
         $this->registry()->set('coffee.cmd', 'coffee -p -s');
@@ -71,7 +71,7 @@ class AssetManager extends WebApp
         // 
         // ルーティング
         //
-        $this->router()->addRoute('/@path:*', array($this, 'index'));
+        $this->router()->map('/@path:*', array($this, 'index'));
     }
 
     /**
@@ -133,7 +133,6 @@ class AssetManager extends WebApp
         if( !$js ) return true;
 
 
-
         // コンパイル
         $stdout = $this->compile( $this->registry()->get('coffee.cmd'), $js );
 
@@ -152,6 +151,7 @@ class AssetManager extends WebApp
      */
     public function indexCss($filePath)
     {
+        Seaf::debug("Requested $filePath");
         // 拡張子を取り除く
         $ext = "";
         $filePath = $this->trimExt( $filePath, $ext);
@@ -160,7 +160,10 @@ class AssetManager extends WebApp
         // .sass .scss を探す
         $sass = $this->findCss($filePath);
 
-        if( !$sass ) return true;
+        if( !$sass ) {
+            Seaf::debug("Requested $filePath not found ins %s", implode(",",$this->paths));
+            return true;
+        }
 
         $loadPath = '';
         foreach( $this->paths as $path )

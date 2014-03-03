@@ -32,6 +32,17 @@ class ArrayCollection extends Collection implements IteratorAggregate
     }
 
     /**
+     * 値をコピーする
+     *
+     * @param string $name
+     * @param mixed $value
+     */
+    public function sync( ArrayCollection $collection )
+    {
+        $this->data =& $collection->data;
+    }
+
+    /**
      * 値をプッシュする
      *
      * @param string $name

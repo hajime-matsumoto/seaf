@@ -68,6 +68,9 @@ class Environment
 
         // メールコンポーネント
         $factory->register('mail','Seaf\Component\Mail');
+
+        // Viewコンポーネント
+        $factory->register('view','Seaf\Component\View');
     }
 
     /**

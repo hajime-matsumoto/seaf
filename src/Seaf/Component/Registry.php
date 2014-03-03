@@ -38,6 +38,21 @@ class Registry extends ArrayCollection
             );
         }
     }
+
+    /**
+     * 取得時の処理
+     */
+    public function get( $name, $default = null )
+    {
+        $data = parent::get( $name, $default );
+
+        if( !is_string($data) ) return $data;
+
+        $self = $this;
+        return preg_replace_callback('/\{\{(.+)\}\}/',  function($m) use ($self){
+            return $self->get( $m[1], $m[0] );
+        }, $data);
+    }
 }
 
 /* vim: set expandtab ts=4 sw=4 sts=4: et*/

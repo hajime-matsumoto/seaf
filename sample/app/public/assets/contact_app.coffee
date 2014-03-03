@@ -3,9 +3,6 @@ $(document).ready ->
   validator = el.kendoValidator().data('kendoValidator')
 
   viewModel = kendo.observable 
-    name: "hajime"
-    mail: "mail@hazime.org"
-    message: "test"
     submit: -> false
     sendMessage: (e)->
       e.stopPropagation()

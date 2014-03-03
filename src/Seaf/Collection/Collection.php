@@ -23,11 +23,19 @@ abstract class Collection
     /**
      * 値をセットする
      *
-     * @param string $name
+     * @param mixd $name
      * @param mixed $value
      */
-    public function set( $name, $value )
+    public function set( $name, $value = null )
     {
+        if( is_array($name) ) 
+        {
+            foreach( $name as $k=>$v )
+            {
+                $this->set( $k, $v );
+            }
+            return;
+        }
         return $this->_set($name, $value );
     }
 

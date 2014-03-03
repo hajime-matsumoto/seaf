@@ -1,0 +1,100 @@
+@function modular-scale($value,$increment,$ratio)
+  @if $increment > 0
+    @for $i from 1 through $increment
+      $value: ($value * $ratio)
+  @if $increment < 0
+    $increment: abs($increment)
+    @for $i from 1 through $increment
+      $value: ($value / $ratio)
+  @return $value
+
+@function golden-ratio($value, $increment: 1)
+  @return modular-scale($value, $increment, 1.618)
+@function silver-ratio($value, $increment: 1)
+  @return modular-scale($value, $increment, 1.414)
+
+=fontsize($size: 24, $base: 16)
+  font-size: $size + px
+  font-size: ($size / $base) * 1rem
+
+=type-size($num)
+  +fontsize( silver-ratio( $num +10, 1) )
+
+=blowoff($base_color: #000, $accent_color: #ff6347, $color: #ffffff )
+  position: relative
+  color: $color
+  background: $base_color
+  font-size: 16pt
+  border: 3px solid $accent_color
+  /*margin: 10px 10px 23px 10px*/
+  margin-bottom: 23px
+  padding: 10px 5px 10px 10px
+  border-radius: 3px
+  box-shadow: 1px 3px 7px 0px lighten($base_color,20)
+  &:after,&:before
+    content: ""
+    position: absolute
+    top: 100%
+    height: 0
+    width: 0
+  &:after
+    left: 40px
+    border: 10px solid transparent
+    border-top: 10px solid $base_color
+  &:before
+    left: 37px
+    border: 13px solid transparent
+    border-top: 13px solid $accent_color
+
+=ribon($base_color: #000, $accent_color: #ff6347, $color: #ffffff )
+
+  position: relative
+  color: $color
+  background: $base_color
+  font-size: 16pt 
+  line-height: 1
+  margin: 20px -10px 20px -10px
+  padding: 10px 5px 10px 20px
+  box-shadow: 1px 3px 7px 0px  lighten($base_color,20)
+  border-top: 3px solid $accent_color
+
+  &:after, &:before
+    content: ""
+    position: absolute
+    top: 100%
+    height: 0
+    width: 0
+    border: 5px solid transparent
+    border-top: 5px solid lighten($base_color,20)
+  &:after
+    left: 0
+    border-right: 5px solid lighten($base_color,20)
+  &:before
+    right: 0
+    border-left: 5px solid lighten($base_color,20)
+
+html
+  font-family: 'Lucida Grande', 'Hiragino Kaku Gothic ProN', Meiryo,  sans-serif
+  padding: 0
+body
+
+h1,h2,h3,h4,h5,h6
+  line-height: 2
+  /* 100-900 */
+  font-weight: 900
+  small
+    font-weight: normal
+p
+  +type-size(0)
+  margin-bottom: 1em
+h5
+  +type-size(2)
+h4
+  +type-size(4)
+h3
+  +type-size(6)
+h2
+  +type-size(9)
+h1
+  +type-size(16)
+

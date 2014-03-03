@@ -4,11 +4,9 @@
 /**
  * Web Application
  */
-require_once dirname(__FILE__).'/../../vendor/autoload.php';
 
-
-use Seaf\Http\WebApp;
 use Seaf\Seaf;
+use Seaf\Http\WebApp;
 
 class App extends WebApp
 {
@@ -23,8 +21,11 @@ class App extends WebApp
         $this->registry()->set('app.root', dirname(__FILE__));
         $this->initTwig();
 
-        $this->router()->addRoute('/(@page:*)', array($this,'showPage'));
-        $this->router()->addRoute('PUT /sendMail', array($this,'sendMail'));
+        // URLの登録
+        $this->router()->map('/(@page:*)', array($this,'showPage'));
+        $this->router()->map('PUT /sendMail', array($this,'sendMail'));
+
+        // 出力時パスの変換をする
         $this->event()->addHook('after.start',array($this,'changePathFilter'));
     }
 

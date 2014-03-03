@@ -1,0 +1,109 @@
+@import 'compass'
+@import 'compass/css3'
+@import "compass/css3/images"
+@import 'compass/reset'
+@import 'seaf/all'
+
+$base_color: #d5ff95
+
+
+
+$page_width: 960
+
+header
+  +background-image(linear-gradient(left top, lighten($base_color,20), darken($base_color,0)))
+h1
+  margin: 0 auto
+  text-align: center
+  letter-spacing: 0.5em
+  padding-bottom: 50px
+  small
+    +type-size(2)
+    display: block
+    vertical-align: middle
+    color: #999
+h2
+  margin: 0px 10px
+#menu
+  aside#toolbox
+    float: right
+    cursor: pointer
+    width: 100%
+    background: #FFF
+    +type-size(4)
+    position: absolute
+    top: 0px
+    left: 0px
+    padding:
+      left: 20px
+      top: 10px
+    &.fixed
+      position: fixed
+      z-index: 999
+    a
+      text-decoration: none
+      color: #555
+      &:hover
+        text-decoration: underline
+  #menu-container
+    +background-image(linear-gradient(top, lighten($base_color,0), darken($base_color,10)))
+    ul
+      li
+        a
+          padding: 10px 20px
+          display: block
+          text-decoration: none
+          +background-image(linear-gradient(top, lighten($base_color,0), darken($base_color,5)))
+          color: #555
+          box
+          &:hover
+            +background-image(linear-gradient(top, lighten($base_color,10), lighten($base_color,20)))
+section.contents
+  margin: 10px 10px
+  border: solid 1px #DFDFDF
+  background: #EFEFEF
+  +border-radius(5px)
+  padding: 10px 10px
+
+footer
+  +background-image(radial-gradient(top, lighten(#E0F0F0,7), #E0F0F0))
+  +border-radius(1px)
+  margin: 10px 10px
+  padding: 10px 0px
+  text-align: center
+
+header
+  padding-top: 50px
+
+@media screen and (min-width: 768px)
+  h1
+    text-align: left
+    margin-left: 20px
+    padding: 50px 00px
+    small
+      display: inline-block
+  #menu
+    aside#toolbox
+      display: none
+    #menu-container
+      &.fixed
+        position: fixed
+        top: 0px
+        left: 0px
+        width: 100%
+        z-index: 999
+      ul
+        margin-left: 20px
+
+        +clearfix
+        text-align: center
+        li
+          float: left
+          padding-left: 2px
+          a
+            display: inline-block
+
+@media screen and (min-width: 960px)
+  .container
+    width: $page_width +px
+    margin: 0px auto
