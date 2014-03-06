@@ -12,6 +12,10 @@
     }
   ],
   "require": {
+    "hajime-matsumoto/seaf-core": "*",
+    "hajime-matsumoto/seaf-config": "*",
+    "hajime-matsumoto/seaf-yaml": "*",
+    "hajime-matsumoto/seaf-framework": "*",
     "php-console/php-console": "3.*",
     "twig/twig": "1.*"
   },

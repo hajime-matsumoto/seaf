@@ -1,13 +1,25 @@
-# Seafとは
+Seaf ライブラリ
+======================
 
-日本国産で大規模から小規模の仕事、
-遊びにも使いやすく、学習コストの低い
-フレームワークです。
+拡張、組み換え、カスタマイズのしやすさ、
+ノウハウの蓄積のしやすさを第一に考えたライブラリです。
 
-と、堂々と言えるプロジェクトを目指しています。
+ディレクトリ構成
+-------------------
 
+src/Seaf ライブラリ
+src/Seaf/Component コンポーネントライブラリ
 
-# WEBフレームワーク
-sass,coffee script,twigに対応しています。
+コンポーネントの記述場所
+---------------------
 
-# sample
+ワンファイルで完結する場合 src/Seaf/Componentn/XXX
+そうでない場合 src/bundle/<name>/autoload.phpで
+パスを追加する
+
+	Seaf::di('autoLoader')->addNamespace(
+		'Seaf\\Component\\Config',
+		null,
+		dirname(__FILE__).'/Config'
+	);
+
