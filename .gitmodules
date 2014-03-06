@@ -1,0 +1,12 @@
+[submodule "src/bundle/core"]
+	path = src/bundle/core
+	url = git@github.com:hajime-matsumoto/seaf-core.git
+[submodule "src/bundle/yaml"]
+	path = src/bundle/yaml
+	url = git@github.com:hajime-matsumoto/seaf-yaml.git
+[submodule "src/bundle/config"]
+	path = src/bundle/config
+	url = git@github.com:hajime-matsumoto/seaf-config.git
+[submodule "src/bundle/framework"]
+	path = src/bundle/framework
+	url = git@github.com:hajime-matsumoto/seaf-framework.git

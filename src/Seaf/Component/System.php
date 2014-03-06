@@ -11,8 +11,8 @@
 
 namespace Seaf\Component;
 
-use Seaf\Seaf;
-use Seaf\DI\DIContainer;
+use Seaf;
+use Seaf\Core\Environment\Environment;
 
 /**
  * Systemコンポーネント
@@ -25,16 +25,11 @@ class System
     private $fake_exit = false;
 
     /**
-     * @var object
+     * @param object $env
      */
-    private $di;
-
-    /**
-     * @param object $di
-     */
-    public function acceptDIContainer( DIContainer $di )
+    public function acceptEnvitonment ( Environment $env )
     {
-        $this->di = $di;
+        // ヘルパメソッドを追加する
     }
 
     /**
@@ -54,7 +49,6 @@ class System
         {
             header( $header, $replace );
         }
-
     }
 
     /**
@@ -119,6 +113,18 @@ class System
     {
         ini_set($name, $value);
         return $this;
+    }
+
+    /**
+     * INIを取得する
+     *
+     * @param string $name
+     * @param string $value
+     * @return object $this
+     */
+    public function iniGetAll( )
+    {
+        return ini_get_all();
     }
 
     /**

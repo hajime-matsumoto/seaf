@@ -1,6 +1,6 @@
 <phpunit backupGlobals="false"
   backupStaticAttributes="false"
-  bootstrap="../vendor/autoload.php"
+  bootstrap="../src/autoload.php"
   cacheTokens="true"
   colors="false"
   convertErrorsToExceptions="true"
@@ -10,11 +10,6 @@
   stopOnFailure="false"
   syntaxCheck="false"
   verbose="false">
-  <filter>
-    <whitelist addUncoveredFilesFromWhitelist="false">
-      <directory>../src/Seaf/</directory>
-    </whitelist>
-  </filter>
   <testsuite name="Seaf Test Suite">
     <directory>.</directory>
   </testsuite>
