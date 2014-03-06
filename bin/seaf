@@ -8,11 +8,15 @@ define('SEAF_SYSTEM_TEMPLATE', SEAF_ROOT.'/bin/template');
 $rt = Seaf::cli()->router();
 
 $rt->map('init', function($req, $res, $cli) {
+
+    // Utilを使う
+    $util = Seaf::util();
+
     // 設定があればロードする
     $dir = getcwd();
     $setting = $dir.'/config/setting.yaml';
 
-    $origin = array();
+    // 初期値を設定
     if (file_exists($setting)) {
         $origin = $cli->yaml()->parse(file_get_contents($setting));
     }else{
@@ -21,86 +25,66 @@ $rt->map('init', function($req, $res, $cli) {
         $origin['production'] = array('mode'=>'prodution');
         $origin['development'] = array('mode'=>'development');
     }
-    $default =& $origin['default'];
 
-    $cli->out('プロジェクトを作成します。');
-    do {
-        $name = $cli->in(
-            'プロジェクト名',
-            Seaf::util()->arrayGet($default, 'project', basename($dir))
-        );
-    } while (empty($name));
+    // デフォルト
+    $dft =& $origin['default'];
 
-    $info['name'] = $name;
+    $cli->out('プロジェクトを作成します。'."\n");
+
     $info['SeafRoot'] = SEAF_ROOT;
 
-    $domain = $cli->in(
+    $dft['project'] = $info['name'] = $name = $cli->in(
+        'プロジェクト名',
+        $util->arrayGet($dft,'project',basename($dir))
+    );
+    $dft['domain'] = $info['domain'] = $cli->in(
         "ドメイン",
-        Seaf::util()->arrayGet($default, 'domain', basename($dir))
+        $util->arrayGet($dft, 'domain', basename($dir))
     );
-    $default['domain'] = $info['domain'] = $domain;
-
-    $paths = Seaf::Util()->arrayGet($default, 'path', array());
-    $dir = $cli->in(
+    $dft['root']['path'] = $info['dir'] = $dir = $cli->in(
         "プロジェクトディレクトリ",
-        Seaf::util()->arrayGet($paths, 'root', getcwd())
+        $util->arrayGet($dft, 'root.path', getcwd())
     );
-    $default['path']['root'] = $info['dir'] = $dir;
-
-    $public = $cli->in(
+    $dft['public']['path'] = $info['public'] = $cli->in(
         "公開ディレクトリ",
-        Seaf::util()->arrayGet($paths, 'public', 'public')
+        $util->arrayGet($dft, 'public.path', 'public')
     );
-    $default['path']['public'] = $info['public'] = $public;
-    $cli->mkdir($dir.'/'.$public);
+    $cli->mkdir($dft['root']['path'].'/'.$dft['public']['path']);
 
-    $index_php = $dir.'/'.$public.'/index.php';
+    $index_php = $dft['root']['path'].'/'.$dft['public']['path'].'/index.php';
     if (!file_exists($index_php)) {
         $index_php = $cli->in('indexを作成します。', $index_php);
         $cli->templateWrite(SEAF_SYSTEM_TEMPLATE.'/index.php', $info, $index_php);
     }
 
-    $logs = $cli->in(
+    $dft['logs']['path'] = $info['logs'] = $cli->in(
         "ログディレクトリ",
-        Seaf::util()->arrayGet($paths, 'logs', 'logs')
+        $util->arrayGet($dft, 'logs.path', 'logs')
     );
-    $default['path']['logs'] = $info['logs'] = $logs;
-    $cli->mkdir($dir.'/'.$logs);
+    $cli->mkdir($dir.'/'.$dft['logs']['path']);
 
-    $assets = $cli->in(
-        "アセットディレクトリ",
-        Seaf::util()->arrayGet($paths, 'assets', $public.'/assets')
-    );
-    $default['path']['assets'] = $info['assets'] = $assets;
-    $cli->mkdir($assets);
-    $cli->mkdir($assets.'/styles');
-    $cli->mkdir($assets.'/scripts');
-
-    $view = $cli->in(
+    $dft['view']['path'] = $info['view'] = $view = $cli->in(
         "VIEWディレクトリ",
-        Seaf::util()->arrayGet($paths, 'view', 'view')
+        Seaf::util()->arrayGet($dft, 'view.path', 'view')
     );
-    $default['path']['view'] = $info['view'] = $view;
     $cli->mkdir($dir.'/'.$view);
 
-    $view_index = $dir.'/'.$view.'/index.php';
+    $view_index = $dft['root']['path'].'/'.$view.'/index.php';
     if (!file_exists($view_index)) {
         $view_index = $cli->in('VIEW INDEXを作成します。', $view_index);
         $cli->templateWrite(SEAF_SYSTEM_TEMPLATE.'/view/index.php', $info, $view_index);
     }
 
-
-    $libdir = $cli->in("ライブラリディレクトリ", 'lib');
-    $default['path']['lib'] = $info['lib'] = $libdir;
+    $dft['lib']['path'] = $info['lib'] = $libdir = $cli->in(
+        "ライブラリディレクトリ",
+        $util->arrayGet($dft, 'lib.path', 'lib')
+    );
     $cli->mkdir($dir.'/'.$libdir.'/Seaf/Component');
 
-    $namespace = $cli->in(
+    $dft['namespace'] = $info['namespace'] = $namespace = $cli->in(
         "ネームスペース",
-        Seaf::util()->arrayGet($default, 'namespace', ucfirst($name))
+        $util->arrayGet($dft, 'namespace', ucfirst($dft['project']))
     );
-    $default['namespace'] = $info['namespace'] = $namespace;
-
-    $cli->out("名前:$name\nディレクトリ:$dir\nネームスペース:$namespace\n");
 
     $bootstrap = $cli->in('ブートストラップを作成します。', $dir.'/bootstrap.php');
     $cli->templateWrite(SEAF_SYSTEM_TEMPLATE.'/bootstrap.php', $info, $bootstrap);

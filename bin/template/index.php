@@ -11,7 +11,6 @@ define('APP_ENV', Seaf::ENV_DEVELOPMENT);
 Seaf::config()->load(APP_ROOT.'/config/setting.yaml');
 
 $rt = Seaf::web()->router();
-$ev = Seaf::web()->event();
 
 $rt->map('/(@page:*)',function ($page, $req, $res, $web) {
 
@@ -20,12 +19,8 @@ $rt->map('/(@page:*)',function ($page, $req, $res, $web) {
     }
 
     // 使用するテンプレートを宣言する
-    $web->set('template', $page);
+    $web->set('view', $page);
 });
 
-$ev->on('after.render', function ($web) {
-    $template = $web->get('template');
-    $web->render($template);
-});
 
 Seaf::web()->run();
