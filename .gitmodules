@@ -16,3 +16,6 @@
 [submodule "src/bundle/cli"]
 	path = src/bundle/cli
 	url = git@github.com:hajime-matsumoto/seaf-cli.git
+[submodule "src/bundle/view"]
+	path = src/bundle/view
+	url = git@github.com:hajime-matsumoto/seaf-view
