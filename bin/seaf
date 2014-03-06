@@ -1,0 +1,134 @@
+#!/usr/bin/php -q
+<?php
+require_once dirname(__FILE__).'/../src/autoload.php';
+
+define('SEAF_ROOT', realpath(dirname(__FILE__).'/../'));
+define('SEAF_SYSTEM_TEMPLATE', SEAF_ROOT.'/bin/template');
+
+$rt = Seaf::cli()->router();
+
+$rt->map('init', function($req, $res, $cli) {
+    // 設定があればロードする
+    $dir = getcwd();
+    $setting = $dir.'/config/setting.yaml';
+
+    $origin = array();
+    if (file_exists($setting)) {
+        $origin = $cli->yaml()->parse(file_get_contents($setting));
+    }else{
+        $origin = array();
+        $origin['default'] = array();
+        $origin['production'] = array('mode'=>'prodution');
+        $origin['development'] = array('mode'=>'development');
+    }
+    $default =& $origin['default'];
+
+    $cli->out('プロジェクトを作成します。');
+    do {
+        $name = $cli->in(
+            'プロジェクト名',
+            Seaf::util()->arrayGet($default, 'project', basename($dir))
+        );
+    } while (empty($name));
+
+    $info['name'] = $name;
+    $info['SeafRoot'] = SEAF_ROOT;
+
+    $domain = $cli->in(
+        "ドメイン",
+        Seaf::util()->arrayGet($default, 'domain', basename($dir))
+    );
+    $default['domain'] = $info['domain'] = $domain;
+
+    $paths = Seaf::Util()->arrayGet($default, 'path', array());
+    $dir = $cli->in(
+        "プロジェクトディレクトリ",
+        Seaf::util()->arrayGet($paths, 'root', getcwd())
+    );
+    $default['path']['root'] = $info['dir'] = $dir;
+
+    $public = $cli->in(
+        "公開ディレクトリ",
+        Seaf::util()->arrayGet($paths, 'public', 'public')
+    );
+    $default['path']['public'] = $info['public'] = $public;
+    $cli->mkdir($dir.'/'.$public);
+
+    $index_php = $dir.'/'.$public.'/index.php';
+    if (!file_exists($index_php)) {
+        $index_php = $cli->in('indexを作成します。', $index_php);
+        $cli->templateWrite(SEAF_SYSTEM_TEMPLATE.'/index.php', $info, $index_php);
+    }
+
+    $logs = $cli->in(
+        "ログディレクトリ",
+        Seaf::util()->arrayGet($paths, 'logs', 'logs')
+    );
+    $default['path']['logs'] = $info['logs'] = $logs;
+    $cli->mkdir($dir.'/'.$logs);
+
+    $assets = $cli->in(
+        "アセットディレクトリ",
+        Seaf::util()->arrayGet($paths, 'assets', $public.'/assets')
+    );
+    $default['path']['assets'] = $info['assets'] = $assets;
+    $cli->mkdir($assets);
+    $cli->mkdir($assets.'/styles');
+    $cli->mkdir($assets.'/scripts');
+
+    $view = $cli->in(
+        "VIEWディレクトリ",
+        Seaf::util()->arrayGet($paths, 'view', 'view')
+    );
+    $default['path']['view'] = $info['view'] = $view;
+    $cli->mkdir($dir.'/'.$view);
+
+    $view_index = $dir.'/'.$view.'/index.php';
+    if (!file_exists($view_index)) {
+        $view_index = $cli->in('VIEW INDEXを作成します。', $view_index);
+        $cli->templateWrite(SEAF_SYSTEM_TEMPLATE.'/view/index.php', $info, $view_index);
+    }
+
+
+    $libdir = $cli->in("ライブラリディレクトリ", 'lib');
+    $default['path']['lib'] = $info['lib'] = $libdir;
+    $cli->mkdir($dir.'/'.$libdir.'/Seaf/Component');
+
+    $namespace = $cli->in(
+        "ネームスペース",
+        Seaf::util()->arrayGet($default, 'namespace', ucfirst($name))
+    );
+    $default['namespace'] = $info['namespace'] = $namespace;
+
+    $cli->out("名前:$name\nディレクトリ:$dir\nネームスペース:$namespace\n");
+
+    $bootstrap = $cli->in('ブートストラップを作成します。', $dir.'/bootstrap.php');
+    $cli->templateWrite(SEAF_SYSTEM_TEMPLATE.'/bootstrap.php', $info, $bootstrap);
+
+    $cli->out('Bootstrapをテストします。');
+    exec("php -f $bootstrap");
+
+    $setting = $cli->in('設定ファイルを作成します。', $dir.'/config/setting.yaml');
+    $cli->mkdir(dirname($setting));
+
+    file_put_contents(
+        $setting,
+        $cli->yaml()->dump( $origin )
+    );
+
+    $nginx = $cli->in('Nginxの設定ファイルを作成します。', $dir.'/nginx.conf');
+    $cli->templateWrite(SEAF_SYSTEM_TEMPLATE.'/nginx.conf', $info, $nginx);
+
+    $apache = $cli->in('Apache2の設定ファイルを作成します。', $dir.'/apache2.conf');
+    $cli->templateWrite(SEAF_SYSTEM_TEMPLATE.'/apache2.conf', $info, $apache);
+
+    $cli->out('有効にするためには以下のコマンドを実行する必要があります。');
+    $cli->out("");
+    $cli->out("ln -s $apache /etc/apache2/sites-enabled/$name.conf");
+    $cli->out("ln -s $nginx /etc/nginx/sites-enabled/$name.conf");
+
+});
+
+Seaf::cli()->run();
+
+# vim: set ft=php :

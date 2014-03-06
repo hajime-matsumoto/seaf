@@ -3,8 +3,6 @@
  * Seaf Auto Loader
  */
 
-// Seafを読み込む
-require_once dirname(__FILE__).'/Seaf.php';
 
 // オートローダクラスを読み込む
 require_once dirname(__FILE__).'/bundle/core/src/Core/Loader/AutoLoader.php';

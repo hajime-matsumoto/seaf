@@ -1,0 +1,41 @@
+#!/usr/bin/php -q
+<?php
+require_once dirname(__FILE__).'/../src/autoload.php';
+
+
+$rt = Seaf::cli()->router();
+
+$rt->map('init', function($req, $res, $cli) {
+    echo '初期化します';
+});
+
+$rt->map('help', function($req, $res, $cli) {
+    echo "ヘルプ\n";
+    echo "================\n";
+    echo "\n";
+    echo "install/phpunut\t:PHPユニットをインストールします。\n";
+    echo "install/xdebug\t:Xdebugをインストールします。\n";
+});
+
+$rt->map('install', function($req, $res, $cli) {
+    if (!$cli->isRoot()) {
+        echo "このコマンドの実行にはルート権限が必要かもしれません\n";
+    }
+    return true;
+});
+
+$rt->map('install/phpunit', function($req, $res, $cli) {
+    $cli->exec("yes | apt-get install php-pear");
+    $cli->exec("pear config-set auto_discover 1");
+    $cli->exec("pear install pear.phpunit.de/PHPUnit");
+    $cli->exec("pear install pear.phpunit.de/PHPUnit_SkeletonGenerator");
+});
+
+$rt->map('install/xdebug', function($req, $res, $cli) {
+    $cli->exec("yes | apt-get install php5-dev");
+    $cli->exec("pecl install xdebug");
+});
+
+Seaf::cli()->run();
+
+# vim: set ft=php :

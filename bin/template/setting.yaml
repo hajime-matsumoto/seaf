@@ -1,0 +1,7 @@
+default:
+    project: {{name}}
+    path:
+        seaf: {{SeafRoot}}
+        root: {{dir}}
+development:
+production:
