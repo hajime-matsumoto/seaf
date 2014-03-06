@@ -11,58 +11,48 @@
 
 namespace Seaf\Component;
 
-use Seaf\DI\DIContainer;
-use Seaf\Collection\ArrayCollection;
-
-use Seaf\Seaf;
+use Seaf;
 
 /**
  * Eventコンポーネント
+ * ===================
+ * イベントを管理するコンポーネントです。
  */
 class Event
 {
-    /**
-     * @param object $di
-     */
-    public function acceptDIContainer( DIContainer $di )
+    private $events = array();
+
+    public function on ($event_name, $action, $object = null) 
     {
+        if (is_object($object)) {
+            $action = array($object,$action);
+        }
+
+        $this->events[$event_name][] = $action;
     }
 
-    public function __construct( )
+    public function off ($event_name, $action)
     {
-        $this->init();
-    }
-
-    public function init()
-    {
-        $this->eventContainer = new ArrayCollection();
-    }
-
-    /**
-     * フックを作成
-     * @param string $name
-     */
-    public function addHook( $key, $func )
-    {
-        $this->eventContainer->push($key, $func);
-    }
-
-    /**
-     * フックをトリガー
-     *
-     * @param string $name
-     * @param mixed $v,...
-     */
-    public function trigger( $key )
-    {
-        if( !$this->eventContainer->has($key) ) return false;
-
-        foreach( $this->eventContainer->get($key) as $hook )
-        {
-            $result = call_user_func_array( $hook, array_slice(func_get_args(),1));
-            if( $result === false ) break;
+        foreach ($this->events[$event_name] as $k => $event_action) {
+            if ($event_action === $action) {
+                unset($this->events[$event_name][$k]);
+            }
         }
     }
+
+    public function trigger ($event_name) 
+    {
+        if (func_num_args() > 0) {
+            $args = func_get_args();
+        }
+        if (isset($this->events[$event_name]) && is_array($this->events[$event_name])) {
+            foreach ($this->events[$event_name] as $action) {
+                $isContinue = call_user_func_array($action, $args);
+                if ($isContinue === false) break;
+            }
+        }
+    }
+
 }
 
 /* vim: set expandtab ts=4 sw=4 sts=4: et*/
