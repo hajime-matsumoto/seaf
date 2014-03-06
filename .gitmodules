@@ -10,3 +10,6 @@
 [submodule "src/bundle/framework"]
 	path = src/bundle/framework
 	url = git@github.com:hajime-matsumoto/seaf-framework.git
+[submodule "src/bundle/web"]
+	path = src/bundle/web
+	url = git@github.com:hajime-matsumoto/seaf-web.git
