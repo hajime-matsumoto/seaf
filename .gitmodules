@@ -22,3 +22,6 @@
 [submodule "src/bundle/mail"]
 	path = src/bundle/mail
 	url = git@github.com:hajime-matsumoto/seaf-mail
+[submodule "src/bundle/log"]
+	path = src/bundle/log
+	url = git@github.com:hajime-matsumoto/seaf-log
