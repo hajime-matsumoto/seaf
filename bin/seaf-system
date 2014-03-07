@@ -30,6 +30,9 @@ $rt->map('install/phpunit', function($req, $res, $cli) {
     $cli->exec("pear install pear.phpunit.de/PHPUnit");
     $cli->exec("pear install pear.phpunit.de/PHPUnit_SkeletonGenerator");
 });
+$rt->map('install/twig', function($req, $res, $cli) {
+    $cli->exec("pear install pear.twig-project.org/Twig");
+});
 
 $rt->map('install/xdebug', function($req, $res, $cli) {
     $cli->exec("yes | apt-get install php5-dev");
