@@ -46,6 +46,18 @@ Environmentを拡張したクラス
 * Seaf\Console\Application  コンソールアプリケーション用のEnvironment
 
 ```php
+# すごくシンプルな使い方
+# / でHelloWorld
+# /sayName/name/hajime で Hello hajime と出力される
+Seaf::web( )->route('/', function ( ) {
+	echo 'Hello World';
+})->route('/sayName/name/(@name)',function($name) {
+	echo "Hello $name";
+})->run();
+```
+
+```php
+# Viewを使う場合
 $web = Seaf::web(); # Seaf\Web\Application
 $web->config()
 	->set('root.path',__DIR__)
@@ -62,7 +74,14 @@ $web->route('/', function ( ) use ($view) {
 $web->run();
 ```
 
+ケーススタディ
+==============================
 
+SASS & COFFEE SCRIPTを使う
+-----------------------------
 
+ログをとる
+-----------------------------
 
-
+中規模なシステムを作る
+----------------------------
