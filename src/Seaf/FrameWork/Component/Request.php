@@ -3,18 +3,22 @@
 namespace Seaf\FrameWork\Component;
 
 use Seaf\FrameWork\Application;
+use Seaf\Helper\ArrayHelper;
 
 /**
  * Request
  */
 class Request
 {
-    private $uri = '/';
-    private $method = 'GET';
+    protected $uri = '/';
+    protected $method = 'GET';
+    protected $app;
+    protected $params;
 
-    public function __construct( $request = null )
+    public function __construct(Application $app)
     {
-        $this->init($request);
+        $this->app = $app;
+        $this->init();
     }
 
     public function init ($request = null)
@@ -36,5 +40,34 @@ class Request
 
     public function getMethod() {
         return $this->method;
+    }
+
+    public function setMethod($method) {
+        $this->method = $method;
+    }
+
+    public function setParams($params)
+    {
+        foreach ($params as $k => $v) {
+            $this->setParam($k, $v);
+        }
+    }
+
+    public function setParam($k,$v)
+    {
+        $this->params[$k] = $v;
+    }
+
+    public function getParam($k,$default=null)
+    {
+        return ArrayHelper::get($this->params, $k, $default);
+    }
+
+    public function __get($k) {
+        return $this->getParam($k);
+    }
+
+    public function __set($k, $v) {
+        return $this->setParam($k, $v);
     }
 }

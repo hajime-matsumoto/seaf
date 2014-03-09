@@ -5,6 +5,7 @@
 namespace Seaf\Environment\Component;
 
 use Seaf\Environment\Environment;
+use Seaf;
 
 /**
  * システムコンポーネント
@@ -32,6 +33,12 @@ class SystemComponent {
      */
     public function useFake( ) {
         $this->isFake = true;
+    }
+
+    public function header($header) 
+    {
+        Seaf::debug('Header-Sent: '.$header);
+        header($header);
     }
 
     public function halt ($body = null) {

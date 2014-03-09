@@ -102,7 +102,7 @@ class InstanceManager {
         }
 
         if (array_key_exists($alias, $this->callbacks)) {
-            $return = Command::invokeArgs($this->callbacks[$alias], $instance);
+            $return = Command::invokeArgs($this->callbacks[$alias], array($instance));
             if (is_object($return)) $instance = $return;
         }
 

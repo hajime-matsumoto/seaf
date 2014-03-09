@@ -5,6 +5,7 @@ require_once '../src/Seaf/bootstrap.php';
 use Seaf\Console\Application;
 
 define('PHP5_MODS_AVAILABLE',"/etc/php5/mods-available");
+define('COMPOSER_JSON','./composer.json');
 
 Seaf::init();
 Seaf::logHandler('default',array(
@@ -110,6 +111,21 @@ class Installer extends Application
         $this->out('Created: '.PHP5_MODS_AVAILABLE."/yaml.ini");
         $this->exec('cat '.PHP5_MODS_AVAILABLE."/yaml.ini");
         $this->exec('php5enmod yaml');
+    }
+
+    /**
+     * @SeafDesc php-consoleのインストール
+     * @SeafRoute php-console
+     */
+    public function _phpConsole ( )
+    {
+        $origin = array();
+        if (file_exists('composer.json')) {
+            $origin = json_decode(file_get_contents(COMPOSER_JSON));
+        }
+        $origin['require']['php-console/php-console'] = '3.*';
+
+        echo json_encode($origin);
     }
 }
 

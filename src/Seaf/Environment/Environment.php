@@ -40,20 +40,6 @@ class Environment {
 
     public function init ( ) {
 
-        // 変数操作を組み込む
-        $this->bind($this, array(
-            'set' => '_set',
-            'get' => '_get',
-            'push' => '_push'
-        ));
-
-        // イベントを組み込む
-        $this->bind('event',array(
-            'on' => 'on',
-            'off'=>'off',
-            'trigger'=>'trigger'
-        ));
-
         // ロガーを組み込む
         $this->bind('Seaf\Log\Log',array(
             'emerg'    => 'emerg',
@@ -64,12 +50,51 @@ class Environment {
             'info'     => 'info',
             'debug'    => 'debug'
         ));
+
+        // DIを組み込む
+        $this->bind($this->componentManager,array(
+            'register' => 'register'
+        ));
+
+        // 変数操作を組み込む
+        $this->bind($this, array(
+            'set' => '_set',
+            'get' => '_get',
+            'push' => '_push',
+            'getVars' => '_getVars'
+        ));
+
+        // イベントを組み込む
+        $this->bind('event',array(
+            'on' => 'on',
+            'off'=>'off',
+            'trigger'=>'trigger'
+        ));
+
+        // コンフィグを組み込む
+        $this->bind('config',array(
+            'setConfig' => 'set',
+            'getConfig'=> 'get',
+            'loadConfig'=>'load'
+        ));
+
+        // Viewを組み込む
+        $this->register('view', 'Seaf\View\View', array(), function ($view) {
+            $view->vars += $this->vars;
+            $view->register('config', function(){
+                return $this->config;
+            });
+            $view->addPath(
+                implode('/', $this->getConfig(array('root.path','view.path')))
+            );
+        });
+
     }
 
 
     public function _set ($name, $value) 
     {
-        ArrayHelper::init($this->vars)->$name($value);
+        ArrayHelper::set($this->vars,$name,$value);
     }
     public function _get ($name, $default = null) 
     {
@@ -78,6 +103,10 @@ class Environment {
     public function _push ($name, $value)
     {
         return ArrayHelper::push($this->vars,$name,$value);
+    }
+    public function _getVars()
+    {
+        return $this->vars;
     }
 
 

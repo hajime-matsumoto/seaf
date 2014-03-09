@@ -30,7 +30,8 @@ class Router
     public function route ( $request )
     {
         if (is_string($request)) {
-            $request = new Request($request);
+            $request = new Request($this->app);
+            $request->setUri($request);
         }
 
         $app    = $this->app;

@@ -3,6 +3,7 @@
 namespace Seaf\FrameWork;
 
 use Seaf\Environment\Environment;
+use Seaf\Commander\Command;
 
 /**
  * Cli Application
@@ -35,7 +36,7 @@ class Application extends Environment
         {
             $this->debug($route->getCommand().'を実行します');
 
-            $isContinue = $route->getCommand()->execute();
+            $isContinue = $this->execute($route->getCommand());
 
             if ($isContinue == false) {
                 $executed = true;
@@ -51,6 +52,11 @@ class Application extends Environment
             $this->trigger('notfound');
             $this->notfound();
         }
+    }
+
+    public function execute(Command $command)
+    {
+        return $command->execute();
     }
 
     public function notfound( )

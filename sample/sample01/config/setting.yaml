@@ -1,0 +1,8 @@
+default:
+    path: /export/project/seaf/sample
+    DB:
+        default:
+            type: mysql
+            user: root
+development:
+production:
