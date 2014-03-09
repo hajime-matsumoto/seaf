@@ -2,7 +2,7 @@
 
 namespace Seaf\View\Engine;
 
-use Seaf\View;
+use Seaf\View\View;
 
 class Php
 {

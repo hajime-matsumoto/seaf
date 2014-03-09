@@ -21,6 +21,8 @@ class AssetManager extends Application
         )
     );
 
+
+
     /**
      * 検索パスを追加
      */
@@ -51,12 +53,12 @@ class AssetManager extends Application
         if ($this->getFile($req->getUri(), $path, $suffix)) {
             switch ($suffix) {
             case 'sass':
-                $res->header('Content-Type: text/css')->sendHeaders();
+                $res->header('Content-Type: text/css;')->sendHeaders();
                 $this->sass()->compile($path);
                 $this->system()->halt();
                 break;
             case 'coffee':
-                $res->header('Content-Type: text/javascript')->sendHeaders();
+                $res->header('Content-Type: text/javascript;')->sendHeaders();
                 $this->coffee()->compile($path);
                 $this->system()->halt();
                 break;

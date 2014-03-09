@@ -15,6 +15,8 @@ use Seaf\Log;
  *
  */
 class Seaf {
+    const ENV_DEVELOPMENT='development';
+    const ENV_PRODUCTION='production';
 
     private static $instance = false;
     private static $isInitialized = false;
@@ -35,13 +37,7 @@ class Seaf {
         $this->bind($this, array(
             'logHandler' => '_logHandler'
         ));
-    }
 
-    /**
-     * 初期処理
-     */
-    public static function init ( )
-    {
         if (self::$isInitialized) return self::singleton();
         self::$isInitialized = true;
 
@@ -53,6 +49,18 @@ class Seaf {
             'type' => 'console'
         ))->register();
 
+
+        // WebApplicationのショートカット
+        $this->register('web','Seaf\Web\Application',array(),function ($web) {
+            $web->register('config',$this->config());
+        });
+    }
+
+    /**
+     * 初期処理
+     */
+    public static function init ( )
+    {
     }
 
     /**

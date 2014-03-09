@@ -9,6 +9,8 @@ class View extends Environment
 {
     const DEFAULT_ENGINE = 'php';
 
+    private $params = array();
+
     private $paths;
     private $layout = false;
 
@@ -17,6 +19,12 @@ class View extends Environment
         parent::__construct();
 
         $this->set('engine', self::DEFAULT_ENGINE);
+    }
+
+    public function param($k,$v)
+    {
+        $this->params[$k] = $v;
+        return $this;
     }
 
     public function addPath ($path)
@@ -40,7 +48,8 @@ class View extends Environment
 
     public function render ($template, $params)
     {
-        $params += $this->getVars();
+        $params += $this->params;
+
 
         return $this->getEngine($this->get('engine'))->render($template, $params);
     }

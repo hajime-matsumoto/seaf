@@ -22,13 +22,20 @@ class Application extends FrameWork\Application
         // パスインフォを使っている場合
         // どっちつかずの場合はどうするか？
         // /index.php で終わってる場合
-        if ($server->get('SCRIPT_NAME') == $server->get('REQUEST_URI')) {
+        if (php_sapi_name() == 'cli-server') {
+            $this->set('base.uri', '');
+        } elseif ($server->get('SCRIPT_NAME') == $server->get('REQUEST_URI')) {
             $this->set('base.uri', $server->get('SCRIPT_NAME'));
         } elseif ($server->get('PATH_INFO', false) != false) {
             $this->set('base.uri',$server->get('SCRIPT_NAME'));
         } else {
             $this->set('base.uri',dirname($server->get('SCRIPT_NAME')));
         }
+
+        // アセットマネージャを登録する
+        $this->register('assetManager','Seaf\Web\AssetManager',array(),function ($am) {
+            $am->register('config',$this->config());
+        });
     }
 
     public function run ( )
@@ -45,7 +52,7 @@ class Application extends FrameWork\Application
                 ob_start();
             });
             $this->on('post.run',function(){
-                $contetns = ob_get_clean();
+                $contents = ob_get_clean();
                 $this->render($contents);
             });
         }
@@ -64,15 +71,16 @@ class Application extends FrameWork\Application
 
             $this->router()->next();
         }
-        $this->trigger('post.run', $req, $res, $this);
 
         if ($executed == false) {
-            $this->trigger('notfound', $req, $res, $rt, $this);
+            $this->trigger('notfound', $req, $res, $this);
             $this->notfound();
         }
+
+        $this->trigger('post.run', $req, $res, $this);
     }
 
-    public function render($contents)
+    public function render($contents = null)
     {
         $view = $this->get('template');
 
@@ -81,5 +89,13 @@ class Application extends FrameWork\Application
         $params['contents'] = $contents;
 
         echo $this->view()->render($view, $params);
+    }
+
+    public function redirect($uri, $code = 303)
+    {
+        $this->response( )
+            ->status($code)
+            ->header('Location', $this->get('base.uri').'/'.ltrim($uri,'/'))
+            ->send( );
     }
 }

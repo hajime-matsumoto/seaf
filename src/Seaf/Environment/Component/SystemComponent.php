@@ -28,6 +28,13 @@ class SystemComponent {
         $this->env = $env;
     }
 
+    public function setLang ($lang)
+    {
+        mb_language( $lang );
+        mb_internal_encoding( 'utf8' );
+        return $this;
+    }
+
     /**
      * haltをダミーにする
      */

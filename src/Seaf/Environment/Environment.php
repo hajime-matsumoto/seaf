@@ -85,7 +85,7 @@ class Environment {
                 return $this->config;
             });
             $view->addPath(
-                implode('/', $this->getConfig(array('root.path','view.path')))
+                realpath(implode('/', $this->getConfig(array('root.path','view.path'))))
             );
         });
 

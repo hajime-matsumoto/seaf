@@ -17,12 +17,26 @@ class Application extends Environment
         $this->initApplication();
     }
 
+    public function init ( ) {
+        parent::init();
+    }
+
+    public function route($pattern, $action)
+    {
+        $this->router()->map($pattern, $action);
+        return $this;
+    }
+
+    public function initApplication( ) 
+    {
+    }
+
     public static function singleton ( )
     {
         return new self();
     }
 
-    public function run ($request = null)
+    public function run ( )
     {
         $executed = false;
 
@@ -64,14 +78,4 @@ class Application extends Environment
         echo 'Not Found';
     }
 
-    public function init ( ) {
-        parent::init();
-        $this->bind('router',array(
-            'route' => 'map'
-        ));
-    }
-
-    public function initApplication( ) 
-    {
-    }
 }

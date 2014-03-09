@@ -16,10 +16,13 @@ use Seaf\Helper\ArrayHelper;
  */
 class Command
 {
-    public function __construct($type, $content)
+    private $type, $content, $params;
+
+    public function __construct($type, $content,$params)
     {
         $this->type = $type;
         $this->content = $content;
+        $this->params = $params;
     }
 
     public function help ( )
@@ -29,7 +32,8 @@ class Command
 
     public function execute ( )
     {
-        return self::invokeArgs($this->content, func_get_args());
+        $args = array_merge($this->params ,func_get_args());
+        return self::invokeArgs($this->content, $args);
     }
 
     public function __toString ( )
@@ -41,7 +45,8 @@ class Command
     {
         $type = ArrayHelper::get($config,'type','closure');
         $content = ArrayHelper::get($config,'content');
-        return new Command($type, $content);
+        $params = ArrayHelper::get($config,'params', array());
+        return new Command($type, $content, $params);
     }
 
     /** Utility系 **/

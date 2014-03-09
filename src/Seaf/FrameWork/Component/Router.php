@@ -10,11 +10,13 @@ use Seaf\FrameWork\Application;
 class Router
 {
     private $app;
+    private $routes;
+    private $route_index = 0;
 
     public function __construct (Application $app) 
     {
         $this->app = $app;
-        $app->set('router.index.routes', 0);
+        $this->route_index = 0;
     }
 
     public function map ( $pattern, $action )
@@ -22,9 +24,11 @@ class Router
         if (is_string($action)) {
             $action = array($this->app, $action);
         }
-        $this->app->push('routes', new Route($pattern, $action));
+        $this->routes[] = new Route($pattern, $action);
 
         $this->app->debug($pattern."をマップしました");
+
+        return $this;
     }
 
     public function route ( $request )
@@ -37,8 +41,8 @@ class Router
         $app    = $this->app;
         $uri    = $request->getUri();
         $method = $request->getMethod();
-        $routes = $app->get('routes');
-        $offset = $app->get('router.index.routes');
+        $routes = $this->routes;
+        $offset = $this->route_index;
 
         $this->app->debug($uri."で一致するルートを探します");
 
@@ -56,9 +60,9 @@ class Router
 
     public function next ( )
     {
-        $offset = $this->app->get('router.index.routes');
+        $offset = $this->route_index;
         $next = $offset+1;
-        $this->app->set('router.index.routes', $next);
+        $this->route_index = $next;
         return $next;
     }
 }

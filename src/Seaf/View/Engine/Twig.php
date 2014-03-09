@@ -2,7 +2,7 @@
 
 namespace Seaf\View\Engine;
 
-use Seaf\View;
+use Seaf\View\View;
 
 if (!class_exists('\Twig_Loader_Filesystem')) {
     require_once 'Twig/Autoloader.php';
