@@ -52,8 +52,14 @@ class Request extends FrameWork\Component\Request
         Seaf::debug("Method=$method");
         $this->setMethod($method);
 
-        Seaf::debug("Params=".print_r($_REQUEST,true));
-        $this->setParams($_REQUEST);
+        if ($method == 'PUT') {
+            $data = file_get_contents('php://input');
+            parse_str($data, $params);
+            $this->setParams($params);
+        }
+        $this->setParams($_REQUEST + $_GET +$_POST);
+
+        Seaf::debug("Params=".$this->getParams());
 
     }
 }

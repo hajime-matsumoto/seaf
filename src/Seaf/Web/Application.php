@@ -8,9 +8,20 @@ use Seaf\Helper\ArrayHelper;
 
 /**
  * Application
+ * ================================
+ *
+ * 使い方
+ * <code>
+ * $app->request(); # リクエストを取得
+ * $app->response(); # レスポンスを取得
+ * $app->route(<パターン>,<コールバック>); # URIルーティング
+ * </code>
  */
 class Application extends FrameWork\Application
 {
+    /**
+     * 初期処理
+     */
     public function initApplication ( )
     {
         parent::initApplication( );
@@ -18,10 +29,6 @@ class Application extends FrameWork\Application
         $server = ArrayHelper::init($_SERVER);
 
         // ベースURLを求める
-
-        // パスインフォを使っている場合
-        // どっちつかずの場合はどうするか？
-        // /index.php で終わってる場合
         if (php_sapi_name() == 'cli-server') {
             $this->set('base.uri', '');
         } elseif ($server->get('SCRIPT_NAME') == $server->get('REQUEST_URI')) {
@@ -38,19 +45,22 @@ class Application extends FrameWork\Application
         });
     }
 
+    /**
+     * 実行
+     */
     public function run ( )
     {
-        $req = $this->request();
-        $res = $this->response();
-        $rt = $this->router();
-
+        $req      = $this->request();
+        $res      = $this->response();
+        $rt       = $this->router();
         $executed = false;
 
         if ($this->getConfig('view.enable') == true) {
-            $this->debug('view.enable true');
+
             $this->on('pre.run',function(){
                 ob_start();
             });
+
             $this->on('post.run',function(){
                 $contents = ob_get_clean();
                 $this->render($contents);
@@ -60,6 +70,7 @@ class Application extends FrameWork\Application
 
         $this->trigger('pre.run', $req, $res, $this);
 
+        // ディスパッチループ処理
         while ( $route = $rt->route($req) )
         {
             $isContinue = $route->getCommand()->execute($req, $res, $this);
@@ -72,6 +83,7 @@ class Application extends FrameWork\Application
             $this->router()->next();
         }
 
+        // 何もヒットしなければnotfoundへ
         if ($executed == false) {
             $this->trigger('notfound', $req, $res, $this);
             $this->notfound();
@@ -80,6 +92,10 @@ class Application extends FrameWork\Application
         $this->trigger('post.run', $req, $res, $this);
     }
 
+    /**
+     * config()->get('view.enable') の値がTrue評価であれば
+     * ディスパッチループの後にこのメソッドが呼ばれる
+     */
     public function render($contents = null)
     {
         $view = $this->get('template');
@@ -91,6 +107,9 @@ class Application extends FrameWork\Application
         echo $this->view()->render($view, $params);
     }
 
+    /**
+     * リダイレクト処理
+     */
     public function redirect($uri, $code = 303)
     {
         $this->response( )

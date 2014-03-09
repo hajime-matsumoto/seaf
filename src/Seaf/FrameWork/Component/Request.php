@@ -63,6 +63,20 @@ class Request
         return ArrayHelper::get($this->params, $k, $default);
     }
 
+    public function hasParam($k)
+    {
+        return isset($this->params[$k]);
+    }
+    public function getParams()
+    {
+        return $this->params;
+    }
+
+    public function toArray()
+    {
+        return $this->params;
+    }
+
     public function __get($k) {
         return $this->getParam($k);
     }

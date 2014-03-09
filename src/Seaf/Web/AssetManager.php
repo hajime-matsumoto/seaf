@@ -7,11 +7,33 @@ use Seaf\Commander\Command;
 use Seaf\Helper\ArrayHelper;
 
 /**
- * Application
+ * アセットマネージャー
+ * ===================================
+ *
+ * SASSやCOFFEEなど、コンパイルが必要なアセットを
+ * アクセスのタイミングでコンパイルする
+ *
+ * 使い方
+ * -----------------------------------
+ * <code>
+ * $am = new AssetManager();
+ * $am->addPath(<アセットファイルの検索パス>);
+ * $am->run();
+ * </code>
+ *
  */
 class AssetManager extends Application
 {
+    /**
+     * パスのリスト
+     * @var array;
+     */
     private $assets_path_list = array();
+
+    /**
+     * 拡張子と検索する拡張子のリスト
+     * @var array
+     */
     private $ext_map = array(
         'css' => array(
             'suffix'=> array('sass','scss','css')
@@ -21,6 +43,27 @@ class AssetManager extends Application
         )
     );
 
+    /**
+     * 初期処理
+     */
+    public function initApplication ( )
+    {
+        parent::initApplication( );
+
+        /**
+         * SASSコンパイルのオプションにassets_path_listをインクルード
+         * 対象に入れる処理を追加する
+         */
+        $this->register('sass', 'Seaf\\Compiler\\Sass',array(),function($sass) {
+            foreach($this->assets_path_list as $path) {
+                $sass->setOpt("-I", $path);
+            }
+            return $sass;
+        });
+
+        // Coffeeスクリプトのコンパイラ
+        $this->register('coffee', 'Seaf\\Compiler\\Coffee');
+    }
 
 
     /**
@@ -32,25 +75,26 @@ class AssetManager extends Application
         $this->assets_path_list[] = $path;
     }
 
-    public function initApplication ( )
-    {
-        parent::initApplication( );
 
-        $this->register('sass', 'Seaf\\Compiler\\Sass',array(),function($sass) {
-            foreach($this->assets_path_list as $path) {
-                $sass->setOpt("-I", $path);
-            }
-            return $sass;
-        });
-        $this->register('coffee', 'Seaf\\Compiler\\Coffee');
-    }
-
+    /**
+     * 実行
+     * ===============================
+     *
+     * request()->getUri(); をファイル名として、
+     * 登録されている検索パス以下から検索
+     * 見つかったファイルの拡張子別の処理を行い、
+     * そのまま出力をする
+     *
+     */
     public function run ( )
     {
         $req = $this->request();
         $res = $this->response();
 
+        // ファイルを探す
         if ($this->getFile($req->getUri(), $path, $suffix)) {
+
+            // 拡張子別の処理
             switch ($suffix) {
             case 'sass':
                 $res->header('Content-Type: text/css;')->sendHeaders();
@@ -63,21 +107,25 @@ class AssetManager extends Application
                 $this->system()->halt();
                 break;
             }
+
+            // 登録されてない拡張子の場合
             $res->header('Content-Type: text/text');
             echo file_get_contents($path);
-        }else{
+
+        } else { // ファイルが見つからなければNOTFOUND処理へ
             $this->notfound($req->getUri());
         }
     }
 
-    public function notfound($uri) {
-        $this->response()->status(404)->write('Not Found'."<br/>".$uri)->send();
-    }
-
     /**
      * ファイルを取得する
+     *
+     * @param string 検索するファイル名
+     * @param string 見つかったファイル名
+     * @param string 見つかったファイルの拡張子
+     * @return bool ファイルが見つかっていなければFALSE
      */
-    public function getFile ($file, &$out_path, &$out_suffix)
+    private function getFile ($file, &$out_path, &$out_suffix)
     {
         $ext = substr($file,strrpos($file,'.')+1);
         $fileName = substr($file,0,strrpos($file,'.'));
@@ -97,5 +145,9 @@ class AssetManager extends Application
             }
         }
         return false;
+    }
+
+    public function notfound($uri) {
+        $this->response()->status(404)->write('Not Found'."<br/>".$uri)->send();
     }
 }
