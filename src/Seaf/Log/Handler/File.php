@@ -17,7 +17,12 @@ class File extends Log\Handler
     {
         parent::__construct($config);
 
+
         $this->file = isset($config['file']) ? $config['file']: '/tmp/seaf.log';
+        if (!file_exists($this->file)) {
+            touch($this->file);
+            chmod($this->file,0666);
+        }
         $this->fp = fopen($this->file, isset($config['fileType'])? $config['fileType']: 'w');
     }
 

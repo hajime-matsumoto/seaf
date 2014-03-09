@@ -43,6 +43,7 @@ class Application extends FrameWork\Application
                 $line = preg_split("/\n/", $comment);
                 $route = false;
                 $desc = false;
+                $event = false;
                 for ($i=1;$i<(count($line)-1);$i++) {
                     if (preg_match('#[^@]+@Seaf([^\s]+)\s+(.+)#',$line[$i],$m)) {
                         if ($m[1] == 'Route') {
@@ -50,6 +51,9 @@ class Application extends FrameWork\Application
                         }
                         if ($m[1] == 'Desc') {
                             $desc = $m[2];
+                        }
+                        if ($m[1] == 'Event') {
+                            $event = $m[2];
                         }
                     }
                 }
@@ -59,6 +63,9 @@ class Application extends FrameWork\Application
                 }
                 if ($desc) {
                     $this->descs[$route] = $desc;
+                }
+                if ($event) {
+                    $this->on($event, $method->getClosure($this));
                 }
             }
         }

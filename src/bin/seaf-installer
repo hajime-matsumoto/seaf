@@ -15,6 +15,13 @@ Seaf::logHandler('default',array(
 
 class Installer extends Application
 {
+    public function checkRoot ( )
+    {
+        if (getenv('USER') !== 'root') {
+            $this->system()->halt('Root権限で実行してください');
+        }
+    }
+
     /**
      * @SeafDesc コンポーザのインストール
      * @SeafRoute composer
@@ -25,12 +32,22 @@ class Installer extends Application
     }
 
     /**
+     * @SeafDesc PEARのインストール
+     * @SeafRoute pear
+     */
+    public function _pear()
+    {
+        $this->checkRoot();
+        $this->exec("yes | apt-get install php-pear");
+    }
+
+    /**
      * @SeafDesc PHPUNITのインストール
      * @SeafRoute phpunit
      */
     public function _phpunit()
     {
-        $this->exec("yes | apt-get install php-pear");
+        $this->checkRoot();
         $this->exec("pear config-set auto_discover 1");
         $this->exec("pear install pear.phpunit.de/PHPUnit");
         $this->exec("pear install pear.phpunit.de/PHPUnit_SkeletonGenerator");
@@ -42,6 +59,7 @@ class Installer extends Application
      */
     public function _twig()
     {
+        $this->checkRoot();
         $this->exec("pear install pear.twig-project.org/Twig");
     }
 
@@ -51,6 +69,7 @@ class Installer extends Application
      */
     public function _xdebug()
     {
+        $this->checkRoot();
         $this->exec("pecl install xdebug");
         $list = $this->exec("find /usr/lib -name 'xdebug.so' | head -1", $buf = true);
         $file = trim($list);
@@ -79,6 +98,7 @@ class Installer extends Application
      */
     public function _yaml ( )
     {
+        $this->checkRoot();
         $this->exec("pecl install yaml");
         $fp = fopen(PHP5_MODS_AVAILABLE."/yaml.ini", 'w');
         $list = $this->exec("find /usr/lib -name 'yaml.so' | head -1", $buf = true);
