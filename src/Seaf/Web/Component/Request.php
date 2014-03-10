@@ -20,7 +20,7 @@ class Request extends FrameWork\Component\Request
         }else{
             $uri = $server->get('REQUEST_URI');
             $base = $this->app->get('base.uri');
-            if ($base != '/' && 0 === strpos($uri, $base)) {
+            if ($base != '' && $base != '/' && 0 === strpos($uri, $base)) {
                 if (strlen($uri) == strlen($base)) $uri = '/';
                 else $uri = substr($uri, strlen($base));
             }

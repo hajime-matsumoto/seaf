@@ -42,6 +42,10 @@ class Application extends FrameWork\Application
             $this->set('base.uri',dirname($server->get('SCRIPT_NAME')));
         }
 
+        if ($this->get('base.uri') == '/') {
+            $this->set('base.uri','');
+        }
+
         // アセットマネージャを登録する
         $this->register('assetManager','Seaf\Web\AssetManager',array(),function ($am) {
             // コンフィグを引き継ぐ
