@@ -22,6 +22,10 @@ class EventComponent
         $this->events = array();
     }
 
+    public function clear() {
+        $this->events = array();
+    }
+
     /**
      * イベントを登録する
      */

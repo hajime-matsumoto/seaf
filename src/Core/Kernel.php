@@ -217,11 +217,7 @@ class Kernel
      */
     public static function header( $header, $replace = true,  $code = false )
     {
-        if( $code !== false ) {
-            header( $header, $replace, $code );
-        } else {
-            header( $header, $replace );
-        }
+        self::system()->header($header, $replace, $code);
     }
 }
 
@@ -391,9 +387,14 @@ class FileSystem extends Component
      * @param string $path
      * @return void
      */
-    public function addFilePath ($name, $path)
+    public function addFilePath ($name, $path = false)
     {
+        if (is_array($name)) foreach($name as $k => $v) {
+            $this->addFilePath($k, $v);
+            return $this;
+        }
         $this->files[$name] = $path;
+        return $this;
     }
 
     /**
@@ -436,14 +437,25 @@ class FileSystem extends Component
         return false;
     }
 
+    /**
+     * getContents
+     *
+     * @param $file
+     * @return void
+     */
+    public function getContents ($file)
+    {
+        $path = $this->transRealPath($file);
+        return file_get_contents($path);
+    }
+
     public function transRealPath($file)
     {
         if ($file{0} != '/') $file = '/'.$file;
         $realpath = false;
         foreach ($this->files as $k => $v) {
-            if ($k == '/') $k = '';
             if (0 === strpos($file,$k)) {
-                $realpath = $v.'/'.substr($file,strlen($k)+1);
+                $realpath = rtrim($v,'/').'/'.ltrim(substr($file,strlen($k)),'/');
                 if (file_exists($realpath)) return $realpath;
             }
         }
@@ -461,6 +473,7 @@ class SystemComponent extends Component
     public function __construct( )
     {
         $this->map('halt', array($this, '_halt'));
+        $this->map('header', array($this, '_header'));
     }
 
     /**
@@ -472,6 +485,22 @@ class SystemComponent extends Component
     public function shutdown ($message = null)
     {
         exit($message);
+    }
+
+    /**
+     * ヘッダを送信する
+     *
+     * @param string $header
+     * @param bool $replace
+     * @param int $code
+     */
+    public static function _header( $header, $replace = true,  $code = false )
+    {
+        if( $code !== false ) {
+            header( $header, $replace, $code );
+        } else {
+            header( $header, $replace );
+        }
     }
 
     public function _halt ($message = null)

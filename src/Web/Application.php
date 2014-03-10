@@ -18,10 +18,10 @@ class Application extends BaseApplication
         // アノテーションを解析する
         Kernel::ReflectionClass($this)->mapAnnotation(function($method, $anots){
             if (isset($anots['route'])) {
-                $this->route($anots['route'], $method);
+                $this->route($anots['route'], $method->getClosure($this));
             }
             if (isset($anots['event'])) {
-                $this->on($anots['event'], $method);
+                $this->on($anots['event'], $method->getClosure($this));
             }
         });
 
