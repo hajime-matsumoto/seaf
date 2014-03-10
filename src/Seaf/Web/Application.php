@@ -48,7 +48,6 @@ class Application extends FrameWork\Application
             $am->register('config',$this->config());
         });
 
-
         $this->on(array(
             'pre.run'  => '_preRunHook',
             'post.run' => '_postRunHook'

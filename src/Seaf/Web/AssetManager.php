@@ -96,12 +96,20 @@ class AssetManager extends Application
             // 拡張子別の処理
             switch ($suffix) {
             case 'sass':
-                $res->header('Content-Type: text/css;')->sendHeaders();
+                $res
+                    ->status(200)
+                    ->cache(60 * 60 * 24)
+                    ->header('Content-Type', 'text/css')
+                    ->sendHeaders();
                 $this->sass()->compile($path);
                 $this->system()->halt();
                 break;
             case 'coffee':
-                $res->header('Content-Type: text/javascript;')->sendHeaders();
+                $res
+                    ->status(200)
+                    ->cache(60 * 60 * 24)
+                    ->header('Content-Type', 'text/javascript')
+                    ->sendHeaders();
                 $this->coffee()->compile($path);
                 $this->system()->halt();
                 break;
