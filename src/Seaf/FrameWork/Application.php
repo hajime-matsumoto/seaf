@@ -6,76 +6,94 @@ use Seaf\Environment\Environment;
 use Seaf\Commander\Command;
 
 /**
- * Cli Application
+ * アプリケーションクラス
+ * =================================
+ *
+ * アプリケーションのひな形になるクラス
+ *
+ * コンポーネント
+ * ---------------------------------
+ * - Router
+ * - Request
+ * - Response
  */
 class Application extends Environment
 {
-    public function __construct ( )
-    {
-        parent::__construct();
+    /**
+     * 初期化処理
+     */
+    public function init ( ) {
+        parent::init();
 
+        // Application専用のイニシャライザ
         $this->initApplication();
     }
 
-    public function init ( ) {
-        parent::init();
+    /**
+     * Application専用のイニシャライザ
+     */
+    public function initApplication( ) 
+    {
+        // 初期処理を記述する
     }
 
+    /**
+     * コマンドをマッピングする
+     *
+     * @param string リクエストパターン
+     * @param mixed クロージャか関数
+     * @return Application
+     */
     public function route($pattern, $action)
     {
         $this->router()->map($pattern, $action);
         return $this;
     }
 
-    public function initApplication( ) 
-    {
-    }
 
-    public static function singleton ( )
-    {
-        return new self();
-    }
-
+    /**
+     * アプリケーションを実行する
+     */
     public function run ( )
     {
+        // フラグ
         $executed = false;
 
+        // コンポーネント
+        $request  = $this->request();
+        $response = $this->response();
+        $router   = $this->router();
 
-        $this->trigger('pre.run');
-        if ($request == null) {
-            $request = $this->request();
-        }
+        // pre.runイベントを発生させる
+        $this->trigger('pre.run', $request, $response, $router, $this);
 
-        while ( $route = $this->router()->route($request) )
-        {
-            $this->debug($route->getCommand().'を実行します');
+        // リクエストがマッチするルートを取得
+        while ( $route = $this->router()->route($request) ) {
 
-            $isContinue = $this->execute($route->getCommand());
+            // 実行
+            $this->trigger('pre.execute', $route, $request, $response, $this);
+            $isContinue = $route->getCommand()->execute($request, $response, $this);
+            $this->trigger('post.execute', $route, $request, $response, $this);
 
-            if ($isContinue == false) {
+            // 実行の戻り値がtrueでなければ
+            // これ以上マッチさせない
+            if ($isContinue !== true) {
                 $executed = true;
                 break;
             }
 
 
+            // ルータの内部ポインタを進める
             $this->router()->next();
         }
-        $this->trigger('post.run');
 
+        // 実行したフラグがなければNOTFOUND
         if ($executed == false) {
-            $this->trigger('notfound');
-            $this->notfound();
+            $this->debug($request->getUri()."はNOTFOUNDしました");
+            $this->trigger('notfound', $request, $response, $this);
         }
-    }
 
-    public function execute(Command $command)
-    {
-        return $command->execute();
+        // post.runイベントを発生させる
+        $this->trigger('post.run', $request, $response, $router, $this);
     }
-
-    public function notfound( )
-    {
-        echo 'Not Found';
-    }
-
 }

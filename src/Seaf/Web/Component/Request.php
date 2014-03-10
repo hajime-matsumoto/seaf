@@ -46,10 +46,7 @@ class Request extends FrameWork\Component\Request
             )
         );
 
-        Seaf::debug("URI=$uri");
         $this->setUri($uri);
-
-        Seaf::debug("Method=$method");
         $this->setMethod($method);
 
         if ($method == 'PUT') {
@@ -58,8 +55,6 @@ class Request extends FrameWork\Component\Request
             $this->setParams($params);
         }
         $this->setParams($_REQUEST + $_GET +$_POST);
-
-        Seaf::debug("Params=".$this->getParams());
 
     }
 }

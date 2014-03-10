@@ -12,6 +12,7 @@ class File extends Log\Handler
 {
 
     private $fp;
+    private $cnt = 0;
 
     public function __construct ($config) 
     {
@@ -24,17 +25,26 @@ class File extends Log\Handler
             chmod($this->file,0666);
         }
         $this->fp = fopen($this->file, isset($config['fileType'])? $config['fileType']: 'w');
+
     }
 
     public function _post ($context, $level = Log\Level::INFO) 
     {
         $msg = $this->makeMessage($context, $level);
 
+        if ($this->cnt == 0) {
+            fwrite($this->fp,"====[START]===================\n");
+        }
+
         fwrite($this->fp,$msg."\n");
+        $this->cnt++;
     }
 
     public function __destruct ( )
     {
+        if ($this->cnt > 0) {
+            fwrite($this->fp,"====[END]===================\n");
+        }
         fclose($this->fp);
     }
 }

@@ -71,7 +71,6 @@ class AssetManager extends Application
      */
     public function addPath($path)
     {
-        $this->debug($path.'を追加しました。');
         $this->assets_path_list[] = $path;
     }
 
@@ -127,9 +126,12 @@ class AssetManager extends Application
      */
     private function getFile ($file, &$out_path, &$out_suffix)
     {
-        $ext = substr($file,strrpos($file,'.')+1);
+        $ext      = substr($file,strrpos($file,'.')+1);
         $fileName = substr($file,0,strrpos($file,'.'));
-        $map = $this->ext_map[$ext];
+        $map      = ArrayHelper::get($this->ext_map,$ext,array(
+            'suffix' => array($ext)
+        ));
+
         //
         // ファイルを探す
         //
@@ -148,6 +150,7 @@ class AssetManager extends Application
     }
 
     public function notfound($uri) {
+        $this->warn($uri."が見つかりませんでした。");
         $this->response()->status(404)->write('Not Found'."<br/>".$uri)->send();
     }
 }

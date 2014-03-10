@@ -42,10 +42,23 @@ class SystemComponent {
         $this->isFake = true;
     }
 
-    public function header($header) 
+    /**
+     * ヘッダを送信する
+     *
+     * @param string $header
+     * @param bool $replace
+     * @param int $code
+     */
+    public function header( $header, $replace = true,  $code = false )
     {
-        Seaf::debug('Header-Sent: '.$header);
-        header($header);
+        if( $code !== false )
+        {
+            header( $header, $replace, $code );
+        }
+        else
+        {
+            header( $header, $replace );
+        }
     }
 
     public function halt ($body = null) {

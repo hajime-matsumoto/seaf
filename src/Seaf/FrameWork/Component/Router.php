@@ -25,9 +25,6 @@ class Router
             $action = array($this->app, $action);
         }
         $this->routes[] = new Route($pattern, $action);
-
-        $this->app->debug($pattern."をマップしました");
-
         return $this;
     }
 
@@ -43,8 +40,6 @@ class Router
         $method = $request->getMethod();
         $routes = $this->routes;
         $offset = $this->route_index;
-
-        $this->app->debug($uri."で一致するルートを探します");
 
         while(isset($routes[$offset])) {
 

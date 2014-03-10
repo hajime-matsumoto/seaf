@@ -31,15 +31,22 @@ class Event
     /**
      * イベントを登録する
      */
-    public function on ($event_name, $action)
+    public function on ($event_name, $action = null)
     {
+        if (is_array($event_name)) {
+            foreach ($event_name as $k=>$v) {
+                $this->on($k,$v);
+            }
+            return $this;
+        }
+
         if (is_string($action) && !is_callable($action)) {
             $action = array($this->env,$action);
         }
 
         $this->events[$event_name][] = $action;
 
-        return $action;
+        return $this;
     }
 
     /**

@@ -24,72 +24,75 @@ class Application extends FrameWork\Application
      */
     public function initApplication ( )
     {
+
         parent::initApplication( );
 
         $server = ArrayHelper::init($_SERVER);
 
+        // @todo 全体的にリクエストの初期処理 $this->initRequestとかにしてしまおうか
         // ベースURLを求める
-        if (php_sapi_name() == 'cli-server') {
+        // @todo これってRequestに仕事させてもいいと思う
+        if (php_sapi_name() == 'cli-server') { // cli-serverだったらBaseURIは不要
             $this->set('base.uri', '');
-        } elseif ($server->get('SCRIPT_NAME') == $server->get('REQUEST_URI')) {
+        } elseif ($server->get('SCRIPT_NAME') == $server->get('REQUEST_URI')) {  // ScriptNameとRequestURIが完全一致した場合も不要
             $this->set('base.uri', $server->get('SCRIPT_NAME'));
-        } elseif ($server->get('PATH_INFO', false) != false) {
+        } elseif ($server->get('PATH_INFO', false) != false) { // パスインフォを使っている場合はindex.phpまでがベースになるはず
             $this->set('base.uri',$server->get('SCRIPT_NAME'));
-        } else {
+        } else { // 普段は？
             $this->set('base.uri',dirname($server->get('SCRIPT_NAME')));
         }
 
         // アセットマネージャを登録する
         $this->register('assetManager','Seaf\Web\AssetManager',array(),function ($am) {
+            // コンフィグを引き継ぐ
             $am->register('config',$this->config());
         });
+
+
+        $this->on(array(
+            'pre.run'  => '_preRunHook',
+            'post.run' => '_postRunHook'
+        ));
+    }
+
+
+    /**
+     * Runの実行開始前に実行される
+     *
+     * @param Request
+     * @param Response
+     * @param Application
+     */
+    public function _preRunHook ($req, $res, $app) 
+    {
+        $this->debug(sprintf(
+            "ACCESS: %s %s; BASEURI: %s",
+            $req->getMethod(),
+            $req->getUri(),
+            $this->get('base.uri')
+        ));
+
+        // Viewを使うなら出力をバッファリングする
+        if ($this->getConfig('view.enable') == true) {
+            ob_start();
+        }
     }
 
     /**
-     * 実行
+     * Runの実行後に実行される
+     *
+     * @param Request
+     * @param Response
+     * @param Application
      */
-    public function run ( )
+    public function _postRunHook ($req, $res, $app) 
     {
-        $req      = $this->request();
-        $res      = $this->response();
-        $rt       = $this->router();
-        $executed = false;
-
+        // Viewを使っていた場合出力バッファを取得し
+        // 描画メソッドを実行
         if ($this->getConfig('view.enable') == true) {
-
-            $this->on('pre.run',function(){
-                ob_start();
-            });
-
-            $this->on('post.run',function(){
-                $contents = ob_get_clean();
-                $this->render($contents);
-            });
+            $contents = ob_get_clean();
+            $this->render($contents);
         }
-
-
-        $this->trigger('pre.run', $req, $res, $this);
-
-        // ディスパッチループ処理
-        while ( $route = $rt->route($req) )
-        {
-            $isContinue = $route->getCommand()->execute($req, $res, $this);
-
-            if ($isContinue == false) {
-                $executed = true;
-                break;
-            }
-
-            $this->router()->next();
-        }
-
-        // 何もヒットしなければnotfoundへ
-        if ($executed == false) {
-            $this->trigger('notfound', $req, $res, $this);
-            $this->notfound();
-        }
-
-        $this->trigger('post.run', $req, $res, $this);
     }
 
     /**
@@ -104,7 +107,10 @@ class Application extends FrameWork\Application
         $params = $array['params'];
         $params['contents'] = $contents;
 
-        echo $this->view()->render($view, $params);
+        $this->response()
+            ->status(200)
+            ->write($this->view()->render($view, $params))
+            ->send();
     }
 
     /**

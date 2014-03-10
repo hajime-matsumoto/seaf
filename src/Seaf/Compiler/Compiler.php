@@ -17,7 +17,7 @@ abstract class Compiler
             2 => array('pipe','w')
         );
         $cmd = $this->buildCommand();
-        Seaf::debug($cmd."を実行します");
+        Seaf::debug("Execute:" . $cmd . " files: ".implode(" ", $files));
 
         $proc = proc_open($cmd, $desc, $pipes);
 
