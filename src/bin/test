@@ -8,7 +8,7 @@ use Seaf\Core\Kernel;
 define('PHP5_MODS_AVAILABLE',"/etc/php5/mods-available");
 define('COMPOSER_JSON','./composer.json');
 
-class Installer extends Console\Application
+class Installer extends Console\App
 {
     public function checkRoot ( )
     {

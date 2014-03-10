@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+	colors="true"
+	tap="true"
+	varbose="true"
+	bootstrap="__bootstrap.php">
+	<testsuites name="Core">
+		<directory>.</directory>
+	</testsuites>
+</phpunit>
