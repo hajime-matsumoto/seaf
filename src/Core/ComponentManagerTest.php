@@ -21,9 +21,7 @@ class ComponentManagerTest extends \PHPUnit_Framework_TestCase
         $this->object = new ComponentManager($env);
 
         // グローバルを作っておく
-        $this->global = new ComponentManager($env);
-        $this->global->globalize();
-
+        $this->global = ComponentManager::getGlobal();
         $this->global->register('factory', 'Seaf\Core\DI\Factory');
     }
 

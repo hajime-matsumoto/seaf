@@ -1,6 +1,8 @@
 <?php
 use Seaf\Core\Environment;
 
+use Seaf\Core\ComponentManager;
+use Seaf\Core\HelperManager;
 /**
  * Seaf
  * ================================
@@ -9,12 +11,15 @@ use Seaf\Core\Environment;
  *
  */
 class Seaf {
-    const ENV_DEVELOPMENT='development';
-    const ENV_PRODUCTION='production';
 
+    /**
+     * @var Seaf
+     */
     private static $instance = false;
-    private static $isInitialized = false;
 
+    /**
+     * @var Environment
+     */
     private $environment;
 
     /**
@@ -26,6 +31,16 @@ class Seaf {
 
     private function __construct ( ) {
         $this->environment = new Environment( );
+
+        // Seaf独自の処理を加える
+
+        // ロガーの作成
+        $this->register('log', 'Seaf\Log\Log', null, function($log) {
+            $log->register();
+        });
+
+        // コンフィグをグローバルに作成
+        ComponentManager::getGlobal()->register('config', 'Seaf\Config\Config');
     }
 
     /**

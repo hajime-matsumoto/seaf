@@ -1,6 +1,7 @@
 <?php
 namespace Seaf\Core;
 
+
 /**
  * 環境クラス
  * =============================
@@ -35,7 +36,7 @@ class Environment
     /**
      * @var InstanceManager
      */
-    protected $im;
+    protected $cm;
 
     /**
      * @var InstanceManager
@@ -50,7 +51,7 @@ class Environment
      */
     public function __construct ()
     {
-        $this->im = new ComponentManager($this);
+        $this->cm = new ComponentManager($this);
         $this->hm = new HelperManager($this);
 
         $this->hm->bind($this->hm, array(
@@ -61,7 +62,6 @@ class Environment
         ));
 
         $this->initMethodMap();
-
         $this->initEnvironment();
     }
 
@@ -70,7 +70,7 @@ class Environment
      */
     protected function initMethodMap ()
     {
-        $this->bind($this->im, array(
+        $this->bind($this->cm, array(
             'register'     => 'register',
             'getComponent' => 'get'
         ));
@@ -104,6 +104,7 @@ class Environment
 
     protected function initEnvironment( )
     {
+        $this->set('name', get_class($this));
     }
 
 
@@ -125,8 +126,8 @@ class Environment
             $closure = $this->hm->get($name);
             return Kernel::invokeArgs($closure, $params);
         }
-        if ($this->im->has($name)) {
-            return $this->im->get($name);
+        if ($this->cm->has($name)) {
+            return $this->cm->get($name);
         }
 
         throw new Exception(array("呼び出せないメソッドが呼ばれました。 %s",$name,$this));
@@ -137,4 +138,15 @@ class Environment
         return $this->call($name, $params);
     }
 
+    /**
+     * グローバル
+     */
+    public static function getGlobal( )
+    {
+        if (!Kernel::rg()->get('environment', false)) {
+            $env     = new Environment();
+            Kernel::rg()->set('environment', $env);
+        }
+        return Kernel::rg()->get('environment');
+    }
 }

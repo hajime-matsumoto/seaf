@@ -97,9 +97,14 @@ class Factory {
         list($type,$definition,$options,$callback) = $this->definitions[$alias];
 
         if ($type == self::TYPE_CLASS_NAME) {
-            return Kernel::newInstanceArgs($definition, $options);
+            $instance = Kernel::newInstanceArgs($definition, $options);
+        }else{
+            $instance =  Kernel::invokeArgs($definition, $options);
         }
 
-        return Kernel::invokeArgs($definition, $options);
+        if (is_callable($callback)) {
+            call_user_func($callback,$instance);
+        }
+        return $instance;
     }
 }

@@ -3,6 +3,7 @@
 namespace Seaf\Misc\Compiler;
 
 use Seaf\Core\Kernel;
+use Seaf;
 
 abstract class Compiler
 {
@@ -17,7 +18,7 @@ abstract class Compiler
             2 => array('pipe','w')
         );
         $cmd = $this->buildCommand();
-        //Seaf::debug("Execute:" . $cmd . " files: ".implode(" ", $files));
+        Seaf::debug("Execute:" . $cmd . " files: ".implode(" ", $files));
 
         $proc = proc_open($cmd, $desc, $pipes);
 

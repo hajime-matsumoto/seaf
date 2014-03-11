@@ -45,7 +45,7 @@ class HelperManager
     {
         if (isset($this->commands[$name])) return true;
 
-        $global = Kernel::registry()->get(self::GLOBAL_KEY);
+        $global = self::getGlobal();
         if (is_object($global) && $global !== $this && $global->isMaped($name)) {
             $this->map($name, $global->get($name));
             return true;
@@ -73,8 +73,14 @@ class HelperManager
         }
     }
 
-    public function globalize( )
+    /**
+     * グローバル
+     */
+    public static function getGlobal( )
     {
-        Kernel::registry()->set(self::GLOBAL_KEY, $this);
+        if (!Kernel::rg()->get('helper_manager', false)) {
+            Kernel::rg()->set('helper_manager', new self());
+        }
+        return Kernel::rg()->get('helper_manager');
     }
 }

@@ -3,14 +3,16 @@
 namespace Seaf\Core\Component;
 
 use Seaf\Core\Environment;
-use Seaf\Core\Log\Level;
+use Seaf\Log\Level;
 
 
 /**
  * ログコンポーネント
  */
-class LogComponent
+class LogComponent extends Environment
 {
+    private $name;
+
     // 呼び出しを許可するメソッド
     private static $methods = array(
         'emerg'    => Level::EMERGENCY,
@@ -23,15 +25,6 @@ class LogComponent
     );
 
     /**
-     * __construct
-     *
-     * @param Environment $env
-     */
-    public function __construct ( )
-    {
-    }
-
-    /**
      * initComponent
      *
      * @param Environment
@@ -39,17 +32,27 @@ class LogComponent
      */
     public function initComponent (Environment $env)
     {
+        $this->name = $env->get('name');
+
+        $this->map('post', '_post');
     }
 
-    public function post ($context,$level)
+    /**
+     * @param array
+     * @param int
+     */
+    public function _post ($context,$level)
     {
-        var_dump($context, $level);
+        $context['name'] = $this->name;
+        Seaf::log()->post($context, $level);
     }
 
     public  function __call ($name, $params) 
     {
         if (array_key_exists($name, self::$methods)) {
             $this->post($params,self::$methods[$name]);
+        } else {
+            return parent::__call($name,$params);
         }
     }
 }

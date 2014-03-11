@@ -49,6 +49,18 @@ class Installer extends Console\Application
     }
 
     /**
+     * @SeafDesc PHPDOCのインストール
+     * @SeafRoute phpdoc
+     */
+    public function _phpdoc()
+    {
+        $this->checkRoot();
+        $this->exec("pear config-set auto_discover 1");
+        $this->exec("pear channel-discover pear.phpdoc.org");
+        $this->exec("pear install phpdoc/phpDocumentor-alpha");
+    }
+
+    /**
      * @SeafDesc Twigのインストール
      * @SeafRoute twig
      */

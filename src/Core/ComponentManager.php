@@ -12,8 +12,6 @@ namespace Seaf\Core;
  */
 class ComponentManager extends DI\Container
 {
-    const GLOBAL_KEY = 'global_component_manager';
-
     private $namespaces = array();
 
     private $env;
@@ -60,14 +58,6 @@ class ComponentManager extends DI\Container
     }
 
     /**
-     * このコンポーネントマネージャをグローバルに登録する
-     */
-    public function globalize ()
-    {
-        Kernel::registry()->set(self::GLOBAL_KEY, $this);
-    }
-
-    /**
      * インスタンスの作成
      */
     protected function newInstance ($alias) {
@@ -100,7 +90,7 @@ class ComponentManager extends DI\Container
         }
 
         // グローバルに登録されているコンポーネントを探す
-        $global = Kernel::registry()->get(self::GLOBAL_KEY);
+        $global = self::getGlobal();
         if (!$global || $global == $this) { // 無限ループの回避
             return false;
         } else {
@@ -110,5 +100,16 @@ class ComponentManager extends DI\Container
             }
         }
         return false;
+    }
+
+    /**
+     * グローバル
+     */
+    public static function getGlobal( )
+    {
+        if (!Kernel::rg()->get('component_manager', false)) {
+            Kernel::rg()->set('component_manager', new self());
+        }
+        return Kernel::rg()->get('component_manager');
     }
 }

@@ -45,6 +45,11 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             echo $body;
         });
         $app->request()->uri('/app.css');
+
+        ob_start();
         $app->run();
+        $css = ob_get_clean();
+
+        $this->assertRegExp('/h1/',$css);
     }
 }
