@@ -31,6 +31,8 @@ class Application extends BaseApplication
             $contents = ob_get_clean();
             $res->status(200)->write($contents)->send();
         });
+
+        $this->request()->init();
     }
 
     public function _notfound($body = null, $code = '404')

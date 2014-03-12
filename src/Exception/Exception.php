@@ -1,6 +1,6 @@
 <?php
 
-namespace Seaf\Core\DI;
+namespace Seaf\Exception;
 
 class Exception extends \Exception 
 {

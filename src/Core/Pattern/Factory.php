@@ -1,14 +1,14 @@
 <?php
-namespace Seaf\Core\DI;
+namespace Seaf\Core\Pattern;
 
-use Exception;
-use Seaf\Core\Kernel;
+use Seaf\Core\Exception;
+use Seaf\Kernel\Kernel;
 
 /**
- * ファクトリクラス
+ * ファクトリパターンを実装する
  */
-class Factory {
-
+class Factory 
+{
     const TYPE_CALLBACK   = 'callback';
     const TYPE_CLASS_NAME = 'classname';
 
@@ -34,7 +34,8 @@ class Factory {
      *
      * @param array config
      */
-    public static function factory ($config = array()) {
+    public static function factory ($config = array()) 
+    {
         $factory = new Factory();
 
         // 定義を登録する
@@ -68,10 +69,7 @@ class Factory {
         $options    = isset($config['options']) ? $config['options']: array();
         $callback   = isset($config['callback']) ? $config['callback']: null;
 
-        // 定義のタイプを取得
-        $type       = is_string($definition) && class_exists($definition) ? self::TYPE_CLASS_NAME: self::TYPE_CALLBACK;
-
-        $this->definitions[$alias] = array($type, $definition, $options, $callback);
+        return $this->definitions[$alias] = new FactoryDefinition($definition, $options, $callback);
     }
 
     /**
@@ -94,17 +92,72 @@ class Factory {
             throw new Exception($alias." Dose not Exists");
         }
 
-        list($type,$definition,$options,$callback) = $this->definitions[$alias];
+        $def = $this->definitions[$alias];
 
-        if ($type == self::TYPE_CLASS_NAME) {
-            $instance = Kernel::newInstanceArgs($definition, $options);
+        if ($def->type == self::TYPE_CLASS_NAME) {
+            $instance = Kernel::dispatch()->newInstanceArgs($def->initializer, $def->options);
         }else{
-            $instance =  Kernel::invokeArgs($definition, $options);
+            $instance =  Kernel::dispatch()->invokeArgs($def->initializer, $def->options);
         }
 
-        if (is_callable($callback)) {
-            call_user_func($callback,$instance);
+        if (is_callable($def->callback)) {
+            call_user_func($def->callback,$instance);
         }
         return $instance;
+    }
+}
+
+/**
+ * Factoryの定義
+ */
+class FactoryDefinition
+{
+    /**
+     * new の時に渡るパラメタ
+     * @var array
+     */
+    public $options;
+
+    /**
+     * instance 生成時のコールバック関数
+     * @var mixed
+     */
+    public $callback;
+
+    /**
+     * 生成のイニシャライザ
+     * @var mixed
+     */
+    public $initializer;
+
+    /**
+     * 定義種別
+     * @var string
+     */
+    public $type;
+
+    /**
+     * __construct
+     *
+     * @param $options, $callback
+     */
+    public function __construct ($initializer, $options, $callback)
+    {
+        // 定義のタイプを取得
+        $this->type        = is_string($initializer) && class_exists($initializer) ? Factory::TYPE_CLASS_NAME: Factory::TYPE_CALLBACK;
+        $this->initializer = $initializer;
+        $this->options     = $options;
+        $this->callback    = $callback;
+    }
+
+    /**
+     * setOpts
+     *
+     * @param 
+     * @return void
+     */
+    public function setOpts ()
+    {
+        $this->options = func_get_args();
     }
 }

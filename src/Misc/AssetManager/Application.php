@@ -41,7 +41,7 @@ class Application extends WebApplication
          */
         $this->register('sass', 'Seaf\\Misc\\Compiler\\Sass',array(),function($sass) {
             foreach($this->assets_path_list as $path) {
-                $sass->setOpt("-I", $path);
+                $sass->setOpt("-I", $this->fs()->transRealPath($path));
             }
             return $sass;
         });

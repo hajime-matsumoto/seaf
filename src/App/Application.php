@@ -30,6 +30,8 @@ class Application extends Environment
     
     public function initApplication ( )
     {
+        $this->set('name', 'Application');
+
         $this->bind('event', array(
             'on' => 'on',
             'off' => 'off',
@@ -52,6 +54,8 @@ class Application extends Environment
      */
     public function _route ($pattern, $command)
     {
+        $this->debug($pattern.'を登録');
+
         // ルータを作成する
         $this->router()->map($pattern, $command);
     }
@@ -63,9 +67,11 @@ class Application extends Environment
      */
     public function _run (Request $req = null, Response $res = null, Router $rt = null)
     {
+
         if ($req == null) $req = $this->request();
         if ($res == null) $res = $this->response();
         if ($rt == null) $rt  = $this->router();
+        $this->debug($req->uri().'を実行');
 
         $this->trigger('before.run', $req, $res, $rt);
         $isMatch = false;
@@ -78,6 +84,7 @@ class Application extends Environment
         }
 
         if ($isMatch === false) {
+            $this->debug($req->uri().'はマッチしません');
             $this->notfound();
         }
         $this->trigger('after.run', $req, $res, $this);

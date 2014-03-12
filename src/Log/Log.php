@@ -51,6 +51,12 @@ class Log
             'name'    => isset($context['name']) ? $context['name']: $this->name
         );
 
+        $this->_post($log_context, $level);
+    }
+
+    public function _post($log_context, $level)
+    {
+
         array_walk($this->handlers, function($handler) use ($log_context, $level){
             $handler->post($log_context, $level);
         });
@@ -101,7 +107,7 @@ class Log
                 'name'    => "PHP",
                 'vars'    => array()
             );
-            $self->post($context,$level);
+            $self->_post($context,$level);
         });
 
         set_exception_handler(function(Exception $e){
@@ -112,7 +118,7 @@ class Log
                 'name'    => 'EXCEPTION',
                 'vars'    => array()
             );
-            $this->post($context, Level::CRITICAL);
+            $this->_post($context, Level::CRITICAL);
         });
 
         register_shutdown_function(function(){
@@ -139,7 +145,7 @@ class Log
                     'time' => time(),
                     'vars' => array()
                 ));
-                $this->post($context, $level);
+                $this->_post($context, $level);
             }
         });
     }

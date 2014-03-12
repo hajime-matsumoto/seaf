@@ -4,6 +4,7 @@ namespace Seaf\Web\Component;
 
 use Seaf\App;
 use Seaf\Core\Environment;
+use Seaf\Core\Kernel;
 
 /**
  * WEBアプリケーションリクエスト
@@ -23,8 +24,9 @@ class RequestComponent extends App\Component\RequestComponent
         $SERVER    = Kernel::rg()->get('SERVER');
         $REQUEST   = Kernel::rg()->get('REQUEST');
         $uri       = $SERVER['REQUEST_URI'];
-        $base      = dirname($SERVER['SCRIPT_NAME']);
-        $path_info = dirname($SERVER['PATH_INFO']);
+        $base      = dirname(@$SERVER['SCRIPT_NAME']);
+        $path_info = dirname(@$SERVER['PATH_INFO']);
+
 
         if ($base != "" && $base != '/' && strpos($uri, $base) === 0) {
             $uri = substr($uri,strlen($base));

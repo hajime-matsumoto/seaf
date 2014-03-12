@@ -1,66 +1,137 @@
 <?php
-use Seaf\Core\Environment;
 
-use Seaf\Core\ComponentManager;
-use Seaf\Core\HelperManager;
+use Seaf\Kernel\Kernel;
+use Seaf\Environment\Environment;
+use Seaf\Environment\ComponentManager;
+
 /**
  * Seaf
- * ================================
- *
- * グローバルシングルトンインスタンス
- *
  */
-class Seaf {
-
-    /**
-     * @var Seaf
-     */
-    private static $instance = false;
+class Seaf 
+{
+    const DEFAULT_LANG     = 'ja';
+    const DEFAULT_TIMEZONE = 'Asia/Tokyo';
 
     /**
      * @var Environment
      */
-    private $environment;
+    private static $env;
 
     /**
-     * シングルトン
+     * Global ComponentManager
+     * @return ComponentManager
      */
-    public static function singleton ( ) {
-        return self::$instance ? self::$instance: self::$instance = new Seaf();
-    }
-
-    private function __construct ( ) {
-        $this->environment = new Environment( );
-
-        // Seaf独自の処理を加える
-
-        // ロガーの作成
-        $this->register('log', 'Seaf\Log\Log', null, function($log) {
-            $log->register();
-        });
-
-        // コンフィグをグローバルに作成
-        ComponentManager::getGlobal()->register('config', 'Seaf\Config\Config');
-    }
-
-    /**
-     * 処理はEnvironmentに任せる
-     *
-     * @param string
-     * @param array
-     */
-    public function __call($name, $params) {
-        return $this->environment->call($name, $params);
-    }
-
-    /**
-     * 処理はEnvironmentに任せる
-     *
-     * @param string
-     * @param array
-     */
-    public static function __callStatic($name, $params) 
+    public static function GCM()
     {
-        return self::singleton()->environment->call($name, $params);
+        return ComponentManager::getGlobal();
+    }
+
+    /**
+     * 初期化
+     * ===================================
+     * カーネルを初期化する
+     * グローバルコンポーネントにConfigを設定
+     * Loggerを設定
+     */
+    public static function init ( $config )
+    {
+        // 定数の補正
+        if(!defined('SEAF_PROJECT_ROOT')) define('SEAF_PROJECT_ROOT', __DIR__);
+
+        // カーネルを初期化する
+        Kernel::init();
+
+        // グローバルコンポーネントにConfigを追加する
+        self::GCM()->register('config', 'Seaf\Config\Config')->setOpts($config);
+
+        // グローバルコンポーネントにKernelを追加する
+        self::GCM()->register('kernel', Kernel::singleton());
+
+        // コンフィグを取得
+        $config = self::GCM()->get('config');
+
+        // キャッシュハンドラを追加する
+        self::GCM()->register('cache', 'Seaf\Cache\Cache')->setOpts(array(
+            'dir' => $config->dirs->cache
+        ));
+
+        // ディレクトリの存在を確かめる
+        Kernel::fileSystem()
+            ->mkdir($config->dirs->tmp, 01777)
+            ->mkdir($config->dirs->logs, 01777)
+            ->mkdir($config->dirs->cache, 01777);
+
+        // Seaf用のEnvironmentを作成する
+        self::$env = new Environment();
+
+        // ロガーを登録する
+        self::$env->di()->register('logger', 'Seaf\Log\Logger')->setOpts(array(
+            'name'    => 'Seaf',
+            'writers' => self::config('log')->toArray()
+        ));
+
+        // PHP Errorを補足する
+        self::logger()->register();
+
+        // 終了処理を設定する
+        register_shutdown_function(array('Seaf','phpShutdownFunction'));
+
+        self::logger()->debug("イニシャライズ開始");
+
+        // モジュールを有効にする
+        if (self::config('modules')) foreach (self::config('modules')->toArray() as $m)
+        {
+            self::enmod($m);
+        }
+
+        // 言語の設定
+        mb_internal_encoding(self::config('encoding', 'utf-8'));
+        mb_language(self::config('lang', self::DEFAULT_LANG));
+
+        // タイムロケール
+        date_default_timezone_set(self::config('timezone', self::DEFAULT_TIMEZONE));
+    }
+
+    /**
+     * モジュールを有効化
+     *
+     * @param string $name
+     * @return void
+     */
+    public static function enmod ($name)
+    {
+        $class = 'Seaf\\Module\\'.ucfirst($name);
+        if (!class_exists($class)) {
+            $class = 'Seaf\\Module\\'.ucfirst($name).'\\'.ucfirst($name);
+        }
+        Kernel::dispatch()->invokeStaticMethod($class,'register', self::$env);
+    }
+
+
+    /**
+     * 終了処理
+     */
+    public static function phpShutdownFunction ( )
+    {
+        if (!is_null($e = error_get_last())) {
+            self::logger()->phpErrorHandler(
+                $e['type'],
+                $e['message'],
+                $e['file'],
+                $e['line'],
+                null
+            );
+            self::logger()->debug("エラー終了しました");
+        } else {
+            self::logger()->debug("正常終了しました");
+        }
+    }
+
+    /**
+     * スタティックな呼び出しはSeaf::$envへの呼び出しとする
+     */
+    public static function __callStatic($name, $params)
+    {
+        return self::$env->call($name, $params);
     }
 }

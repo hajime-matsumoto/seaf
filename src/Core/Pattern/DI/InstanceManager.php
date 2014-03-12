@@ -2,12 +2,15 @@
 /**
  * DI
  */
-namespace Seaf\Core\DI;
+namespace Seaf\Core\Pattern\DI;
+
+use Seaf\Core\Pattern\Factory;
+use Seaf\Core\Exception;
 
 /**
  * インスタンコンテナ
  */
-class Container {
+class InstanceManager {
 
     /**
      * @var array
@@ -61,12 +64,11 @@ class Container {
             $this->callbacks[$alias] = $callback;
         }
 
-        $this->factory->registerDefinition($alias, array(
+        return $this->factory->registerDefinition($alias, array(
             'definition' => $context,
             'options'    => $options,
             'callback'   => $callback
         ));
-        return $this;
     }
 
     /**
