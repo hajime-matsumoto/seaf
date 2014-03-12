@@ -2,7 +2,7 @@
 
 namespace Seaf\Misc\Compiler;
 
-class Sass extends Compiler
+class SassCompiler extends Compiler
 {
     public function __construct( )
     {
@@ -14,9 +14,13 @@ class Sass extends Compiler
         );
     }
 
-    public function setOpt($name, $value)
+    public function setOpt($name, $value, $replace = false)
     {
-        $this->opts[$name][] = $value;
+        if ($replace == false) {
+            $this->opts[$name][] = $value;
+        }else{
+            $this->opts[$name] = $value;
+        }
     }
 
     public function buildOpts( )

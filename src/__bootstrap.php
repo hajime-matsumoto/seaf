@@ -11,4 +11,4 @@ require_once __DIR__.'/Seaf.php';
 // 初期化処理
 // --------------------------
 //
-Seaf::init(__DIR__.'/etc/setting.yaml');
+Seaf::init(SEAF_PROJECT_ROOT.'/etc/setting.yaml');

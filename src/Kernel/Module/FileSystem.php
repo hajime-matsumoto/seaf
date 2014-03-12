@@ -20,8 +20,14 @@ class FileSystem
         return $this;
     }
 
-    public function glob ($pattern)
+    public function glob ($pattern, $switch = GLOB_BRACE)
     {
-        return glob($pattern);
+        return glob($pattern, $switch);
     }
+
+    public function getContents($file)
+    {
+        return file_get_contents($file);
+    }
+
 }

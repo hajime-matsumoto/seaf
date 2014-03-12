@@ -36,10 +36,11 @@ class Seaf
     public static function init ( $config )
     {
         // 定数の補正
-        if(!defined('SEAF_PROJECT_ROOT')) define('SEAF_PROJECT_ROOT', __DIR__);
+        if(!defined('SEAF_PROJECT_ROOT')) define('SEAF_PROJECT_ROOT', getcwd()); 
 
         // カーネルを初期化する
         Kernel::init();
+
 
         // グローバルコンポーネントにConfigを追加する
         self::GCM()->register('config', 'Seaf\Config\Config')->setOpts($config);
@@ -49,6 +50,13 @@ class Seaf
 
         // コンフィグを取得
         $config = self::GCM()->get('config');
+
+        // 追加ライブラリを登録
+        if ($config->library) {
+            foreach($config->library as $lib) {
+                Kernel::autoLoader()->addLibrary($lib);
+            }
+        }
 
         // キャッシュハンドラを追加する
         self::GCM()->register('cache', 'Seaf\Cache\Cache')->setOpts(array(

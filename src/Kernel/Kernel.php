@@ -51,13 +51,18 @@ class Kernel
         // このファイルの設定位置は
         // src/Kernel/Kenel.phpのはずなので
         // __DIR__.'/../'がSeafのルートになるはず
-        AutoLoader::init(array(
+        $this->loader = AutoLoader::init(array(
             'namespaces' => array(
                 'Seaf' => realpath(__DIR__.'/../')
             )
         ));
         $initialized = true;
         return $this;
+    }
+
+    public static function AutoLoader()
+    {
+        return self::singleton()->loader;
     }
 
     public static function __callStatic ($name, $params)

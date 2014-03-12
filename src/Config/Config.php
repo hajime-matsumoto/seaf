@@ -3,6 +3,8 @@
 namespace Seaf\Config;
 use Seaf;
 use Seaf\Kernel\Kernel;
+use IteratorAggregate;
+use ArrayIterator;
 
 class Config
 {
@@ -73,7 +75,7 @@ class Config
     }
 }
 
-class Container extends \Seaf\Core\Container\Container
+class Container extends \Seaf\Core\Container\Container implements IteratorAggregate
 {
     private $config;
 
@@ -135,6 +137,33 @@ class Container extends \Seaf\Core\Container\Container
         }
         return $ret;
     }
+
+    public function getIterator()
+    {
+        return new ContainerIterator($this->data, $this->config);
+    }
+}
+
+class ContainerIterator extends ArrayIterator
+{
+    public function __construct($data, $config)
+    {
+        $this->config = $config;
+        parent::__construct($data);
+    }
+
+    public function current()
+    {
+        $data = parent::current();
+        $config = $this->config;
+        if (is_string($data)) {
+            return preg_replace_callback('/\$(.+)\$/', function ($m) use ($config) {
+                return defined($m[1]) ? constant($m[1]) : $config->get($m[1],$m[1]);
+            }, $data);
+        }
+        return $data;
+    }
+
 
 }
 

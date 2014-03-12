@@ -2,12 +2,19 @@
 
 namespace Seaf\Misc\Compiler;
 
-use Seaf\Core\Kernel;
+use Seaf\Kernel\Kernel;
 use Seaf;
 
-abstract class Compiler
+class Compiler
 {
-    abstract public function buildCommand();
+    public static function factory ($ext)
+    {
+        $class = __NAMESPACE__.'\\'.ucfirst($ext).'Compiler';
+        return new $class();
+    }
+    public function buildCommand()
+    {
+    }
 
     public function compile ($file)
     {
@@ -18,12 +25,12 @@ abstract class Compiler
             2 => array('pipe','w')
         );
         $cmd = $this->buildCommand();
-        Seaf::debug("Execute:" . $cmd . " files: ".implode(" ", $files));
+        Seaf::logger('compiler')->debug("Execute:" . $cmd . " files: ".implode(" ", $files));
 
         $proc = proc_open($cmd, $desc, $pipes);
 
         foreach($files as $file) {
-            fwrite($pipes[0], Kernel::fs()->getContents($file));
+            fwrite($pipes[0], Kernel::fileSystem()->getContents($file));
         }
         fclose($pipes[0]);
 
@@ -33,5 +40,4 @@ abstract class Compiler
         $return = proc_close($proc);
         return $return;
     }
-
 }

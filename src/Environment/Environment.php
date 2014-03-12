@@ -15,6 +15,8 @@ use Seaf\Exception\Exception;
  */
 class Environment
 {
+    public $owner;
+
     use ExtendableMethods {
         ExtendableMethods::call as methodCall;
     }
@@ -26,12 +28,15 @@ class Environment
      * @param
      * @return void
      */
-    public function __construct ()
+    public function __construct ( $owner = null)
     {
+        if (empty($owner)) {
+            $owner = $this;
+        }
+        $this->owner = $owner;
+
         $this->di = new ComponentManager($this);
         $this->initEnvironment();
-
-        $this->map('test',function(){var_dump('hi');});
     }
 
 

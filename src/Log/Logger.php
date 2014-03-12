@@ -32,6 +32,17 @@ class Logger
         $this->parseConfig($config);
     }
 
+    public function __invoke ($name)
+    {
+        static $list = array();
+
+        if (!isset($list[$name])) {
+            $list[$name] =  clone($this);
+            $list[$name]->name = $name;
+        }
+        return $list[$name];
+    }
+
     /**
      * post
      *

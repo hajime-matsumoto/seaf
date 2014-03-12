@@ -2,7 +2,7 @@
 
 namespace Seaf\Misc\Compiler;
 
-class Coffee extends Compiler
+class CoffeeCompiler extends Compiler
 {
     public function buildCommand ( )
     {

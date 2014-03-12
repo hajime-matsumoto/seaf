@@ -3,6 +3,7 @@ namespace Seaf\Environment;
 
 use Seaf\Core\Pattern\DI;
 use Seaf\Kernel\Kernel;
+use Seaf;
 
 /**
  * 環境クラス用のコンポーネントマネージャ
@@ -32,12 +33,14 @@ class ComponentManager extends DI\InstanceManager
     {
         parent::__construct();
 
-        $this->env = $env;
-
         // 環境クラスのネームスペース\\Componentを登録する
-        do {
-            $this->addNamespace($this->getNamespace($env).'\\Component');
-        } while ($env = get_parent_class($env));
+        if ($env != null) {
+            $this->env = $env;
+            $class = get_class($env->owner);
+            do {
+                $this->addNamespace($this->getNamespace($class).'\\Component');
+            } while ($class = @get_parent_class($class));
+        }
     }
 
     /**

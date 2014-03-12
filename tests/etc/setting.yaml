@@ -8,6 +8,17 @@
 #
 default:
     #
+    #  基本的な設定
+    # 
+    encoding : utf-8
+    lang     : ja
+    timezone : Asia/Tokyo
+    #
+    # 追加ライブラリ
+    #
+    library:
+        - $dirs.root$/lib
+    #
     # ディレクトリの設定
     # 
     dirs:
@@ -19,6 +30,7 @@ default:
         lib    : $dirs.root$/lib
         static : $dirs.root$/public
         p18n   : $dirs.root$/etc/i18n
+        assets : $dirs.root$/assets
     #
     # ログの設定
     #
@@ -34,6 +46,7 @@ default:
     modules:
         # 多言語対応モジュール
         - p18n
+
 
 #
 # 開発時の設定
