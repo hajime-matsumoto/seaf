@@ -57,7 +57,7 @@ class Kernel
         $this->modules = array();
 
         // オートローダの登録
-        $this->modules['autoLoader'] = AutoLoader::factory(array(
+        $this->modules['AutoLoader'] = AutoLoader::factory(array(
             'namespaces' => array(
                 'Seaf' => realpath(__DIR__.'/../')
             )
@@ -87,6 +87,7 @@ class Kernel
      */
     public function __call ($name, $params)
     {
+        $name = ucfirst($name);
         if (isset($this->modules[$name])) {
             $module =  $this->modules[$name];
         } else {

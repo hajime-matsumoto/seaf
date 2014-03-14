@@ -29,4 +29,8 @@ class Globals implements ModuleIF
             return $this->GLOBALS[$name];
         }
     }
+    public function set ($name, $value)
+    {
+        $this->GLOBALS[$name] = $value;
+    }
 }

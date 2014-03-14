@@ -13,6 +13,7 @@ class Environment extends EnvironmentBase
     public function __construct(Base $application)
     {
         parent::__construct( );
+        $this->di()->addComponentNamespace(__CLASS__);
         $this->application = $application;
     }
 }

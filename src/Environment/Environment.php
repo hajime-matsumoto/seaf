@@ -12,6 +12,8 @@ class Environment extends Base
 {
     use DynamicMethod;
 
+    protected $di;
+
     /**
      * __construct
      *
@@ -21,6 +23,16 @@ class Environment extends Base
     public function __construct ()
     {
         $this->di = new DI($this);
+
+        $this->di->addComponentNamespace(__CLASS__);
+    }
+
+    /**
+     * DIを取得
+     */
+    public function di ( )
+    {
+        return $this->di;
     }
 
     /**

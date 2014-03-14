@@ -56,7 +56,7 @@ class Base
     public function _afterDispatchLoop($req, $res, $app)
     {
         $body = ob_get_clean();
-        $res->write($body);
+        $res->write($body)->send();
     }
 
     /**

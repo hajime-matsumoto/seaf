@@ -21,6 +21,15 @@ class Request implements ArrayAccess
     public $method;
     public $params;
 
+    public function __construct ( )
+    {
+        $this->initRequest();
+    }
+
+    public function initRequest ( ) 
+    {
+    }
+
     public function __invoke ($uri = null)
     {
         if ($uri == null) return $this;
@@ -64,8 +73,14 @@ class Request implements ArrayAccess
         }
     }
 
-    public function setParam($name, $value)
+    public function setParam($name, $value = null)
     {
+        if (is_array($name)) {
+            foreach ($name as $k=>$v) {
+                $this->setParam($k, $v);
+            }
+            return $this;
+        }
         $this->params[$name] = $value;
     }
 

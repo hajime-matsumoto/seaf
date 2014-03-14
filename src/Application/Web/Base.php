@@ -1,11 +1,10 @@
 <?php
-
-namespace Seaf\Application\Console;
+namespace Seaf\Application\Web;
 
 use Seaf\Application\Base as ApplicationBase;
 
 /**
- * Console
+ * Webアプリケーション
  */
 class Base extends ApplicationBase
 {
@@ -14,6 +13,5 @@ class Base extends ApplicationBase
      */
     public function initApplication ()
     {
-        $this->environment->di()->addComponentNamespace(__CLASS__);
     }
 }

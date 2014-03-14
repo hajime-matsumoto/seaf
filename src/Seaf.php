@@ -2,6 +2,7 @@
 namespace Seaf;
 
 use Seaf\Kernel\Kernel;
+use Seaf\Environment\Environment;
 
 /**
  * Seaf
@@ -51,6 +52,9 @@ class Seaf
         // カーネルを初期化する
         Kernel::init();
 
+        // Environment
+        $this->environment = new Environment( );
+
         // コンフィグを読み込む
         $config = Kernel::DI()->config( )->load($config);
 
@@ -89,6 +93,10 @@ class Seaf
 
         // タイムロケール
         date_default_timezone_set($config->get('timezone', self::DEFAULT_TIMEZONE));
+
+        // Seafに組み込む
+        $this->environment->di()->register('Console','Seaf\Application\Console\Base');
+        $this->environment->di()->register('Web','Seaf\Application\Web\Base');
     }
 
     /**
@@ -140,5 +148,13 @@ class Seaf
         } else {
             Kernel::logger('Seaf')->debug(array("%sを有効にしました",$mod));
         }
+    }
+
+    /**
+     * Static Call
+     */
+    public static function __callStatic ($name, $params)
+    {
+        return self::singleton()->environment->call($name, $params);
     }
 }

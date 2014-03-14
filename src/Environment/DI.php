@@ -16,7 +16,7 @@ class DI extends Base
      * オートロードするコンポーネントのネームスペース
      * @var array
      */
-    public $component_ns_list;
+    public $component_ns_list = array();
 
     /**
      * @var Environment
@@ -33,12 +33,6 @@ class DI extends Base
         parent::__construct();
 
         $this->env = $env;
-
-        // Componentをオートロードする
-        $class = Kernel::ReflectionClass($env);
-        do {
-            $this->addComponentNamespace($class->getNamespaceName().'\\Component');
-        } while ($class = $class->getParentClass());
     }
 
     /**
@@ -47,9 +41,16 @@ class DI extends Base
      * @param $class
      * @return void
      */
-    private function addComponentNamespace ($ns)
+    public function addComponentNamespace ($class, $prepend = true)
     {
-        $this->component_ns_list[$ns] = $ns;
+        $class = Kernel::ReflectionClass($class);
+        $ns = $class->getNamespaceName().'\\Component';
+
+        if ($prepend) {
+            array_unshift($this->component_ns_list,$ns);
+        } else {
+            array_push($this->component_ns_list,$ns);
+        }
     }
 
     /**

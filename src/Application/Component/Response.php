@@ -85,6 +85,11 @@ class Response
 
     /** **/
 
+    public function send ( ) {
+        $this->sendHeaders();
+        Kernel::System()->halt($this->body);
+    }
+
     /**
      * ヘッダを送信する
      */
