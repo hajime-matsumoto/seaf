@@ -58,10 +58,16 @@ development:
         default:
             type     : file
             fileName : $dirs.logs$/seaf.log
-            mode     : a
+            level    : 'all'
+            mode     : w
+        error:
+            type     : file
+            fileName : $dirs.logs$/seaf.error.log
+            level    : 'all ^ debug'
+            mode     : w
         debug:
             type     : echo
-            level    : 'debug | error | warning | emergency'
+            level    : 'all ^ debug'
 
 #
 # 運用時の設定

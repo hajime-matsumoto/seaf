@@ -60,7 +60,7 @@ class Route
     /**
      * @param Request
      */
-    public function match (RequestComponent $request)
+    public function match (Request $request)
     {
         if ($this->methods !== array('*')) {
             $method = $request->method;

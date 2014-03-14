@@ -96,6 +96,10 @@ class Response
     public function sendHeaders () {
         $SERVER = Kernel::globals()->get('SERVER_PROTOCOL');
 
+        if (headers_sent()) {
+            return false;
+        }
+
         // Send status code header
         if (strpos(php_sapi_name(), 'cgi') !== false) {
             Kernel::system()->header(

@@ -46,7 +46,7 @@ class Router
     /**
      * ルートを検索する
      */
-    public function route (RequestComponent $request)
+    public function route (Request $request)
     {
         while(isset($this->routes[$this->idx])) {
 
