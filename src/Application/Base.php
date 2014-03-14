@@ -1,6 +1,8 @@
 <?php
 namespace Seaf\Application;
 
+use Seaf\Exception\Exception;
+
 class Base
 {
     /**
@@ -20,6 +22,12 @@ class Base
     public function __construct ( )
     {
         $this->_initApplication();
+    }
+
+    public function init ( )
+    {
+        $this->_initApplication();
+        return $this;
     }
 
     /**
@@ -106,8 +114,10 @@ class Base
      * @param Response
      * @return Base
      */
-    public function _run (Request $req = null, Response $res = null)
+    public function _run (Component\Request $req = null, Component\Response $res = null)
     {
+        $this->logger()->debug('Request-Recived-Class : '.get_class($this));
+
         // リクエストを処理
         if ($req == null) $req = $this->request();
         $this->logger()->debug('Request-Recived : '.(string) $req);
@@ -125,10 +135,25 @@ class Base
                 $this->logger()->debug('Mount PATH HIT: '.$path);
                 $uri = substr($req->uri,strlen($path));
 
-                $req = clone($req);
-                $req->uri = $uri;
+                $next_req = clone($req);
+                $next_req->uri = empty($uri) ? '/': $uri;
+                $this->logger()->debug(array(
+                    'Mount Request URI:%s ORIGIN:%s HIT:%s',
+                    $next_req->uri, $req->uri, $path
+                ));
 
-                $this->di($name)->run($req, $res);
+                if ( $this->environment->di( )->has($name) ) {
+                    $instance = $this->environment->di()->get($name);
+                } elseif (class_exists($name)) {
+                    $instance = new $name();
+                } else {
+                    throw new Exception(array(
+                        '%s実行できないマウントです',
+                        $name
+                    ));
+                }
+
+                $instance->run($next_req, $res);
                 $isDispatched = true;
             }
         }
@@ -158,7 +183,4 @@ class Base
         }
         $this->logger()->debug('Response-Sent : '.(string) $res);
     }
-
-
-
 }

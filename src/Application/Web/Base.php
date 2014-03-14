@@ -2,6 +2,7 @@
 namespace Seaf\Application\Web;
 
 use Seaf\Application\Base as ApplicationBase;
+use Seaf\Kernel\Kernel;
 
 /**
  * Webアプリケーション
@@ -14,5 +15,15 @@ class Base extends ApplicationBase
     public function initApplication ()
     {
         $this->environment->di()->addComponentNamespace(__CLASS__);
+
+        // アノテーションバインディング
+        Kernel::ReflectionClass($this)->mapAnnotation(function($method, $anots){
+            if (isset($anots['route'])) {
+                $this->router()->map($anots['route'], $method->getClosure($this));
+            }
+            if (isset($anots['event'])) {
+                $this->event()->on($anots['event'], $method->getClosure($this));
+            }
+        });
     }
 }

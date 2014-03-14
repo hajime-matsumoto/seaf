@@ -1,14 +1,14 @@
 <?php
 namespace Seaf\Application\AssetManager;
 
-use Seaf\Application\Base;
+use Seaf\Application\Base as ApplicationBase;
 use Seaf\Kernel\Kernel;
 use Seaf\Misc\Compiler\Compiler;
 
 /**
  * アセットを管理するクラス
  */
-class Application extends Base
+class Base extends ApplicationBase
 {
     public static $ext_map = array(
         'css' => array(
@@ -97,8 +97,9 @@ class Application extends Base
         $files = $this->dir->find($path);
         if (empty($files)) {
             $this->warning(array(
-                "アセットファイルがみつかりませんでした。in (%s)",
-                $this->dir
+                "アセットファイルがみつかりませんでした。in (%s/%s)",
+                $this->dir,
+                $path
             ));
             return false;
         }
