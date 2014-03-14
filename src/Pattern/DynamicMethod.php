@@ -42,6 +42,20 @@ trait DynamicMethod {
     }
 
     /**
+     * メソッドをバインドする
+     *
+     * @param object
+     * @param array $list
+     * @return object $this
+     */
+    public function bind ($object, $list)
+    {
+        foreach ($list as $k=>$v) {
+            $this->map($k, array($object, $v));
+        }
+    }
+
+    /**
      * メソッドがマップされているか
      *
      * @return bool

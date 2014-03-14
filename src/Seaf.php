@@ -52,7 +52,7 @@ class Seaf
         Kernel::init();
 
         // コンフィグを読み込む
-        $config = Kernel::DI()->config($config);
+        $config = Kernel::DI()->config( )->load($config);
 
         // ディレクトリを作成する
         Kernel::fileSystem()

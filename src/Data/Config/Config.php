@@ -48,7 +48,12 @@ class Config
     {
         if ($config == false) return $this;
 
-        $file = Kernel::fileSystem($config);
+        return $this->get($config);
+    }
+
+    public function load ($file)
+    {
+        $file = Kernel::fileSystem($file);
         $this->loadArray($file->parse());
         return $this;
     }
@@ -71,7 +76,7 @@ class Config
         }
     }
 
-    public function get($name, $default = false)
+    public function get ($name, $default = false)
     {
         if (!$this->sections[$this->section]->has($name)) {
             return $default;
@@ -79,8 +84,60 @@ class Config
         return $this->sections[$this->section]->get($name);
     }
 
+    public function has ($name)
+    {
+        if ($this->sections[$this->section]->has($name)) {
+            return true;
+        }
+        return $this->sections[$this->section]->has($name);
+    }
+
+
     public function __get($name)
     {
         return $this->sections[$this->section]->get($name);
     }
+
+    public function getHelper ( )
+    {
+        return new Helper($this);
+    }
 }
+
+class Helper
+{
+    private $config;
+
+    public function __construct(Config $config)
+    {
+        $this->config = $config;
+    }
+
+    public function __invoke ($name)
+    {
+        return $this->config->get($name);
+    }
+
+    public function has($name)
+    {
+        return $this->config->has($name);
+    }
+
+    public function getString($name)
+    {
+        if ($this->config->has($name)) {
+            return $this->config->get($name)->toString();
+        }
+        return null;
+    }
+
+    public function getArray($name)
+    {
+        if ($this->config->has($name)) {
+            return $this->config->get($name)->toArray();
+        }
+        return array();
+    }
+}
+
+

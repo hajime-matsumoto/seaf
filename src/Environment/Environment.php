@@ -33,4 +33,11 @@ class Environment extends Base
     {
         return $this->di->call($name, $params);
     }
+
+    public function call ($name, $params)
+    {
+        $result = $this->__call($name, $params);
+        //var_dump($result);
+        return $result;
+    }
 }

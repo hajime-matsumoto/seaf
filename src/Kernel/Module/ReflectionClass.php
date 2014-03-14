@@ -2,6 +2,8 @@
 namespace Seaf\Kernel\Module;
 
 use Seaf\Core\Pattern\ExtendableMethods;
+use Seaf\Kernel\Kernel;
+
 
 class ReflectionClass
 {
@@ -11,6 +13,15 @@ class ReflectionClass
 
     public function __invoke( $class )
     {
+        if (is_object($class)) $class = get_class($class);
+
+        if (!class_exists($class)) {
+            Kernel::logger()->emergency(array(
+                "クラス%sは定義されていません",
+                $class
+            ));
+        }
+
         return new SeafReflectionClass($class);
     }
 }

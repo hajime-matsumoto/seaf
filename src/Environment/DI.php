@@ -5,6 +5,7 @@ use Seaf\Kernel\Kernel;
 use Seaf\Pattern\DI as Base;
 use Seaf\Environment\Environment;
 use Seaf\Environment\Component\ComponentIF;
+use Seaf\Exception\Exception;
 
 /**
  * Environment\DI

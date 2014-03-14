@@ -58,7 +58,7 @@ class Logger
      * @param $context, $level
      * @return void
      */
-    public function post ($context, $level, $tag = false)
+    public function post ($context, $level, $tag = false, $trace = null)
     {
         $message = array_shift($context);
         $vars    = $context;
@@ -66,10 +66,8 @@ class Logger
         $tag     = $tag === false ? $this->name: $tag;
 
         // 特定のレベルだったらデバッグトレースを渡す
-        if ((Level::DEBUG | Level::ERROR | Level::EMERGENCY) & $level) {
+        if ($trace == null && ((Level::DEBUG | Level::ERROR | Level::EMERGENCY) & $level)) {
             $trace   = array_slice(debug_backtrace(),1);
-        }else{
-            $trace = null;
         }
 
         if (is_array($message)) {
@@ -170,7 +168,9 @@ class Logger
     {
         $context = array($mesg." ".substr($file, -30).' '.$line);
         $level = Level::$php_error_map[$no];
-        $this->post($context, $level, 'PHP');
+        $trace = debug_backtrace(false, 4);
+        $trace = array_slice($trace,2);
+        $this->post($context, $level, 'PHP', $trace);
     }
 
     public function phpExceptionHandler (\Exception $e)

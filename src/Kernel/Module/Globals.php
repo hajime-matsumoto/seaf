@@ -1,20 +1,32 @@
 <?php
 namespace Seaf\Kernel\Module;
 
+use Seaf\Kernel\Kernel;
 /**
  * Globals
  */
-class Globals
+class Globals implements ModuleIF
 {
-    public function __invoke ( $name, $default = null )
+    use ModuleTrait;
+
+    private $GLOBALS;
+
+    public function initModule (Kernel $kernel)
     {
+        $this->GLOBALS = $GLOBALS;
+    }
+
+    public function __invoke ( $name = null, $default = null )
+    {
+        if ($name == null) return $this;
+
         return $this->get($name, $default);
     }
 
     public function get ($name, $default = null)
     {
-        if(isset($GLOBALS[$name])) {
-            return $GLOBALS[$name];
+        if(isset($this->GLOBALS[$name])) {
+            return $this->GLOBALS[$name];
         }
     }
 }

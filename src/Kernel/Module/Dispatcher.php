@@ -48,7 +48,7 @@ class Dispatcher extends Module
 
     public function factory ($callback, $params, $caller)
     {
-        if (is_array($callback)) {
+        if (is_array($callback) && is_callable($callback)) {
 
             list($class, $method) = $callback;
             return new DispatcherMethod($class, $method, $params, $caller);
@@ -61,7 +61,7 @@ class Dispatcher extends Module
             return new DispatcherInvoke($callback, $params, $caller);
         }
 
-        throw new Exception(array("Undefind Dispatch %s",print_r($callback)));
+        throw new Exception(array("Undefind Dispatch %s",print_r($callback,1)));
     }
 }
 
@@ -79,6 +79,11 @@ class DispatcherMethod
 
     public function dispatch( )
     {
+        if (!is_object($this->class)) {
+            if (class_exists($this->class)) {
+               Kernel::logger()->emergency($this->class);
+            }
+        }
         $method = new \ReflectionMethod($this->class, $this->method);
         return $method->invokeArgs($this->class, $this->params);
     }

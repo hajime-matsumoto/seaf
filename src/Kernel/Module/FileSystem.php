@@ -45,7 +45,7 @@ class FileSystemFile
 
     public function __construct($file)
     {
-        $this->file = $file;
+        $this->file = (string) $file;
         $this->ext = substr($file, strrpos($file,'.')+1);
     }
 
@@ -72,13 +72,25 @@ class FileSystemFile
         return file_exists($this->file);
     }
 
+    public function isDir ( )
+    {
+        return is_dir($this->file);
+    }
+
     public function find ($pattern)
     {
-        $files = glob($this->file.'/'.$pattern);
+        $pattern = $this->file.'/'.ltrim($pattern,'/');
+        $files = glob($pattern, GLOB_BRACE);
         foreach ($files as $k=>$file) {
             $files[$k] = new self($file);
         }
         return $files;
+    }
+
+    public function ext ( )
+    {
+        $basename = basename($this->file);
+        return substr($basename, strrpos($basename, '.')+1);
     }
 
     public function doRequire ($once = true)
