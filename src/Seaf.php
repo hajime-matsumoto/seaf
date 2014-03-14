@@ -1,120 +1,95 @@
 <?php
+namespace Seaf;
 
 use Seaf\Kernel\Kernel;
-use Seaf\Environment\Environment;
-use Seaf\Environment\ComponentManager;
 
 /**
  * Seaf
  */
-class Seaf 
+class Seaf
 {
     const DEFAULT_LANG     = 'ja';
     const DEFAULT_TIMEZONE = 'Asia/Tokyo';
 
     /**
-     * @var Environment
+     * @var Seaf
      */
-    private static $env;
+    private static $instance;
+    private static $module_dirs = array();
 
     /**
-     * Global ComponentManager
-     * @return ComponentManager
+     * @return Seaf
      */
-    public static function GCM()
+    public static function singleton ()
     {
-        return ComponentManager::getGlobal();
+        if (self::$instance instanceof Seaf) {
+            return self::$instance;
+        }
+        return self::$instance = new Seaf;
     }
 
     /**
-     * 初期化
-     * ===================================
-     * カーネルを初期化する
-     * グローバルコンポーネントにConfigを設定
-     * Loggerを設定
+     * init
+     *
+     * @param string $config コンフィグファイルパス
+     * @return void
      */
-    public static function init ( $config )
+    public static function init ($config = false)
     {
-        // 定数の補正
-        if(!defined('SEAF_PROJECT_ROOT')) define('SEAF_PROJECT_ROOT', getcwd()); 
+        self::singleton()->_init($config);
+        return self::singleton();
+    }
 
+    /**
+     * 初期化処理
+     *
+     * @param string $config コンフィグファイルパス
+     * @return void
+     */
+    private function _init ($config)
+    {
         // カーネルを初期化する
         Kernel::init();
 
+        // コンフィグを読み込む
+        $config = Kernel::DI()->config($config);
 
-        // グローバルコンポーネントにConfigを追加する
-        self::GCM()->register('config', 'Seaf\Config\Config')->setOpts($config);
-
-        // グローバルコンポーネントにKernelを追加する
-        self::GCM()->register('kernel', Kernel::singleton());
-
-        // コンフィグを取得
-        $config = self::GCM()->get('config');
-
-        // 追加ライブラリを登録
-        if ($config->library) {
-            foreach($config->library as $lib) {
-                Kernel::autoLoader()->addLibrary($lib);
-            }
-        }
-
-        // キャッシュハンドラを追加する
-        self::GCM()->register('cache', 'Seaf\Cache\Cache')->setOpts(array(
-            'dir' => $config->dirs->cache
-        ));
-
-        // ディレクトリの存在を確かめる
+        // ディレクトリを作成する
         Kernel::fileSystem()
-            ->mkdir($config->dirs->tmp, 01777)
-            ->mkdir($config->dirs->logs, 01777)
-            ->mkdir($config->dirs->cache, 01777);
+            ->mkdir((string) $config->get('dirs.tmp'), 01777)
+            ->mkdir((string) $config->get('dirs.cache'), 01777)
+            ->mkdir((string) $config->get('dirs.logs'), 01777);
 
-        // Seaf用のEnvironmentを作成する
-        self::$env = new Environment();
-
-        // ロガーを登録する
-        self::$env->di()->register('logger', 'Seaf\Log\Logger')->setOpts(array(
-            'name'    => 'Seaf',
-            'writers' => self::config('log')->toArray()
-        ));
-
-        // PHP Errorを補足する
-        self::logger()->register();
+        // Kernelにログハンドラを設定する
+        $logger = Kernel::logger($config->get('logger')->toArray());
 
         // 終了処理を設定する
-        register_shutdown_function(array('Seaf','phpShutdownFunction'));
+        register_shutdown_function(array('Seaf\Seaf','phpShutdownFunction'));
 
-        self::logger()->debug("イニシャライズ開始");
+        // モジュールディレクトリを登録する
+        self::addModuleDir(__DIR__.'/Module');
+        foreach ($config->get('dirs.modules')->toArray() as $dir) {
+            self::addModuleDir($dir);
+        }
+
+        // PHPエラーのハンドリングを開始する
+        $logger('PHP')->register();
+
+        // ログを書いてみる
+        $logger('Seaf')->debug('起動');
 
         // モジュールを有効にする
-        if (self::config('modules')) foreach (self::config('modules')->toArray() as $m)
-        {
-            self::enmod($m);
+        foreach ($config->get('modules')->toArray() as $mod) {
+            Seaf::enmod($mod);
         }
 
         // 言語の設定
-        mb_internal_encoding(self::config('encoding', 'utf-8'));
-        mb_language(self::config('lang', self::DEFAULT_LANG));
+        mb_internal_encoding($config->get('encoding', 'utf-8'));
+        mb_language($config->get('lang', self::DEFAULT_LANG));
 
         // タイムロケール
-        date_default_timezone_set(self::config('timezone', self::DEFAULT_TIMEZONE));
+        date_default_timezone_set($config->get('timezone', self::DEFAULT_TIMEZONE));
     }
-
-    /**
-     * モジュールを有効化
-     *
-     * @param string $name
-     * @return void
-     */
-    public static function enmod ($name)
-    {
-        $class = 'Seaf\\Module\\'.ucfirst($name);
-        if (!class_exists($class)) {
-            $class = 'Seaf\\Module\\'.ucfirst($name).'\\'.ucfirst($name);
-        }
-        Kernel::dispatch()->invokeStaticMethod($class,'register', self::$env);
-    }
-
 
     /**
      * 終了処理
@@ -122,24 +97,48 @@ class Seaf
     public static function phpShutdownFunction ( )
     {
         if (!is_null($e = error_get_last())) {
-            self::logger()->phpErrorHandler(
+            Kernel::logger()->phpErrorHandler(
                 $e['type'],
                 $e['message'],
                 $e['file'],
                 $e['line'],
                 null
             );
-            self::logger()->debug("エラー終了しました");
+            Kernel::logger('Seaf')->debug("エラー終了しました");
         } else {
-            self::logger()->debug("正常終了しました");
+            Kernel::logger('Seaf')->debug("正常終了しました");
         }
     }
 
+
     /**
-     * スタティックな呼び出しはSeaf::$envへの呼び出しとする
+     * モジュールディレクトリを登録
+     *
+     * @param string
      */
-    public static function __callStatic($name, $params)
+    public static function addModuleDir ($dir)
     {
-        return self::$env->call($name, $params);
+        self::$module_dirs[] = $dir;
+    }
+
+    /**
+     * モジュールを有効化
+     */
+    public static function enmod ($mod)
+    {
+        $found = false;
+        foreach (self::$module_dirs as $dir) {
+            $file = Kernel::fileSystem($dir.'/'.ucfirst($mod).'/__autoload.php');
+            if ($file->exists()) {
+                $file->doRequire();
+                $found = true;
+                break;
+            }
+        }
+        if ($found == false) {
+            Kernel::logger('Seaf')->warning(array("%sの__autoload.phpが見つかりません",$mod));
+        } else {
+            Kernel::logger('Seaf')->debug(array("%sを有効にしました",$mod));
+        }
     }
 }

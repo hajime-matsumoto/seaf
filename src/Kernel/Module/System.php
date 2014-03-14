@@ -1,16 +1,36 @@
 <?php
 namespace Seaf\Kernel\Module;
 
-use Seaf;
-use Seaf\Core\Pattern\ExtendableMethods;
+use Seaf\Exception\Exception;
+use Seaf\Kernel\Kernel;
+use Seaf\Pattern\DynamicMethod;
 
+/**
+ * System関連の操作
+ */
 class System extends Module
 {
-    use ExtendableMethods {
-        ExtendableMethods::call as __call;
+    /**
+     * DynamicMethodパターンを導入
+     */
+    use DynamicMethod;
+
+    /**
+     * DynamicMethod が呼び出せなかった場合の処理
+     *
+     * @param string $name
+     * @param array $params
+     * @return mixed
+     */
+    public function callFallBack ($name, $params)
+    {
+        new Exception(array('%sは%sに登録されていない呼び出しです', $name, __CLASS__));
     }
 
-    public function initModule ( )
+    /**
+     * モジュールの初期化
+     */
+    public function initModule (Kernel $kernel)
     {
         $this->map(array(
             'halt' =>  '_halt',
@@ -18,11 +38,23 @@ class System extends Module
         ));
     }
 
+    /**
+     * スクリプトをシャットダウンする
+     *
+     * @param $body
+     */
     public function _halt ($body = 0)
     {
         exit($body);
     }
 
+    /**
+     * ヘッダーを送信する
+     *
+     * @param string $string
+     * @param bool $replace = null
+     * @param int $code = null
+     */
     public function _header($string, $replace = null, $code = null)
     {
         if ($replace === null && $code === null) {
@@ -32,8 +64,5 @@ class System extends Module
         }else{
             header($string, $replace, $code);
         }
-        Seaf::logger()->debug(array(
-            "Header Setn: %s %s %s", $string, $replace, $code
-        ));
     }
 }

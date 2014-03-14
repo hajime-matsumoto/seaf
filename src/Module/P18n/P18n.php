@@ -1,142 +1,184 @@
 <?php
 namespace Seaf\Module\P18n;
 
-use Seaf\Environment\Environment;
 use Seaf;
-use Seaf\Core\Pattern\ExtendableMethods;
 
 
-// @TODO
-// use Seaf\Module\ModuleIF;
+use Seaf\Kernel\Kernel;
+use Seaf\Module\ModuleIF;
 
 /**
  * PHP版 i18n
  */
-class P18n extends Environment
+class P18n implements ModuleIF
 {
     public $name = 'P18n';
 
     /**
-     * ランゲージファイルディレクトリ
-     * @var string
+     * カレント
+     * @var string code
      */
-    private $dir;
+    private $locale = 'ja';
 
-    private $current_lang = 'en';
-    private $default_lang = 'ja';
+    /**
+     * デフォルトロケール
+     * @var string code
+     */
+    private $default_locale = 'en';
+
+    /**
+     * ロードした言語リスト
+     * @var array
+     */
     private $langs = array();
 
-    public function __get ($key)
+    /**
+     * デフォルトロケールを設定する
+     *
+     * @param string $code
+     */
+    public function defaultLocale ($code = null)
     {
-        return $this->get($key);
+        $this->default_locale = $code;
+        return $this;
     }
 
-    public function __call ($key, $params)
-    {
-        if ($this->has($key)) {
-            $data = $this->get($key);
-            if (empty($params)) {
-                return $data;
-            }else{
-                return call_user_func_array($data, $params);
-            }
-        }
+    public function getDefaultLocale ( ){
+        return $this->default_locale;
+    }
+    public function getLocale ( ){
+        return $this->locale;
     }
 
     /**
-     * __construct
+     * ロケールを設定する
      *
-     * @param 
+     * @param string $code
      */
-    protected function initEnvironment ()
+    public function locale ($code = null)
     {
-        // 言語ファイルを読み込む
-        if (!$dir = $this->di('config')->dirs->p18n) {
-            $this->di('logger')->error('p18nディレクトリが設定されていません');
-        }
-        $this->di('logger')->debug(array('%sをランゲージディレクトリにセットしました',$dir));
+        $this->locale = $code;
+        return $this;
+    }
 
-        // 対応言語を探す
-        $files = Seaf::kernel()->fileSystem()->glob($dir.'/*.yaml');
-        foreach ($files as $file)
-        {
-            $base = basename($file);
-            $lang = substr($base,0,-5);
+    /**
+     * 登録時の処理
+     */
+    public function register ( )
+    {
+        $this->initP18n();
+    }
+
+    /**
+     * 初期化処理
+     * @param 
+     * @return void
+     */
+    protected function initP18n ()
+    {
+        $config = Kernel::DI('config');
+
+        // 言語ファイルディレクトリを取得する
+        if($config->dirs->p18n->isEmpty()) {
+            Kernel::logger('p18n')->warning('言語ファイルディレクトリが設定されてません');
+            return;
+        }
+        $path = $config->dirs->p18n->toString();
+
+        // 言語ファイルを読み込む
+        $dir = Kernel::fileSystem($path);
+        if (!$dir->exists()) {
+            Kernel::logger('p18n')->warning(array(
+                '言語ファイルディレクトリ %s が存在しません',
+                $dir->toString()
+            ));
+            return;
+        }
+
+        foreach ($dir->find('*.yaml') as $file) {
+            $lang = $file->basename($no_ext = true);
             $this->langs[$lang] = $file;
         }
     }
 
     /**
-     * 言語コンテナを取り出す
-     *
-     * @param $key
-     * @return void
+     * ランゲージコンテナを取り出す
+     * @param string
      */
-    public function get($key)
+    public function getContainer ($lang)
     {
-        if ($this->getContainer($this->current_lang)->has($key))
-        {
-            return $this->getContainer($this->current_lang)->get($key);
-        } elseif ($this->getContainer($this->default_lang)->has($key)) {
-            return $this->getContainer($this->default_lang)->get($key);
+        if (empty($this->langs[$lang])) {
+            Kernel::logger('p18n')->warning(array(
+                "%sは対応していない言語です",
+                $lang
+            ));
         }
-        $this->di('logger')->warning(array(
-            "言語%sの%sが見つかりません",$this->current_lang,$key
-        ));
-
-        return '[[$key]]';
-    }
-
-    public function has($key)
-    {
-        if ($this->getContainer($this->current_lang)->has($key))
-        {
-            return true;
-        } elseif ($this->getContainer($this->default_lang)->has($key)) {
-            return true;
-        }
-        return false;
-    }
-
-    public function setLang($lang)
-    {
-        $this->current_lang = $lang;
-        return $this;
-    }
-
-    public function setDefaultLang($lang)
-    {
-        $this->default_lang = $lang;
-        return $this;
-    }
-
-
-    public function getContainer($lang)
-    {
-        static $langs = array();
-        if (isset($langs[$lang])) return $langs[$lang];
-
-        return $langs[$lang] = new LangContainer(
-            $this->di('kernel')->fileSystem()->loadYaml($this->langs[$lang])
-        );
+        return new LangContainer($this->langs[$lang], $lang, $this);
     }
 
     /**
-     * register
-     *
-     * @param #:argument
-     * @return void
+     * 翻訳する
+     * @param string
      */
-    public static function register (Environment $env)
+    public function translate ($key)
     {
-        // グローバルに組み込む
-        Seaf::GCM()->register('p18n', __CLASS__);
+        $result = $this->getContainer($this->locale)->translate($key);
+        if (empty($result)) {
+            return null;
+        } elseif (is_string($result)) {
+            return $result;
+        }
+        
+        if ($result->isString()) {
+            $string = $result->toString();
+            if (func_num_args() > 1) {
+                $string = vsprintf($string, array_slice(
+                    func_get_args(), 1
+                ));
+            }
+            return $string;
+        } elseif ($result->isArray()) {
+
+            if (func_num_args() > 1) {
+                $num = func_get_arg(1);
+                if($result->has($num)) {
+                    return $result->get($num)->toString();
+                }
+                return vsprintf(
+                    $result->get('')->toString(),
+                    $num
+                );
+            }
+            return $result->toArray();
+        }
     }
 
-    public function importHelper(Environment $env)
+    /**
+     * ヘルパを取得する
+     * @return Helper
+     */
+    public function getHelper()
     {
-        $env->map('t',function( ) {
-            return $this;
-        });
+        return new Helper($this);
+    }
+}
+
+
+class Helper
+{
+    private $p18n;
+
+    public function __construct (P18n $p18n)
+    {
+        $this->p18n = $p18n;
+    }
+
+    public function __invoke ($key)
+    {
+        return Kernel::Dispatcher(
+            array($this->p18n,'translate'),
+            func_get_args(),
+            $this
+        )->dispatch();
     }
 }

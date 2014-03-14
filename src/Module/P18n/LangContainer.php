@@ -1,89 +1,84 @@
 <?php
 namespace Seaf\Module\P18n;
 
+use Seaf\Data\Container\ObjectiveContainer as Base;
+use Seaf\Kernel\Module\FileSystemFile;
+
+
 /**
  * LangContainer
  */
-class LangContainer 
+class LangContainer  extends Base
 {
-    private $langs = array();
-    private $data = "";
+    private $p18n;
+    private $parent;
     private $name;
+    private $locale;
 
     /**
-     * __construct
      *
-     * @param $file
+     * @param FileSystemFile|array|string|null
+     * @param P18n
      */
-    public function __construct ($data = array(), $name = null)
+    public function __construct ($data, $locale, P18n $p18n, $parent = false, $name = null)
     {
-        if (is_array($data)) {
-            $this->loadArray($data);
-        }elseif(is_string($data)){
-            $this->data = $data;
-        }
+        $this->p18n = $p18n;
+
+        $this->locale = $locale;
 
         $this->name = $name;
-    }
 
-    public function loadArray($data)
-    {
-        foreach ($data as $k=>$v)
-        {
-            $this->set($k, $v);
+        if ($parent instanceof self) {
+            $this->parent = $parent;
+        }
+        if ($data instanceof FileSystemFile) {
+            $this->loadArray($data->parse());
+        } elseif (is_array($data)) {
+            $this->loadArray($data);
+        } elseif (is_string($data)) {
+            $this->setString($data);
         }
     }
 
-    public function set($k, $v)
+    /**
+     * @param string
+     */
+    public function translate ($key)
     {
-        $this->langs[$k] = new self($v, $k);
+        return  $this->get($key);
     }
 
-    public function get($key)
+    /**
+     * @param mixed
+     * @param string
+     */
+    public function factory ($data, $key)
     {
-        if ($this->has($key)) {
-            return $this->langs[$key];
+        return new LangContainer($data, $this->p18n, $this, $key);
+    }
+
+    public function getParent ( )
+    {
+        return $this->parent;
+    }
+
+    public function getName ( )
+    {
+        return $this->name;
+    }
+
+    public function getFallBack($key)
+    {
+        $parent_keys = array();
+        while ($parent = $this->getParent()) {
+            $parent_keys[] = $parent->getName();
         }
-        \Seaf::logger()->warning(array(
-            "%sが見つかりません",$key
-        ));
+        if ($this->locale !== $this->p18n->getDefaultLocale()) {
+            return $this->p18n->getContainer(
+                $this->p18n->getDefaultLocale()
+            )->get($key);
+        }
         return '[['.$key.']]';
     }
 
-    public function has($key)
-    {
-        return isset($this->langs[$key]);
-    }
-
-    public function __get($key)
-    {
-        return $this->get($key);
-    }
-
-    public function __toString()
-    {
-        return $this->data;
-    }
-
-    public function __invoke()
-    {
-        if(strpos($this->name,'_') !== false) {
-            $type = substr($this->name,strrpos($this->name,'_')+1);
-            return $this->{"filter".ucfirst($type)}(func_get_args());
-        }
-        return vsprintf($this->data, func_get_args());
-    }
-
-    public function filterPl($params)
-    {
-        $num = $params[0];
-        if ($this->has($num)) {
-            return sprintf($this->get($num), $num);
-        }else{
-            return sprintf($this->get(''), $num);
-        }
-        \Seaf::logger()->warning(
-            "nが見つかりません"
-        );
-    }
 }

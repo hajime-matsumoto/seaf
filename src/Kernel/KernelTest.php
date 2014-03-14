@@ -7,18 +7,24 @@ namespace Seaf\Kernel;
 class KernelTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @covers Seaf\Kernel\Kernel::__callStatic
+     * カーネルが呼び出せるか
      */
-    public function test__callStatic()
+    public function testSingleton()
+    {
+        $this->assertInstanceOf(
+            'Seaf\Kernel\Kernel',
+            Kernel::singleton()
+        );
+    }
+
+    /**
+     * モジュールが呼び出せるか
+     */
+    public function testModule()
     {
         $this->assertInstanceOf(
             'Seaf\Kernel\Module\System',
             Kernel::system()
-        );
-
-        $this->assertInstanceOf(
-            'ReflectionClass',
-            Kernel::reflectionClass('Seaf\Kernel\Kernel')
         );
 
         $this->assertEquals(
@@ -34,5 +40,22 @@ class KernelTest extends \PHPUnit_Framework_TestCase
             'ok',
             Kernel::system()->halt()
         );
+    }
+
+    /**
+     * @covers Seaf\Kernel\Kernel::__callStatic
+     */
+    public function _test__callStatic()
+    {
+        $this->assertInstanceOf(
+            'Seaf\Kernel\Module\System',
+            Kernel::system()
+        );
+
+        $this->assertInstanceOf(
+            'ReflectionClass',
+            Kernel::reflectionClass('Seaf\Kernel\Kernel')
+        );
+
     }
 }

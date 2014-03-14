@@ -3,7 +3,7 @@ namespace Seaf\Kernel\Module;
 
 use Seaf\Kernel\Kernel;
 
-abstract class Module
+trait ModuleTrait
 {
     public function __construct (Kernel $kernel)
     {
