@@ -35,9 +35,9 @@ class Seaf
      * @param string $config コンフィグファイルパス
      * @return void
      */
-    public static function init ($config = false)
+    public static function init ($config = false, $env = 'development')
     {
-        self::singleton()->_init($config);
+        self::singleton()->_init($config, $env);
         return self::singleton();
     }
 
@@ -47,10 +47,15 @@ class Seaf
      * @param string $config コンフィグファイルパス
      * @return void
      */
-    private function _init ($config)
+    private function _init ($config, $env)
     {
         // カーネルを初期化する
         Kernel::init();
+
+        if ($env == 'development') {
+            // デバッグフラグをONにする
+            Kernel::isDebug(true);
+        }
 
         // Environment
         $this->environment = new Environment( );
@@ -97,6 +102,11 @@ class Seaf
         // Seafに組み込む
         $this->environment->di()->register('Console','Seaf\Application\Console\Base');
         $this->environment->di()->register('Web','Seaf\Application\Web\Base');
+
+        // デバッグモードの処理
+        if (Kernel::isDebug()) {
+            Kernel::timer(); // タイマーの初期化
+        }
     }
 
     /**
@@ -104,6 +114,8 @@ class Seaf
      */
     public static function phpShutdownFunction ( )
     {
+        Kernel::timer('SeafRuntime');
+        Kernel::logger('Seaf')->debug(Kernel::timer()->toString());
         if (!is_null($e = error_get_last())) {
             Kernel::logger()->phpErrorHandler(
                 $e['type'],

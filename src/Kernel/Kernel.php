@@ -23,21 +23,38 @@ class Kernel
     private static $instance;
 
     /**
+     * デバッグフラグ
+     */
+    private static $is_debug = false;
+
+    /**
      * ロードしたモジュールを保存する
      * @var array
      */
     private $modules = array();
 
+
     /**
      * シングルトンオブジェクトを取得する
      */
-    public static function init ($config = array())
+    public static function init ($config = array(), $debug = false)
     {
         return self::singleton();
     }
     public static function singleton()
     {
         return self::$instance ? self::$instance: self::$instance = new Kernel();
+    }
+
+    /**
+     * デバッグフラグの操作と取得
+     */
+    public static function isDebug($bool = null)
+    {
+        if ($bool == null) {
+            return self::$is_debug;
+        }
+        self::$is_debug = $bool;
     }
 
     /**

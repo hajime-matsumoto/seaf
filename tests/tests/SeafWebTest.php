@@ -27,7 +27,7 @@ class SeafWebTest extends \PHPUnit_Framework_TestCase
             'SCRIPT_NAME'                 => 'index.php',
             'PATH_INFO'                   => '/info/abc'
         ));
-        Kernel::System( )->map('halt', function ($body) {
+        Kernel::System( )->map('halt', function ($body = false) {
         });
     }
 
@@ -141,6 +141,9 @@ class SeafWebTest extends \PHPUnit_Framework_TestCase
 
     public function testWebExtendsClass ( )
     {
+        Kernel::timer('testWebExtendClass');
+        sleep(1);
+        Kernel::timer('testWebExtendClass');
         Seaf::Web( )
             ->init()
             ->mount('/home', 'SeafTest\Web')
@@ -177,6 +180,8 @@ class SeafWebTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(
             (strlen(Seaf::Web()->response()->body) > 200)
         );
+
+        Kernel::timer('testWebExtendClass');
     }
 
 }
