@@ -51,4 +51,9 @@ class Base implements ContainerIF
     {
         $this->data[$name] = $value;
     }
+
+    public function toArray( )
+    {
+        return $this->data;
+    }
 }

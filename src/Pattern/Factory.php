@@ -44,10 +44,12 @@ class Factory
 
 class FactoryDefinition 
 {
-    private $definition, $options, $callback, $type;
+    private $definition, $options = array(), $callback, $type;
 
     public static function factory ($name, $definition, $options, $callback)
     {
+        if (empty($options)) $options = array();
+
         $def = new FactoryDefinition($definition, $options, $callback);
 
         if (is_string($definition) && class_exists($definition)) {
@@ -76,6 +78,10 @@ class FactoryDefinition
         case 'callback':
             $instance = Kernel::dispatcher($this->definition)->dispatch($this->options);
             break;
+        }
+        if (is_callable($this->callback)) {
+            $func = $this->callback;
+            $func($instance);
         }
         return $instance;
     }

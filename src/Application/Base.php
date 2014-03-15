@@ -2,8 +2,9 @@
 namespace Seaf\Application;
 
 use Seaf\Exception\Exception;
+use Seaf\Data\Container;
 
-class Base
+class Base extends Container\Base
 {
     /**
      * アプリケーションをマウントする
@@ -38,14 +39,16 @@ class Base
         $this->environment = new Environment($this);
 
         $this->environment->bind($this, array(
-            'route' => '_route',
-            'run'   => '_run',
-            'mount' => '_mount'
+            'route'              => '_route',
+            'run'                => '_run',
+            'mount'              => '_mount',
+            'beforeDispatchLoop' => '_beforeDispatchLoop',
+            'afterDispatchLoop'  => '_afterDispatchLoop'
         ));
 
         $this->event()
-            ->on('before.dispatch-loop', '_beforeDispatchLoop')
-            ->on('after.dispatch-loop', '_afterDispatchLoop');
+            ->on('before.dispatch-loop', 'beforeDispatchLoop')
+            ->on('after.dispatch-loop', 'afterDispatchLoop');
 
         $this->initApplication();
     }
@@ -114,7 +117,10 @@ class Base
      * @param Response
      * @return Base
      */
-    public function _run (Component\Request $req = null, Component\Response $res = null)
+    public function _run (
+        Component\Request $req = null,
+        Component\Response $res = null,
+        $isDispatched = false)
     {
         $this->logger()->debug('Request-Recived-Class : '.get_class($this));
 
@@ -128,7 +134,6 @@ class Base
         // ディスパッチループ開始
         $this->event()->trigger('before.dispatch-loop', $req, $res, $this);
 
-        $isDispatched = false;
 
         foreach ($this->mounts as $path=>$name) {
             if (strpos($req->uri,$path) === 0) {
@@ -153,8 +158,7 @@ class Base
                     ));
                 }
 
-                $instance->run($next_req, $res);
-                $isDispatched = true;
+                $instance->run($next_req, $res, $isDispatched);
             }
         }
 

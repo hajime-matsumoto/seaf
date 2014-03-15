@@ -12,7 +12,5 @@ Kernel::autoLoader()->addNamespace(
 
 // グローバルのDIに登録する
 Kernel::DI()->register('p18n', 'Seaf\Module\P18n\P18n', null, function($p18n){
-
     $p18n->register();
-
 });

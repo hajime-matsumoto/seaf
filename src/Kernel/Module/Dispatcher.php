@@ -84,6 +84,12 @@ class DispatcherMethod
                Kernel::logger()->emergency($this->class);
             }
         }
+        if (!method_exists($this->class, $this->method)) 
+        {
+            if (is_callable($func = array($this->class, $this->method))) {
+                return call_user_func_array($func, $this->params);
+            }
+        }
         $method = new \ReflectionMethod($this->class, $this->method);
         return $method->invokeArgs($this->class, $this->params);
     }

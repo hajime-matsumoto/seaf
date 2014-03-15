@@ -33,6 +33,7 @@ class FileSystem
 
     public function __invoke ($file = null)
     {
+        if ($file instanceof FileSystemFile) return $file;
         if ($file == null) return $this;
         return new FileSystemFile($file);
     }
@@ -72,6 +73,11 @@ class FileSystemFile
         return file_exists($this->file);
     }
 
+    public function get ($file)
+    {
+        return new self($this->file.'/'.$file);
+    }
+
     public function isDir ( )
     {
         return is_dir($this->file);
@@ -102,7 +108,15 @@ class FileSystemFile
         }
     }
 
-    public function parse()
+    public function includeWithVars($vars)
+    {
+        foreach ($vars as $k=>$v) $$k=$v;
+        ob_start();
+        include $this->file;
+        return ob_get_clean();
+    }
+
+    public function parse($vars = array())
     {
         if (!file_exists($this->file)) {
             throw new Exception(array(

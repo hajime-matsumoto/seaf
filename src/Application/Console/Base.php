@@ -14,6 +14,6 @@ class Base extends ApplicationBase
      */
     public function initApplication ()
     {
-        $this->environment->di()->addComponentNamespace(__CLASS__);
+        $this->environment->di()->addComponentNamespace(__CLASS__, '\\Component');
     }
 }

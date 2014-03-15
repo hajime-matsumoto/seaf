@@ -14,6 +14,9 @@ class DI extends Base implements ModuleIF
         ModuleTrait::__construct as ModuleConstruct;
     }
 
+    /**
+     * @param Kernel
+     */
     private $kernel;
 
     public function __construct (Kernel $kernel)
@@ -22,16 +25,26 @@ class DI extends Base implements ModuleIF
         $this->ModuleConstruct($kernel);
     }
 
+    /**
+     * 呼び出された時の処理
+     */
     public function __invoke ($name = null)
     {
         if ($name == null) return $this;
         return $this->get($name);
     }
 
+    /**
+     * モジュールを初期化する
+     *
+     * @param Kernel
+     */
     public function initModule (Kernel $kernel)
     {
-        // ConfigとLoggerは登録しておく
+        // Configをグローバル化
         $this->register('config','Seaf\Data\Config\Config');
+
+        // Loggerをグローバル化
         $this->register('logger','Seaf\Logger\Logger');
     }
 

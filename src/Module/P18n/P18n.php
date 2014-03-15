@@ -99,6 +99,8 @@ class P18n implements ModuleIF
             $lang = $file->basename($no_ext = true);
             $this->langs[$lang] = $file;
         }
+
+        // グローバルヘルパに登録する
     }
 
     /**
@@ -109,8 +111,10 @@ class P18n implements ModuleIF
     {
         if (empty($this->langs[$lang])) {
             Kernel::logger('p18n')->warning(array(
-                "%sは対応していない言語です",
-                $lang
+                "%sは対応していない言語です only %s",
+                $lang,
+                implode(',', $this->langs)
+
             ));
         }
         return new LangContainer($this->langs[$lang], $lang, $this);

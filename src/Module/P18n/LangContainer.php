@@ -54,7 +54,7 @@ class LangContainer  extends Base
      */
     public function factory ($data, $key)
     {
-        return new LangContainer($data, $this->p18n, $this, $key);
+        return new LangContainer($data, $this->locale, $this->p18n, $this, $key);
     }
 
     public function getParent ( )

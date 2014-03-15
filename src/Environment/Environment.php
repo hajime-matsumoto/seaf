@@ -24,7 +24,7 @@ class Environment extends Base
     {
         $this->di = new DI($this);
 
-        $this->di->addComponentNamespace(__CLASS__);
+        $this->di->addComponentNamespace(__CLASS__, '\\Component');
     }
 
     /**
