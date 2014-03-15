@@ -30,6 +30,11 @@ class Request implements ArrayAccess
     {
     }
 
+    public function getHelper ( )
+    {
+        return new RequestHelper($this);
+    }
+
     public function __invoke ($uri = null)
     {
         if ($uri == null) return $this;

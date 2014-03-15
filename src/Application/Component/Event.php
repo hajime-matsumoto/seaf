@@ -31,9 +31,13 @@ class Event implements ComponentIF
     {
         if (isset($this->events[$name]) && is_array($this->events[$name]))
         foreach ($this->events[$name] as $handler) {
-            if(!Kernel::dispatcher($handler, array_slice(func_get_args(),1), $this)->dispatch()) {
-                break;
-            }
+            $continue = Kernel::dispatcher(
+                $handler, 
+                array_slice(func_get_args(),1),
+                $this
+            )->dispatch();
+
+            if ($continue === false) break;
         }
     }
 

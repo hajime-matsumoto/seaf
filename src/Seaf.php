@@ -63,6 +63,13 @@ class Seaf
         // コンフィグを読み込む
         $config = Kernel::DI()->config( )->load($config);
 
+        // 言語の設定
+        mb_internal_encoding($config->get('encoding', 'utf-8'));
+        mb_language($config->get('lang', self::DEFAULT_LANG));
+
+        // タイムロケール
+        date_default_timezone_set($config->get('timezone', self::DEFAULT_TIMEZONE));
+
         // ディレクトリを作成する
         Kernel::fileSystem()
             ->mkdir((string) $config->get('dirs.tmp'), 01777)
@@ -92,12 +99,6 @@ class Seaf
             Seaf::enmod($mod);
         }
 
-        // 言語の設定
-        mb_internal_encoding($config->get('encoding', 'utf-8'));
-        mb_language($config->get('lang', self::DEFAULT_LANG));
-
-        // タイムロケール
-        date_default_timezone_set($config->get('timezone', self::DEFAULT_TIMEZONE));
 
         // Seafに組み込む
         $this->environment->di()->register('Console','Seaf\Application\Console\Base');

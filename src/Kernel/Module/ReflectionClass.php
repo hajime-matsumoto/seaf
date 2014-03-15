@@ -38,7 +38,15 @@ class SeafReflectionClass extends \ReflectionClass
                 $line = preg_split("/\n/", $comment);
                 for ($i=1;$i<(count($line)-1);$i++) {
                     if (preg_match('#[^@]+@Seaf([^\s]+)\s+(.+)#',$line[$i],$m)) {
-                        $anots[lcfirst($m[1])] = $m[2];
+                        $key = lcfirst($m[1]);
+                        if (isset($anots[$key])) {
+                            if (!is_array($anots[$key])) {
+                                $anots[$key] = array($anots[$key]);
+                            }
+                            $anots[$key][] = $m[2];
+                        }else{
+                            $anots[$key] = $m[2];
+                        }
                     }
                 }
                 $callback($method, $anots);

@@ -19,13 +19,27 @@ class Base extends ApplicationBase
         // アノテーションバインディング
         Kernel::ReflectionClass($this)->mapAnnotation(function($method, $anots){
             if (isset($anots['route'])) {
-                $this->logger()->debug(array('Bound %s', $anots['route']));
-                $this->router()->map($anots['route'], $method->getClosure($this));
+                if (!is_array($anots['route'])) {
+                    $anots['route'] = array($anots['route']);
+                }
+                foreach ($anots['route'] as $route) {
+                    $this->logger()->debug(array('Bound %s', $route));
+                    $this->router()->map($route, $method->getClosure($this));
+                }
             }
             if (isset($anots['event'])) {
                 $this->logger()->debug(array('Event %s', $anots['event']));
                 $this->event()->on($anots['event'], $method->getClosure($this));
             }
         });
+
+        $this->initWeb();
+    }
+
+    /**
+     * Web用の初期化メソッド
+     */
+    public function initWeb( )
+    {
     }
 }

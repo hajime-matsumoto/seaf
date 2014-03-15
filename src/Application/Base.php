@@ -64,8 +64,12 @@ class Base extends Container\Base
     /**
      * RUNの終わりに呼ばれる
      */
-    public function _afterDispatchLoop($req, $res, $app)
+    public function _afterDispatchLoop($req, $res, $app, $isDispatched)
     {
+        if ($isDispatched == false) {
+            return false;
+        }
+
         $body = ob_get_clean();
         $res->write($body)->send();
     }
@@ -138,7 +142,12 @@ class Base extends Container\Base
         foreach ($this->mounts as $path=>$name) {
             if (strpos($req->uri,$path) === 0) {
                 $this->logger()->debug('Mount PATH HIT: '.$path);
-                $uri = substr($req->uri,strlen($path));
+
+                if ($path == '/') {
+                    $uri = $req->uri;
+                } else {
+                    $uri = substr($req->uri,strlen($path));
+                }
 
                 $next_req = clone($req);
                 $next_req->uri = empty($uri) ? '/': $uri;
@@ -178,13 +187,14 @@ class Base extends Container\Base
         }
 
         // ディスパッチループ終了
-        $this->event()->trigger('after.dispatch-loop', $req, $res, $this);
+        $this->event()->trigger('after.dispatch-loop', $req, $res, $this, $isDispatched);
 
         if ($isDispatched) {
         } else {
             $this->event()->trigger('notfound', $req, $res, $this);
-            $this->logger()->debug('Route Not Found');
+            $this->logger()->debug('Route Not Found '.$req->uri);
         }
+        $this->logger()->debug('Dispatch-Status : '.($isDispatched ? "true":"false"));
         $this->logger()->debug('Response-Sent : '.(string) $res);
     }
 }

@@ -43,6 +43,8 @@ class View extends ViewBase implements ComponentIF
         if ($dir = $this->env->config('dirs.views')) {
             $this->addViewDir($dir);
         }
+
+        $this->set('req', $this->env->request());
     }
 
     /**
@@ -56,11 +58,17 @@ class View extends ViewBase implements ComponentIF
     /**
      * After Dispatch Loop
      */
-    public function afterDispatchLoop ($req, $res, Base $app)
+    public function afterDispatchLoop ($req, $res, Base $app, $isDispatched)
     {
+        if ($isDispatched == false) return false;
+
         $contents = ob_get_clean();
 
         $params =  $this->toArray();
+        $params = array_merge(
+            $params,
+            $res->getParams()
+        );
 
         // コンテンツを入れる
         $params['contents'] = $contents;

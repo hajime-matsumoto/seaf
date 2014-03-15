@@ -36,13 +36,18 @@ class Response
             foreach ($name as $k=>$v) $this->param($k, $v);
             return $this;
         }
-        $this->param[$name] = $value;
+        $this->params[$name] = $value;
         return $this;
     }
 
     public function getParam($name)
     {
-        return $this->param[$name];
+        return $this->params[$name];
+    }
+
+    public function getParams( )
+    {
+        return $this->params;
     }
 
     public function header ($name, $value)
@@ -73,14 +78,18 @@ class Response
 
     public function __toString( )
     {
+        $array = $this->toArray();
+        return json_encode($array);
+    }
+
+    public function toArray( )
+    {
         $array = array(
-            'statuc'  => $this->status,
-            'headers' => $this->headers,
+            'status'  => $this->status,
             'params'  => $this->params,
             'body'    => $this->body
         );
-
-        return json_encode($array);
+        return $array;
     }
 
     /** **/
@@ -106,7 +115,7 @@ class Response
                 sprintf(
                     'Status: %d %s',
                     $this->status,
-                    self::$codes[$this->status]
+                    StatusCode::$codes[$this->status]
                 ),
                 true
             );
@@ -135,5 +144,16 @@ class Response
         }
 
         return $this;
+    }
+
+    /**
+     * send Json
+     */
+    public function sendJson( )
+    {
+        $json = json_encode($this->toArray( ));
+
+        $this->init();
+        $this->header('Content-Type', 'application/json')->write($json)->send();
     }
 }

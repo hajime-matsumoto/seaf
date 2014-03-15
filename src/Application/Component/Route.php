@@ -103,6 +103,7 @@ class Route
         // あってもなくてもヒットするように正規表現を変更
         $regex .= $char == '/' ? '?': '/?';
 
+        Kernel::logger('Route')->debug(array('Compiled-Regex: %s', $regex));
         if( preg_match('#^'.$regex.'(?:\?.*)?$#i', $uri, $m) ) {
             $params = array();
             foreach ($param_index as $k=>$v) {

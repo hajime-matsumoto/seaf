@@ -52,7 +52,7 @@ class Base extends ApplicationBase
     {
     }
 
-    public function _afterDispatchLoop($req, $res, $app)
+    public function _afterDispatchLoop($req, $res, $app, $isDispatched)
     {
         $uri = $req->uri;
 

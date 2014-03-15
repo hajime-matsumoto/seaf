@@ -27,6 +27,8 @@ class Globals implements ModuleIF
     {
         if(isset($this->GLOBALS[$name])) {
             return $this->GLOBALS[$name];
+        }elseif(isset($this->GLOBALS["_".$name])) {
+            return $this->GLOBALS["_".$name];
         }
     }
     public function set ($name, $value)

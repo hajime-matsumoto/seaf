@@ -25,6 +25,7 @@ class Request extends RequestBase
 
         $this->SERVER  = Kernel::Globals()->get('SERVER');
         $this->REQUEST = Kernel::Globals()->get('REQUEST');
+        $this->setParams($this->REQUEST);
 
         $uri = $this->serv('REQUEST_URI', '/');
 
