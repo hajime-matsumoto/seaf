@@ -3,6 +3,7 @@
 namespace Seaf\Application\Component;
 
 use Seaf\Environment\Environment;
+use Seaf\Net\Request;
 
 /**
  * ルーターコンポーネント
@@ -46,7 +47,7 @@ class Router
     /**
      * ルートを検索する
      */
-    public function route (Request $request)
+    public function route (Request\Base $request)
     {
         while(isset($this->routes[$this->idx])) {
 

@@ -78,9 +78,14 @@ class FileSystemFile
         return new self($this->file.'/'.$file);
     }
 
-    public function getContents()
+    public function getContents ()
     {
         return file_get_contents($this->file);
+    }
+
+    public function putContents ($body)
+    {
+        file_put_contents($this->file, $body);
     }
 
     public function isDir ( )

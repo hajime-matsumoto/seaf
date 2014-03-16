@@ -33,6 +33,12 @@ class Base extends ApplicationBase
             }
         });
 
+        $this->environment->bind($this,
+            array(
+                'redirect' => '_redirect'
+            )
+        );
+
         $this->initWeb();
     }
 
@@ -41,5 +47,17 @@ class Base extends ApplicationBase
      */
     public function initWeb( )
     {
+    }
+
+    /**
+     * リダイレクト
+     */
+    public function _redirect ($uri)
+    {
+        $uri = $this->request()->uri->getAbs($uri);
+        $this->response()
+            ->status(303)
+            ->header('Location', $uri)
+            ->send();
     }
 }

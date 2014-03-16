@@ -3,6 +3,7 @@ namespace Seaf\Application;
 
 use Seaf\Exception\Exception;
 use Seaf\Data\Container;
+use Seaf\Net\Request;
 
 class Base extends Container\Base
 {
@@ -37,6 +38,9 @@ class Base extends Container\Base
     private function _initApplication ( )
     {
         $this->environment = new Environment($this);
+        $this->environment->bind($this->environment, array(
+            'di' => 'di'
+        ));
 
         $this->environment->bind($this, array(
             'route'              => '_route',
@@ -122,7 +126,7 @@ class Base extends Container\Base
      * @return Base
      */
     public function _run (
-        Component\Request $req = null,
+        Request\Base $req = null,
         Component\Response $res = null,
         $isDispatched = false)
     {
@@ -143,14 +147,10 @@ class Base extends Container\Base
             if (strpos($req->uri,$path) === 0) {
                 $this->logger()->debug('Mount PATH HIT: '.$path);
 
-                if ($path == '/') {
-                    $uri = $req->uri;
-                } else {
-                    $uri = substr($req->uri,strlen($path));
-                }
+                $next_req = clone $req;
+                $next_req->addBasePath($path);
 
-                $next_req = clone($req);
-                $next_req->uri = empty($uri) ? '/': $uri;
+
                 $this->logger()->debug(array(
                     'Mount Request URI:%s ORIGIN:%s HIT:%s',
                     $next_req->uri, $req->uri, $path
@@ -167,6 +167,8 @@ class Base extends Container\Base
                     ));
                 }
 
+                $instance->di()->register('request', $next_req);
+                $instance->di()->register('response', $res);
                 $instance->run($next_req, $res, $isDispatched);
             }
         }

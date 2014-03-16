@@ -3,6 +3,7 @@
 namespace Seaf\Application\Component;
 
 use Seaf\Kernel\Kernel;
+use Seaf\Net\Request;
 
 /**
  * アプリケーションルータ
@@ -60,7 +61,7 @@ class Route
     /**
      * @param Request
      */
-    public function match (Request $request)
+    public function match (Request\Base $request)
     {
         if ($this->methods !== array('*')) {
             $method = $request->method;

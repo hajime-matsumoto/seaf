@@ -38,7 +38,7 @@ class Base implements ContainerIF
      * @return bool
      */
     public function set($name, $value = false) {
-        if (is_array($name)) {
+        if (is_array($name) || is_object($name)) {
             foreach($name as $k=>$v){
                 $this->set($k, $v);
             }

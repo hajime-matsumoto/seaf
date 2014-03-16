@@ -25,7 +25,7 @@ class Container extends Base
             $this->set($data);
         }elseif ($data == null ) {
             $this->is_empty = true;
-        }elseif (is_string($data)){
+        }elseif (is_string($data) || is_int($data)){
             $this->string = $data;
         }elseif (is_object($data)){
             $this->object = $data;
