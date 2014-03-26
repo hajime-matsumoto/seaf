@@ -5,7 +5,7 @@ namespace Seaf\Core\Component;
 use Seaf\Data\Container;
 
 /**
- * Global変数を取得する
+ * スーパーグローバル変数を取得する
  *
  * このクラスをかませる事で単体テストを可能にする
  */
@@ -13,7 +13,25 @@ class Globals extends Container\ArrayContainer
 {
     public function __construct ( )
     {
-        parent::__construct($GLOBALS);
+        parent::__construct( );
+
+        /**
+         * これで取得できない
+        foreach (self::$keys as $k) {
+            $this->data[$k] = $$k;
+        }
+         */
+        $this->data = [
+            '_SERVER'  => $_SERVER,
+            '_GET'     => $_GET,
+            '_POST'    => $_POST,
+            '_FILES'   => $_FILES,
+            '_REQUEST' => $_REQUEST,
+            '_ENV'     => $_ENV,
+            '_COOKIE'  => $_COOKIE,
+            'argc'     => $argc,
+            'argv'     => $argv
+            ];
     }
 
 
