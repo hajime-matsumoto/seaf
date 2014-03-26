@@ -38,4 +38,10 @@ class Handler extends Base
         $tag = $this->name;
         $this->logger->_post($level, $params, $opts, $tag, $trace);
     }
+
+    public function helper ($name = null)
+    {
+        if ($name == null) return $this;
+        return $this->logger->getHandler($this->name.'>'.$name);
+    }
 }

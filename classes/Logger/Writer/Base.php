@@ -3,7 +3,7 @@
 namespace Seaf\Logger\Writer;
 
 use Seaf\Exception;
-use Seaf\Helper;
+use Seaf\Data\Container;
 use Seaf\Kernel\Kernel;
 use Seaf\Logger\Level;
 use Seaf\Pattern;
@@ -25,11 +25,11 @@ abstract class Base
      */
     public static function factory ($config)
     {
-        $c        = Helper\ArrayHelper::factory($config);
+        $c        = new Container\ArrayContainer($config);
         $type     = $c('type', 'echo');
         $class    = __NAMESPACE__.'\\'.ucfirst($type).'Writer';
         $instance = new $class($config);
-        $instance->configure($config);
+        $instance->configure($config, false, true, array('type'));
         return $instance;
     }
 
@@ -38,12 +38,12 @@ abstract class Base
      *
      * @param string|int
      */
-    public function setLevel ($level)
+    public function configLevel ($level)
     {
         if (is_int($level)) {
             $this->level = $level;
         } else {
-            $this->setLevel(Level::parse($level));
+            $this->configLevel(Level::parse($level));
         }
     }
 
@@ -71,7 +71,7 @@ abstract class Base
         // メッセージを作成する
         $message = array_shift($params);
         if (is_array($message)) {
-            $message = vsprint(array_shift($message), $meesage);
+            $message = vsprintf(array_shift($message), $message);
         }
         foreach ($params as $k=>$p) {
             $message.= sprintf(' #ARG%02d %s', $k+1, print_r($p, true));

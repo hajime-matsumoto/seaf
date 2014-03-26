@@ -1,43 +1,71 @@
-<?php // vim: set ft=php ts=4 sts=4 sw=4 et:
+<?php
 namespace Seaf\DI;
 
-use Seaf\Helper\ArrayHelper;
+use Seaf\Pattern;
+use Seaf\Data;
+use Seaf\Exception;
 
-class Definition extends ArrayHelper
+/**
+ * DIコンテナ
+ */
+class Definition
 {
-    private $definition;
-    private $opts = array();
-    private $callback;
+    use Pattern\Factory;
+    use Pattern\Event;
 
-    public static function factory ($config)
+    private $type, $definition, $options, $callback;
+
+    /**
+     * Definitionをセットする
+     */
+    public function configDefinition ($definition)
     {
-        $def = new self();
-
-        foreach($config as $k=>$v)
-        {
-            $def->$k = $v;
+        if (is_string($definition) && !is_callable($definition)) {
+            $type = 'class';
+        } elseif (is_callable($definition)) {
+            $type = 'closure';
+        } else {
+            throw new Exception\Exception(array(
+                'Definitionが不正です %s',
+                print_r($definition, true)
+            ));
         }
 
-        return $def;
+        $this->type = $type;
+
+        $this->definition = $definition;
     }
 
+    /**
+     * Optionsをセットする
+     */
+    public function configOptions ($options)
+    {
+        if (!is_array($options)) $options = array();
+        $this->options = $options;
+    }
+
+    /**
+     * Callbackをセットする
+     */
+    public function configCallback ($callback)
+    {
+        $this->callback = $callback;
+    }
+
+    /**
+     * インスタンスを作成する
+     */
     public function create ( )
     {
-        if (is_callable($this->definition)) {
-
-            $instance = call_user_func_array($this->definition, (array)$this->opts);
-        } elseif (is_string($this->definition)) {
-
-            $class = $this->definition;
-            $rc = new \ReflectionClass($class);
-            $instance = $rc->newInstanceArgs((array)$this->opts);
+        if ($this->type == 'class') {
+            $class = new \ReflectionClass($this->definition);
+            $instance = $class->newInstanceArgs($this->options);
+        } else {
+            $instance = call_user_func_array($this->definition, $this->options);
         }
-
         if (is_callable($this->callback)) {
-            $result = call_user_func_array($this->callback, $instance);
-            if (is_object($result)) {
-                $instance = $result;
-            }
+            call_user_func($this->callback, $instance);
         }
         return $instance;
     }

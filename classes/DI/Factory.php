@@ -1,51 +1,145 @@
-<?php // vim: set ft=php ts=4 sts=4 sw=4 et:
+<?php
 namespace Seaf\DI;
 
-use Seaf\Helper\ArrayHelper;
+use Seaf\Pattern;
+use Seaf\Data;
 
-class Factory extends ArrayHelper
+/**
+ * DIコンテナ
+ */
+class Factory extends Data\Container\ArrayContainer
 {
+    use Pattern\Factory;
+    use Pattern\Event;
+
     /**
      * オートロード
+     * @var array
      */
-    public $autoload_list = array();
+    protected $autoloads = array();
 
-    public function __construct ()
+    /**
+     * ファクトリコンフィグ
+     * @var array
+     */
+    protected $factory_configs = array();
+
+    public function __construct( )
     {
+        $this->factory_configs = new Data\Container\ArrayContainer();
     }
 
     /**
-     * 登録する
+     * Register
+     *
+     * @param string
+     * @param string
      */
-    public function register ($name, $definition, $opts = null, $callback = null)
+    public function register ($name, $definition, $options = null, $callback = null)
     {
-        $this->set($name, Definition::factory(compact('definition','opts','callback')));
+        $name = ucfirst($name);
+
+        $this->set(
+            $name,
+            Definition::factory(
+                compact('definition','options','callback')
+            )
+        );
     }
 
     /**
-     * オートロードを登録する
+     * ファクトリコンフィグをセットする
      */
-    public function addAutoLoad ($prefix, $suffix)
+    public function setFactoryConfigs($configs)
     {
-        $this->autoload_list[] = array($prefix, $suffix);
+        $c = new Data\Container\ArrayContainer($configs);
+
+        foreach ($c('definitions', array()) as $k=>$v)
+        {
+            $this->register($k, $v['definition']);
+        }
+
+        foreach ($c('configs', array()) as $k=>$v)
+        {
+            $this->setFactoryConfig($k, $v);
+        }
     }
 
     /**
-     * hasをオーバーライド
+     * ファクトリコンフィグをセットする
+     */
+    public function setFactoryConfig($name, $config)
+    {
+        $name = ucfirst($name);
+
+        $this->factory_configs[$name] = $config;
+    }
+
+    /**
+     * オートロードクラスを取得する
+     */
+    public function getClass($name)
+    {
+        $name = ucfirst($name);
+
+        // AutoLoading
+        foreach ($this->autoloads as $autoload) {
+            $class = sprintf('%s%s%s',
+                $autoload['prefix'],
+                ucfirst($name),
+                $autoload['suffix']
+            );
+            if (class_exists($class)) {
+                return $class;
+            }
+        };
+
+        return false;
+    }
+
+
+    /**
+     * Hasをオーバライドする
      */
     public function has ($name)
     {
+        $name = ucfirst($name);
+
         if (parent::has($name)) return true;
 
-        foreach($this->autoload_list as $autoload) {
-            list($prefix, $suffix) = $autoload;
-
-            $class = sprintf('%s%s%s',$prefix,ucfirst($name),$suffix);
-            if (class_exists($class)) {
+        // AutoLoading
+        if ($class = $this->getClass($name)) {
+            if (is_callable($method = $class.'::factory')) {
+                $this->register($name, $method, array(
+                    $this->factory_configs->get($name, array())
+                ));
+            } else {
                 $this->register($name, $class);
-                return true;
             }
+            return true;
         }
         return false;
+    }
+
+
+    /**
+     * オートロード
+     */
+    public function configAutoloads ($autoloads)
+    {
+        foreach ($autoloads as $autoload) {
+            call_user_func_array(
+                array($this, 'configAutoload'),
+                $autoload
+            );
+        }
+    }
+
+    /**
+     * オートロード
+     */
+    public function configAutoload ($prefix, $suffix = null)
+    {
+        array_unshift($this->autoloads, compact('prefix','suffix'));
     }
 }

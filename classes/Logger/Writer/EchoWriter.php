@@ -9,24 +9,14 @@ class EchoWriter extends Base
 {
     protected $buf = array();
 
-    /**
-     * コンストラクタ
-     *
-     * @param array $config
-     * @return Base
-     */
-    protected function __construct ($config)
-    {
-    }
-
     public function _post($message)
     {
         $this->buf[]= $message;
     }
 
-    public function __destruct()
+    public function shutdown()
     {
+        echo "\n";
         echo implode("\n", $this->buf);
     }
-
 }

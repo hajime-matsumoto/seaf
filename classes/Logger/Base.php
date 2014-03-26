@@ -2,15 +2,20 @@
 
 namespace Seaf\Logger;
 
+use Seaf;
+use Seaf\Pattern;
 use Seaf\Exception;
 
 /**
  * ロガー
+ * ------------------------------------------
  *
  * ロガーに対してライターは複数存在する
  */
 class Base
 {
+    use Pattern\Factory;
+
     public $name = 'Default';
 
     /**
@@ -38,6 +43,17 @@ class Base
        'info'  => Level::INFO      ,
        'debug' => Level::DEBUG
    );
+
+    // -------------------------------
+    // コンフィグ
+    // -------------------------------
+
+    public function configWriters($writers)
+    {
+        foreach ($writers as $name => $writer) {
+            $this->addWriter($name, $writer);
+        }
+    }
 
     /**
      * コンストラクタ
@@ -112,12 +128,17 @@ class Base
      * @param Writer|array ライタオブジェクトか設定
      * @exception Exception\InvalitArguments
      */
-    public function addWriter ($writer)
+    public function addWriter ($name, $writer = false)
     {
+        if ($writer == false) {
+            $writer = $name;
+            $name = 'default';
+        }
+
         if ($writer instanceof Writer\Base) {
-            $this->writers[] = $writer;
+            $this->writers[$name] = $writer;
         } elseif (is_array($writer)) {
-            $this->writers[] = Writer\Base::factory($writer);
+            $this->writers[$name] = Writer\Base::factory($writer);
         } else {
             throw new Exception\InvalidArguments("$writerは配列でもSeaf\Logger\Writerありません。");
         }
@@ -200,6 +221,12 @@ class Base
             $this->debug("エラー終了しました");
         } else {
             $this->debug("正常終了しました");
+        }
+
+        // 全ハンドラをシャットダウンする
+        foreach ($this->writers as $key => $writer) {
+            $writer->shutdown();
+            unset($this->writers[$key]);
         }
     }
 }

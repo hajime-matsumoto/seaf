@@ -34,40 +34,64 @@ default:
         modules:
             - $dirs.root$/Module
     #
-    # ログの設定
+    # Seaf Component
     #
-    logger:
-        default:
-            type     : file
-            fileName : $dirs.logs$/seaf.log
-            mode     : a
-            level    : all ^ debug
+    seaf:
+        factory:
+            definitions:
+                web:
+                    definition: Seaf\FW\Web\Controller
+            configs:
+                logger:
+                    writers:
+                        default:
+                            type     : file
+                            fileName : $dirs.logs$/seaf.log
+                            level    : 'all'
+                            mode     : w
+                        error:
+                            type     : file
+                            fileName : $dirs.logs$/seaf.error.log
+                            level    : 'all ^ debug'
+                            mode     : w
+                        debug:
+                            type     : echo
+                            level    : 'all'
     #
     # モジュール
     #
     modules:
         # 多言語対応モジュール
         - p18n
+        # セッション
+        - session
 
 
 #
 # 開発時の設定
 #
 development:
-    logger:
-        default:
-            type     : file
-            fileName : $dirs.logs$/seaf.log
-            level    : 'all'
-            mode     : w
-        error:
-            type     : file
-            fileName : $dirs.logs$/seaf.error.log
-            level    : 'all ^ debug'
-            mode     : w
-        debug:
-            type     : echo
-            level    : 'all ^ debug'
+    seaf:
+        factory:
+            definitions:
+                web:
+                    definition: Seaf\FW\Web\Controller
+            configs:
+                logger:
+                    writers:
+                        default:
+                            type     : file
+                            fileName : $dirs.logs$/seaf.log
+                            level    : 'all'
+                            mode     : w
+                        error:
+                            type     : file
+                            fileName : $dirs.logs$/seaf.error.log
+                            level    : 'all ^ debug'
+                            mode     : w
+                        debug:
+                            type     : echo
+                            level    : 'all'
 
 #
 # 運用時の設定

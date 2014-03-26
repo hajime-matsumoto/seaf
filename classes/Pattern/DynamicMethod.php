@@ -4,10 +4,13 @@
  */
 namespace Seaf\Pattern;
 
-use Seaf\Kernel\Kernel;
-
 /**
- * 動的メソッド機能を与える
+ * メソッドを動的に設定するパターン
+ *
+ * <code>
+ * $some->map('test', function ( ){ });
+ * $some->test();
+ * </code>
  */
 trait DynamicMethod {
 
@@ -16,6 +19,20 @@ trait DynamicMethod {
      * @var array
      */
     protected $maps = array();
+
+    public function initDynamicMethod ( )
+    {
+        $this->maps = array();
+    }
+
+    /**
+     * メソッドを取得する
+     */
+    public function getMethods ( )
+    {
+        $methods = get_class_methods($this);
+        return $methods + array_keys($this->maps);
+    }
 
     /**
      * メソッドをマップする
@@ -53,6 +70,7 @@ trait DynamicMethod {
         foreach ($list as $k=>$v) {
             $this->map($k, array($object, $v));
         }
+        return $this;
     }
 
     /**
@@ -80,7 +98,7 @@ trait DynamicMethod {
             $action = $this->maps[$name];
 
             // ディスパッチする
-            return Kernel::dispatcher($action, $params)->dispatch();
+            return call_user_func_array($action, $params);
         }
         return $this->callFallBack($name, $params);
     }
@@ -93,5 +111,4 @@ trait DynamicMethod {
      * @return mixed
      */
     abstract protected function callFallBack ($name, $params);
-
 }
