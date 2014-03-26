@@ -21,6 +21,8 @@ class Globals extends Container\ArrayContainer
             $this->data[$k] = $$k;
         }
          */
+        if (!isset($argc)) $argc = 0;
+        if (!isset($argv)) $argv = array();
         $this->data = [
             '_SERVER'  => $_SERVER,
             '_GET'     => $_GET,

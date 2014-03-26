@@ -12,11 +12,32 @@ class Mail
 
     private $attrs = array('to', 'from', 'subject', 'body');
 
-    private $to, $from, $subject, $body;
+    private $to, $from, $subject, $body, $headers = array();
 
     public function __construct(Mailer $mailer)
     {
         $this->mailer = $mailer;
+    }
+
+    public function fromHeader($name, $address)
+    {
+        $this->headers['From'] = sprintf("%s <%s>", mb_encode_mimeheader($name), $address);
+        return $this;
+    }
+
+    public function header($name, $value)
+    {
+        $this->headers[$name] = $value;
+        return $this;
+    }
+
+    public function buildHeaders( )
+    {
+        $headers = '';
+        foreach ($this->headers as $k=>$v) {
+            $headers.= sprintf("%s: %s\n", $k, $v);
+        }
+        return $headers;
     }
 
     public function template ($tpl, $vars)
@@ -27,7 +48,9 @@ class Mail
 
     public function submit ( )
     {
-        mb_send_mail($this->to, $this->subject, $this->body, "<".$this->from.">");
+        Seaf::Logger('Mailer')->debug("Headers:".$this->buildHeaders());
+        $result = mb_send_mail($this->to, $this->subject, $this->body, $this->buildHeaders());
+        Seaf::Logger('Mailer')->debug("Result:".$result);
         return $this;
     }
 

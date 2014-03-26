@@ -29,7 +29,7 @@ class System
      * @param string
      * @return void
      */
-    public function _halt ($data)
+    public function _halt ($data = '')
     {
         exit($data);
     }
