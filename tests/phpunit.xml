@@ -7,10 +7,15 @@
   convertNoticesToExceptions="true"
   convertWarningsToExceptions="true"
   processIsolation="false"
-  stopOnFailure="false"
+  stopOnFailure="true"
   syntaxCheck="false"
-  verbose="false">
-  <testsuite name="Seaf Test Suite">
-    <directory>.</directory>
-  </testsuite>
+  verbose="true">
+  <testsuites>
+	  <testsuite name="AllClasses">
+		  <directory suffix="Test.php">./tests/*</directory>
+	  </testsuite>
+	  <testsuite name="FW\Web">
+		  <directory suffix="Test.php">./tests/FW/Web/*</directory>
+	  </testsuite>
+  </testsuites>
 </phpunit>

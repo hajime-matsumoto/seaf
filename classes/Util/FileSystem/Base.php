@@ -12,9 +12,21 @@ class Base
         return $this->helper($path);
     }
 
+    public static function factory ($path)
+    {
+        if (is_string($path)) {
+            return new File($path);
+        } elseif (is_array($path)) {
+            return new FileSystem($path);
+        }
+
+        return new File($path);
+    }
+
     public function helper ($path = null)
     {
         if ($path == null) return $this;
-        return new File($path);
+
+        return static::factory($path);
     }
 }

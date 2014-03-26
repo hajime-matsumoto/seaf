@@ -7,7 +7,7 @@ namespace Seaf\Data\Container;
  */
 class ArrayContainer implements \ArrayAccess,\Iterator
 {
-    protected $data;
+    protected $data = array();
 
     /**
      * コンストラクタ

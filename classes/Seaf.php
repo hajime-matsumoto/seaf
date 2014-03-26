@@ -89,6 +89,7 @@ class Seaf
         self::$root_path       = $root;
         self::$production_mode = $env;
 
+        //--------------------------------
         // オートローダの起動
         $autoloader = AutoLoader::factory(array(
             'namespaces' => array(
@@ -99,26 +100,27 @@ class Seaf
         $seaf = self::singleton();
         $seaf->register('autoLoader', $autoloader);
 
+        //--------------------------------
         // コンフィグを読み込む
         $c = $seaf->config()->load($root.'/'.self::$config_path);
 
+        //--------------------------------
         // 言語とタイムゾーンの設定
         mb_internal_encoding($c('encoding','utf-8'));
         mb_language($c('lang','ja'));
         date_default_timezone_set($c('timezone','Asia\Tokyo'));
 
+        //--------------------------------
         // コンポーネントを一括で設定する
-        $seaf->di( )->factory->setFactoryConfigs($c('seaf.factory', array()));
+        $seaf->di( )->factory->setFactoryConfigs($c('factory', array()));
 
+        //--------------------------------
         // ロガーを起動する
         $seaf->logger()->register();
 
+        //--------------------------------
         // ライタブルディレクトリ
-        foreach (array(
-            $c('dirs.tmp'),
-            $c('dirs.cache'),
-            $c('dirs.logs')
-        ) as $dir) {
+        foreach ($c('writable_dirs') as $dir) {
             $dir = $seaf->fileSystem()->mkdir($dir, 01777);
 
             if (!$dir->isWritable()) { // 書き込めなければ警告を吐く
@@ -135,8 +137,10 @@ class Seaf
                 ));
             }
         }
+
+        //--------------------------------
         // モジュールの処理
-        foreach($c('module.enabled') as $mod_name)
+        foreach($c('startup.modules', array()) as $mod_name)
         {
             $seaf->enmod($mod_name);
         }
@@ -150,12 +154,10 @@ class Seaf
     public function _enmod ($mod)
     {
         $c = Seaf::Config();
+        $modules = Seaf::FileSystem($c('module.dirs'));
 
-        foreach ($c('module.dirs') as $dir) {
-            $script = Seaf::FileSystem($dir.'/'.$mod.'/__module.php');
-            if ($script->isExists()) {
-                $script->requireOnce( );
-            }
+        if ($file = $modules->get($mod.'/__module.php')) {
+            $file->requireOnce();
         }
     }
 

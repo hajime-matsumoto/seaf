@@ -21,12 +21,12 @@ class Config extends Base
     /**
      * ヘルパ
      */
-    public function helper ($config = null)
+    public function helper ($config = null, $default = null)
     {
         if ($config == null) {
             return $this;
         }
 
-        return $this->get($config);
+        return $this->get($config, $default);
     }
 }

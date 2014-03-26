@@ -102,6 +102,9 @@ class Base
     public function get($name, $default = null)
     {
         $data = $this->_get($name, $default);
+        if (empty($data)) {
+            return $default;
+        }
         return $this->configFilter($data);
     }
 
@@ -118,16 +121,15 @@ class Base
         $default_section = @$this->data[$this->default_section];
 
         if (isset($current) && $current->has($name)) {
-            return $current->get($name);
-        }
-        if (
+            $data = $current->get($name);
+        } elseif (
             $current != $default_section &&
             isset($default_section) &&
             $default_section->has($name)
         ) {
-            return $default_section->get($name);
+            $data = $default_section->get($name);
         }
-        return $default;
+        return empty($data) ? $default: $data;
     }
 
 

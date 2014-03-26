@@ -2,7 +2,7 @@
 
 namespace Seaf\Util\FileSystem;
 
-class File
+class File implements \Iterator
 {
     protected $path = "";
 
@@ -148,5 +148,52 @@ class File
     public function unlink ( )
     {
         unlink ($this->path);
+    }
+
+    /**
+     * ベース名を取得
+     *
+     * @param bool 拡張子を消すフラグ
+     */
+    public function basename($withExt = true)
+    {
+        $name = basename($this->path);
+
+        if ($withExt) return $name;
+        return substr($name, 0, strrpos($name, '.'));
+    }
+
+    //----------------------------
+    // ArrayAccess
+    //----------------------------
+
+    public function current( )
+    {
+        return Base::factory($this->path.'/'.$this->current_file);
+    }
+
+    public function rewind( )
+    {
+        $this->dir = dir($this->path);
+        $this->idx = 0;
+    }
+
+    public function next( )
+    {
+        $this->idx++;
+    }
+
+    public function key( )
+    {
+        return $this->idx;
+    }
+
+    public function valid( )
+    {
+        $this->current_file = $this->dir->read();
+        if ($this->current_file{0} == '.') {
+            return $this->valid();
+        }
+        return $this->current_file;
     }
 }
