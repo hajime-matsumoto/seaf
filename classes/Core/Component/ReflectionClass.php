@@ -1,6 +1,8 @@
 <?php
 namespace Seaf\Core\Component;
 
+use Seaf;
+
 class ReflectionClass
 {
     public function __construct ( )

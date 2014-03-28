@@ -96,6 +96,7 @@ class File implements \Iterator
      */
     public function getContents ( )
     {
+        if (!$this->isExists()) return false;
         return file_get_contents($this->path);
     }
 
@@ -161,6 +162,22 @@ class File implements \Iterator
 
         if ($withExt) return $name;
         return substr($name, 0, strrpos($name, '.'));
+    }
+
+    /**
+     * MKDIR
+     *
+     */
+    public function mkdir ($path = null, $mode = 01777)
+    {
+        if ($path == null) {
+            $path = '';
+        }
+        mkdir(
+            $this->path.'/'.$path,
+            $mode
+        );
+        return $this;
     }
 
     //----------------------------

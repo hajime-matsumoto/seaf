@@ -1,6 +1,7 @@
 <?php // vim: set ft=php ts=4 sts=4 sw=4 et:
 
 namespace Seaf\Data\Container;
+use Seaf\Util\ArrayHelper;
 
 /**
  * ArrayContainer
@@ -42,38 +43,7 @@ class ArrayContainer implements \ArrayAccess,\Iterator
      */
     public function get($name, $default = null)
     {
-        // .区切りのアクセスを許可する
-        if (strpos($name, '.')) {
-            return $this->getWithDot($name, $default);
-        }
-
-        if ($this->has($name)) {
-            $data = $this->data[$name];
-        } else {
-            $data = $default;
-        }
-
-        return $data;
-    }
-
-    /**
-     * 値を取得する DOT区切り用
-     *
-     * @param stirng $name
-     * @param mixed $default
-     * @return mixed
-     */
-    protected function getWithDot($name, $default = false)
-    {
-        $token = strtok($name, '.');
-        $head = $this->data;
-        do {
-            if (!isset($head[$token])) {
-                return $default;
-            }
-            $head = $head[$token];
-        } while (false !== $token = strtok('.'));
-        return $head;
+        return ArrayHelper::get($this->data, $name, $default);
     }
 
     /**
@@ -101,12 +71,7 @@ class ArrayContainer implements \ArrayAccess,\Iterator
      */
     public function has ($name)
     {
-        // .区切りのアクセスを許可する
-        if (strpos($name, '.')) {
-            return $this->getWithDot($name, false);
-        }
-
-        return isset($this->data[$name]);
+        return ArrayHelper::has($this->data, $name);
     }
 
     /**

@@ -33,14 +33,17 @@ default:
     # ディレクトリの設定
     #--------------------------------
     dirs:
-        tmp    : $project.root$/var/tmp
-        cache  : $project.root$/var/cache
-        logs   : $project.root$/var/logs
+        var    : $project.root$/var
+        tmp    : $dirs.var$/tmp
+        cache  : $dirs.var$/cache
+        logs   : $dirs.var$/logs
+        kvs    : $dirs.var$/kvs
 
     writable_dirs: # 書き込み可能にするディレクトリ
         - $dirs.tmp$
         - $dirs.cache$
         - $dirs.logs$
+        - $dirs.kvs$
 
     #--------------------------------
     # Assetの設定
@@ -88,7 +91,36 @@ default:
         lang: ja
         langDir: $project.root$/etc/i18n
 
+    #--------------------------------
+    # Key Value Storeの設定
+    #--------------------------------
+    kvs:
+        handlers:
+            default:
+                type: 'file'
+                config:
+                    path: $dirs.kvs$
 
+    #--------------------------------
+    # Cacheの設定
+    #--------------------------------
+    cache:
+        engine:
+            type: 'file'
+            config:
+                path: $dirs.cache$/default
+
+    #--------------------------------
+    # RDBの設定
+    #--------------------------------
+    db:
+        handlers:
+            mysql:
+                dsn: mysql://root:deganjue@localhost:1111
+            sqlite:
+                dsn: sqlite://$dirs.var$/sqlite.db
+            pgsql:
+                dsn: pgsql://root:deganjue@localhost:1111
 #===========================================
 #
 # 開発時の設定
