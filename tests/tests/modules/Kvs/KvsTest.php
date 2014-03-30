@@ -35,7 +35,7 @@ class KvsTest extends \PHPUnit_Framework_TestCase
         // 値を設定する
         $kvs->set(1, $_SERVER);
 
-        // 値を設定する
+        // 値を取得する
         $result = $kvs->get(1);
 
         // 値とステータスを取得する

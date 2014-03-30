@@ -50,8 +50,6 @@ abstract class Handler extends ArrayContainer
      */
     public function getSessionID ( )
     {
-        $g = Seaf::Globals();
-
         if (Seaf::Cookie()->has(self::$COOKIE_KEY)) {
             return Seaf::Cookie()->get(self::$COOKIE_KEY);
         }
