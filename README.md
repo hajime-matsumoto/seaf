@@ -76,14 +76,14 @@ Seaf::コンポーネント名( ); # コンポーネントを呼び出す
                            # helperメソッドを呼び出す
 ```
 
-AutoLoader       : クラスローダ
-Config           : コンフィグハンドラ
-Cookie           : クッキー処理
-FileSystem       : ファイルシステムヘルパ
-Globals          : スーパーグローバル変数の管理
-Helper           : ヘルパーコレクション
-Logger           : ロガーハンドラ
-ReflectionClass  : リフレクションクラス拡張
-ReflectionMethod : リフレクションメソッド拡張
-Secure           : セキュリティに関するUtility
-System           : システムに関するUtility
++ AutoLoader       : クラスローダ
++ Config           : コンフィグハンドラ
++ Cookie           : クッキー処理
++ FileSystem       : ファイルシステムヘルパ
++ Globals          : スーパーグローバル変数の管理
++ Helper           : ヘルパーコレクション
++ Logger           : ロガーハンドラ
++ ReflectionClass  : リフレクションクラス拡張
++ ReflectionMethod : リフレクションメソッド拡張
++ Secure           : セキュリティに関するUtility
++ System           : システムに関するUtility
