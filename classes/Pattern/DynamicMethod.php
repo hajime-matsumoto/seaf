@@ -24,9 +24,7 @@ trait DynamicMethod {
     {
         $this->maps = array();
         $this->bind(
-            $this,
-            'getDynamicMethods',
-            'getDynamicMethods'
+            $this, array('getDynamicMethods' => 'getDynamicMethods')
         );
     }
 
