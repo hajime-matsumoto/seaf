@@ -3,97 +3,141 @@
 # Seaf設定ファイル
 #
 
+#===========================================
 #
 # デフォルトの設定
 #
+#===========================================
 default:
-    #
-    #  基本的な設定
-    # 
+    #--------------------------------
+    # 基本的な設定
+    #--------------------------------
     encoding : utf-8
     lang     : ja
     timezone : Asia/Tokyo
-    #
-    # 追加ライブラリ
-    #
-    library:
-        - $dirs.root$/lib
-    #
+
+    #--------------------------------
+    # プロジェクトの設定
+    #--------------------------------
+    project:
+        root: $SEAF_PROJECT_ROOT$
+
+    #--------------------------------
+    # スタートアップの設定
+    #--------------------------------
+    startup:
+        modules: # 起動時に有効にするモジュール
+            - mailer
+            - session
+    #--------------------------------
     # ディレクトリの設定
-    # 
+    #--------------------------------
     dirs:
-        root   : $SEAF_PROJECT_ROOT$
-        tmp    : $dirs.root$/var/tmp
-        cache  : $dirs.root$/var/cache
-        logs   : $dirs.root$/var/logs
-        views  : $dirs.root$/views
-        lib    : $dirs.root$/lib
-        static : $dirs.root$/public
-        p18n   : $dirs.root$/etc/i18n
-        assets : $dirs.root$/assets
-        modules:
-            - $dirs.root$/Module
-    #
-    # Seaf Component
-    #
-    seaf:
-        factory:
-            definitions:
-                web:
-                    definition: Seaf\FW\Web\Controller
-            configs:
-                logger:
-                    writers:
-                        default:
-                            type     : file
-                            fileName : $dirs.logs$/seaf.log
-                            level    : 'all'
-                            mode     : w
-                        error:
-                            type     : file
-                            fileName : $dirs.logs$/seaf.error.log
-                            level    : 'all ^ debug'
-                            mode     : w
-                        debug:
-                            type     : echo
-                            level    : 'all'
-    #
+        var    : $project.root$/var
+        tmp    : $dirs.var$/tmp
+        cache  : $dirs.var$/cache
+        logs   : $dirs.var$/logs
+        kvs    : $dirs.var$/kvs
+
+    writable_dirs: # 書き込み可能にするディレクトリ
+        - $dirs.tmp$
+        - $dirs.cache$
+        - $dirs.logs$
+        - $dirs.kvs$
+
+    #--------------------------------
+    # Assetの設定
+    #--------------------------------
+    asset:
+        dirs:
+            - $project.root$/assets
+
+    #--------------------------------
+    # Viewの設定
+    #--------------------------------
+    view:
+        dirs:
+            - $project.root$/views
+
+    #--------------------------------
+    # ロガーの設定
+    #--------------------------------
+    logger:
+        writers:
+            default:
+                type     : echo
+                level    : 'all'
+
+    #--------------------------------
+    # ファクトリの設定
+    #--------------------------------
+    factory:
+        definitions:
+            web:
+                definition: Seaf\FW\Web\Controller
+
+    #--------------------------------
     # モジュール
-    #
-    modules:
-        # 多言語対応モジュール
-        - p18n
-        # セッション
-        - session
+    #--------------------------------
+    module:
+        # モジュールディレクトリ
+        dirs:
+            - $SEAF_MODULE_PATH$
+    #--------------------------------
+    # p18nの設定
+    #--------------------------------
+    p18n:
+        defaultLang: en
+        lang: ja
+        langDir: $project.root$/etc/i18n
 
+    #--------------------------------
+    # Key Value Storeの設定
+    #--------------------------------
+    kvs:
+        handlers:
+            default:
+                type: 'file'
+                config:
+                    path: $dirs.kvs$
 
+    #--------------------------------
+    # Cacheの設定
+    #--------------------------------
+    cache:
+        engine:
+            type: 'file'
+            config:
+                path: $dirs.cache$/default
+
+    #--------------------------------
+    # RDBの設定
+    #--------------------------------
+    db:
+        handlers:
+            mysql:
+                dsn: mysql://root:deganjue@localhost:1111
+            sqlite:
+                dsn: sqlite://$dirs.var$/sqlite.db
+            pgsql:
+                dsn: pgsql://root:deganjue@localhost:1111
+#===========================================
 #
 # 開発時の設定
 #
+#===========================================
 development:
-    seaf:
-        factory:
-            definitions:
-                web:
-                    definition: Seaf\FW\Web\Controller
-            configs:
-                logger:
-                    writers:
-                        default:
-                            type     : file
-                            fileName : $dirs.logs$/seaf.log
-                            level    : 'all'
-                            mode     : w
-                        error:
-                            type     : file
-                            fileName : $dirs.logs$/seaf.error.log
-                            level    : 'all ^ debug'
-                            mode     : w
-                        debug:
-                            type     : echo
-                            level    : 'all'
 
+#===========================================
 #
 # 運用時の設定
 #
+#===========================================
 production:
+    logger:
+        writers:
+            default:
+                type     : file
+                fileName : $dirs.logs$/seaf.log
+                level    : 'all ^ debug'
+                mode     : a

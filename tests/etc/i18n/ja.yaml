@@ -6,3 +6,7 @@ count_pl:
     n: '%s個'
     1: ひとつ
     0: なし
+list:
+    - a
+    - b
+    - c

@@ -96,8 +96,8 @@ class Controller extends FW\Controller
         $uri = $this->request()->uri()->abs($uri);
         $this->response()
             ->clear()
-            ->header('Location', $uri)
             ->status(303)
+            ->header('Location', $uri)
             ->write('<h1>Redirecting To '.$uri.'</h1>')
             ->send();
     }

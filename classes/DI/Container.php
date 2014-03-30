@@ -70,6 +70,17 @@ class Container extends Data\Container\ArrayContainer
         return false;
     }
 
+    /**
+     * GetKeysをオーバライドする
+     */
+    public function getKeys ( )
+    {
+        return array_merge(
+            parent::getKeys( ),
+            $this->factory->getKeys( )
+        );
+    }
+
 
     /**
      * Createする

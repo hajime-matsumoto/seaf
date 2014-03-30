@@ -109,7 +109,7 @@ class Factory extends Data\Container\ArrayContainer
 
         // AutoLoading
         if ($class = $this->getClass($name)) {
-            if (is_callable($method = $class.'::factory')) {
+            if (is_callable($method = $class.'::componentFactory')) {
                 $this->register($name, $method, array(
                     $this->factory_configs->get($name, array())
                 ));

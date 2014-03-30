@@ -81,6 +81,6 @@ class View extends Base
     public function acceptController(FW\Controller $ctl)
     {
         $this->controller = $ctl;
-        $this->addPath(Seaf::config('dirs.views'));
+        $this->addPath(Seaf::config('view.dirs'));
     }
 }

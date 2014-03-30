@@ -19,6 +19,11 @@ use Seaf\Exception;
  */
 trait Configure
 {
+    public function getConfigurePrefix ( )
+    {
+        return 'config';
+    }
+
     /**
      * config<Config名>メソッドがあればそれを呼び
      * それ以外であれば
@@ -32,11 +37,12 @@ trait Configure
      */
     public function configure ($config, $do_prop_set = false, $strict = true, $ignore = array())
     {
+        $prefix = $this->getConfigurePrefix();
         $not_set = array();
         foreach ($config as $k=>$v) {
             if (in_array($k, $ignore)) {
 
-            } elseif (method_exists($this, $method = 'config'.ucfirst($k))) {
+            } elseif (method_exists($this, $method = $prefix.ucfirst($k))) {
                 $this->$method($v);
             }elseif ($do_prop_set){
                 $this->$k = $v;
