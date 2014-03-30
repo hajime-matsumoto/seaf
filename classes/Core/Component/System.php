@@ -3,6 +3,7 @@ namespace Seaf\Core\Component;
 
 use Seaf\Pattern\DynamicMethod;
 use Seaf\Exception;
+use Seaf;
 
 /**
  * システムユーティリティ
@@ -59,4 +60,42 @@ class System
     {
         throw new Exception\InvalidCall($name, $this);
     }
+
+    /**
+     *
+     */
+    public function printf ($format)
+    {
+        echo call_user_func_array([$this,'sprintf'], func_get_args());
+    }
+
+    /**
+     *
+     */
+    public function printfn ($format)
+    {
+        echo call_user_func_array([$this,'sprintfn'], func_get_args());
+    }
+
+    public function sprintfn ($format) {
+        $ENDLINE = Seaf::Globals('argc') > 0 ? "\n": "<br />";
+        return call_user_func_array([$this,'sprintf'], func_get_args()).$ENDLINE;
+    }
+
+    public function sprintf ($format) {
+        if (func_num_args() == 1) return $format;
+
+        return vsprintf($format, array_slice(func_get_args(),1));
+    }
+
+    /**
+     * 指定メソッドのクロージャを取得する
+     *
+     * @param string
+     */
+    public function getClosure ($method)
+    {
+        return Seaf::ReflectionMethod($this, $method)->getClosure($this);
+    }
+
 }

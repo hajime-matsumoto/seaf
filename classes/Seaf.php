@@ -105,6 +105,12 @@ class Seaf
         $c = $seaf->config()->load($root.'/'.self::$config_path);
 
         //--------------------------------
+        // オートローダの設定
+        foreach($c('autoloader.libraries', array()) as $lib) {
+            $autoloader->addLibrary($lib);
+        }
+
+        //--------------------------------
         // 言語とタイムゾーンの設定
         mb_internal_encoding($c('encoding','utf-8'));
         mb_language($c('lang','ja'));

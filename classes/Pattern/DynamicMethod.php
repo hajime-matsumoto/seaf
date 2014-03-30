@@ -23,6 +23,11 @@ trait DynamicMethod {
     public function initDynamicMethod ( )
     {
         $this->maps = array();
+        $this->bind(
+            $this,
+            'getDynamicMethods',
+            'getDynamicMethods'
+        );
     }
 
     /**
@@ -32,6 +37,14 @@ trait DynamicMethod {
     {
         $methods = get_class_methods($this);
         return $methods + array_keys($this->maps);
+    }
+
+    /**
+     * メソッドを取得する
+     */
+    public function getDynamicMethods ( )
+    {
+        return $this->maps;
     }
 
     /**

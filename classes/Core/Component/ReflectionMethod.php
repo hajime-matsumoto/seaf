@@ -24,4 +24,35 @@ class ReflectionMethod
 
 class SeafReflectionMethod extends \ReflectionMethod
 {
+    public function getShortDesc ( )
+    {
+        $doc = $this->getDocComment();
+        $lines = explode("\n", $doc);
+        array_shift($lines);
+
+        $desc = '';
+        foreach ($lines as $line) 
+        {
+            $desc .= $line = trim($line, ' *');
+            if (empty($line)) break;
+        }
+        return $desc;
+    }
+
+    public function getParamDesc ( )
+    {
+        $doc = $this->getDocComment();
+        $lines = explode("\n", $doc);
+        array_shift($lines);
+
+        $params = array();
+        foreach ($lines as $line) 
+        {
+            $line = trim($line, ' *');
+            if (0===strpos($line,'@param')) {
+                $params[] = substr($line, 6);
+            }
+        }
+        return implode(', ', $params);
+    }
 }

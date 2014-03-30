@@ -20,15 +20,23 @@ class Controller
         $this->initController( );
     }
 
+    /**
+     * コントローラの初期化
+     */
     public function initController( )
     {
+        // Environmentの初期化
         $this->initEnvironment();
 
         // -----------------------------------
         // DIの調整
         // -----------------------------------
         $di = $this->di();
+
+        // 動的に読み込むクラスを設定
         $di->factory->configAutoload(__NAMESPACE__.'\\Component\\');
+
+        // Loggerはシングルトンから取得する
         $di->register('logger', function ( ) {
             return Seaf::logger($this->name);
         });
@@ -54,11 +62,16 @@ class Controller
         // アノテーション処理
         // -----------------------------------
         Seaf::ReflectionClass($this)->mapAnnotation(function($method, $anots) {
+
+            // Routingを処理
+            // @SeafRoute パス
             if (array_key_exists('route', $anots)) {
                 foreach ($anots['route'] as $route) {
                     $this->route($route, $method->getClosure($this));
                 }
             }
+            // イベントを処理
+            // @SeafEvent イベント名
             if (array_key_exists('event', $anots)) {
                 foreach ($anots['event'] as $event) {
                     $this->on($event, $method->getClosure($this));

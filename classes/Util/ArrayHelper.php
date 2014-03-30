@@ -97,4 +97,14 @@ class ArrayHelper
     {
         return Seaf::ReflectionMethod(__CLASS__, 'get')->getClosure( );
     }
+
+    /**
+     * 指定メソッドのクロージャを取得する
+     *
+     * @param string
+     */
+    public static function getClosure ($method)
+    {
+        return Seaf::ReflectionMethod(__CLASS__, $method)->getClosure( );
+    }
 }
