@@ -9,6 +9,7 @@ use Seaf\Pattern;
 class FileWriter extends Base
 {
     private $fp;
+    private $buf = [];
 
     /**
      * コンストラクタ
@@ -19,7 +20,6 @@ class FileWriter extends Base
     protected function __construct ($config)
     {
         $this->configure($config, false, false, array('type'));
-        $this->fp = fopen($this->file, $this->mode);
     }
 
     public function configFileName($file)
@@ -34,13 +34,15 @@ class FileWriter extends Base
 
     public function _post($message)
     {
-        flock($this->fp, LOCK_EX);
-        fwrite($this->fp, $message."\n");
-        flock($this->fp, LOCK_UN);
+        $this->buf[] = $message;
     }
 
     public function shutdown()
     {
+        $this->fp = fopen($this->file, $this->mode);
+        flock($this->fp, LOCK_EX);
+        fwrite($this->fp, implode("\n", $this->buf));
+        flock($this->fp, LOCK_UN);
         fclose($this->fp);
     }
 }

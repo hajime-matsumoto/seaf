@@ -14,6 +14,11 @@ class File implements \Iterator
         $this->path = $path;
     }
 
+    public function mtime( )
+    {
+        return filemtime($this->path);
+    }
+
     /**
      * @param string path
      */

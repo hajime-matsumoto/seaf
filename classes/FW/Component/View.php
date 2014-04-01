@@ -29,8 +29,23 @@ class View extends Base
      */
     public function enable ( )
     {
+        $this->afterRunOrg = $this->controller->getMethod('afterRun');
+        $this->beforeRunOrg = $this->controller->getMethod('beforeRun');
+
         $this->controller->map('afterRun', array($this,'_afterRun'));
         $this->controller->map('beforeRun', array($this,'_beforeRun'));
+        return $this;
+    }
+
+    /**
+     * Viewを無効化する
+     *
+     * @return $this
+     */
+    public function disable ( )
+    {
+        $this->controller->map('afterRun', $this->afterRunOrg);
+        $this->controller->map('beforeRun', $this->beforeRunOrg);
         return $this;
     }
 

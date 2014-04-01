@@ -147,6 +147,7 @@ class Base extends Container\ArrayContainer
         if ($ext === false) {
             $ext = 'php';
         }
+        $datas = array_merge($this->toArray(), $datas);
 
         return $this->getEngine($ext)->render($tpl, $datas);
     }

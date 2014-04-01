@@ -117,6 +117,10 @@ class Seaf
         date_default_timezone_set($c('timezone','Asia\Tokyo'));
 
         //--------------------------------
+        // タイムアウト
+        set_time_limit($c('time_limit'));
+
+        //--------------------------------
         // コンポーネントを一括で設定する
         $seaf->di( )->factory->setFactoryConfigs($c('factory', array()));
 

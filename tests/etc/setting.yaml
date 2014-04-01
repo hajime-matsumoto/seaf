@@ -23,6 +23,13 @@ default:
         root: $SEAF_PROJECT_ROOT$
 
     #--------------------------------
+    # オートローダの設定
+    #--------------------------------
+    autoloader:
+        libraries:
+            - $project.root$/lib
+
+    #--------------------------------
     # スタートアップの設定
     #--------------------------------
     startup:
@@ -66,7 +73,7 @@ default:
         writers:
             default:
                 type     : echo
-                level    : 'all'
+                level    : 'all ^ debug'
 
     #--------------------------------
     # ファクトリの設定
@@ -115,6 +122,8 @@ default:
     #--------------------------------
     db:
         handlers:
+            default:
+                dsn: mysql://root:deganjue@localhost:1111
             mysql:
                 dsn: mysql://root:deganjue@localhost:1111
             sqlite:

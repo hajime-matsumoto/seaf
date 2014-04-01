@@ -11,6 +11,7 @@ use Seaf\Pattern;
 class Controller
 {
     use Pattern\Environment;
+
     protected $name = 'FW';
 
     private $mounts = array();
@@ -216,7 +217,7 @@ class Controller
         } elseif (is_callable($mount)) {
             $ctl = $mount();
         } elseif (is_string($mount)) {
-            $ctl = $this->env->di($mount);
+            $ctl = $this->di($mount);
         }
         return $ctl;
     }

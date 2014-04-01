@@ -36,6 +36,14 @@ trait DynamicMethod {
         $methods = get_class_methods($this);
         return $methods + array_keys($this->maps);
     }
+    /**
+     * メソッドを取得する
+     */
+    public function getMethod ($name)
+    {
+        return $this->maps[$name];
+    }
+
 
     /**
      * メソッドを取得する

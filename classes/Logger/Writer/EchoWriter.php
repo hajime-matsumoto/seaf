@@ -8,6 +8,7 @@ use Seaf\Helper;
 class EchoWriter extends Base
 {
     protected $buf = array();
+    private $useHtml = false;
 
     public function _post($message)
     {
@@ -16,7 +17,21 @@ class EchoWriter extends Base
 
     public function shutdown()
     {
-        echo "\n";
-        echo implode("\n", $this->buf);
+        if (!$this->useHtml) {
+            echo "\n";
+            echo implode("\n", $this->buf);
+        } else {
+            if (empty($this->buf)) return;
+            echo "<pre>";
+            echo implode("\n", $this->buf);
+            echo "</pre>";
+        }
+
+    }
+
+    public function configUseHtml($useHtml)
+    {
+        if ($useHtml == 'false') $useHtml = false;
+        $this->useHtml = $useHtml;
     }
 }

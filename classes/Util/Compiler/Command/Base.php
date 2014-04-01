@@ -63,8 +63,10 @@ abstract class Base
         fclose($pipes[0]);
 
         echo stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
 
         $error = stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
         if (!empty($error)) {
             Seaf::logger('compiler')->warn($error);
         }
