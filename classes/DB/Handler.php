@@ -2,213 +2,219 @@
 
 namespace Seaf\DB;
 
-use Seaf;
+use Seaf\Util\ArrayHelper;
+use Seaf\Exception;
 use Seaf\Cache;
 
+
 /**
- * 処理ハンドラ
+ * データベース処理ハンドラ
  */
 class Handler
 {
-    use Cache\HaveCacheHandler;
+    private $defaultConnection = 'default';
+    private $conPool = [];
+    private $conDSNs = [];
+    private $tableMap = [];
+    private $cache;
+
+    protected static function who( ) {
+        return __CLASS__;
+    }
 
     /**
-     * @var Con
+     * 作成
      */
-    private $con;
+    public static function factory ($config) 
+    {
+        $c = ArrayHelper::container($config);
+        $class = static::who();
+        $handler = new $class( );
+
+        // デフォルトコネクションをセットする
+        $handler->defaultConnection = $c('setting.default_connection', 'default');
+
+        // DSNをセットする
+        foreach ($c('connectMap', array()) as $name => $dsn) {
+            $handler->conDSNs[$name] = new DSN($dsn);
+        }
+        // tableをセットする
+        foreach ($c('tableMap', array()) as $name => $table) {
+            $handler->setTableMap($name, $table);
+        }
+
+        // キャッシュハンドラをセットする
+        if ($c('cache', false)) {
+            $handler->cache = Cache\CacheHandler::factory($c('cache'));
+        }
+
+        return $handler;
+    }
 
     /**
      * コンストラクタ
      */
-    public function __construct (Con $con)
+    public function __construct ( )
     {
-        $this->con = $con;
+        $this->conPool = ArrayHelper::container([]);
+        $this->conDSNs = ArrayHelper::container([]);
+        $this->tableMap = ArrayHelper::container([]);
     }
 
-    // -------------------------------------
-    // utility
-    // -------------------------------------
-
-    /**
-     * ロガーを取得する
-     */
-    public function logger ( )
+    public function setTableMap($name, $params)
     {
-        return Seaf::Logger('DB');
+        if (!is_array($params)) {
+            $params = array($params);
+        }
+        if (!isset($params[1])) $params[1] = null;
+
+        $this->tableMap[$name] = [
+            'datasource' => $params[0],
+            'schema' => $params[1]
+        ];
     }
 
-    // -------------------------------------
-    // SQL発行
-    // -------------------------------------
-    
     /**
-     * クエリを実行
+     * データソースコネクションを開く
      *
      * @param string
-     * @param array $options
-     * @return Result
+     * @retucn DataSource
      */
-    public function query ($sql, $options = [])
+    public function open ($name)
     {
-        $this->logger()->debug('Query:'.$sql);
-
-        // Alter,Create,Insert,Update,Deleteはキャッシュしない
-
-        // SELECTはキャッシュする
-        if (!preg_match('/(alter|create|insert|update|delete)/i', $sql)) {
-            $expire = isset($options['cache-expire']) ? $options['cache-expire']: 0;
-            $until = isset($options['cache-until']) ? $options['cache-until']: 0;
-
-            // キャッシュが存在すればキャッシュを利用する
-            if ($this->getCacheHandler( )->has($sql, $until)) {
-                $this->logger()->debug('Query-Cache-Status: HIT');
-                return $this->getCacheHandler()->getCachedData($sql);
-
-            // キャッシュタイムが指定されていればキャッシュする
-            } elseif ($expire !=0) {
-                $result =  $this->realQuery($sql, $options);
-                $this->logger()->debug('Query-Cache-Expires:'.$expire);
-
-                // リザルトをキャッシュ可能にする
-                return $this->getCacheHandler()->put(
-                    $sql,
-                    $expire,
-                    $result->createCacheableResult()
-                );
-            }
+        if ($name instanceof DataSource) {
+            return $name;
         }
 
-        return $this->realQuery($sql);
+        if ($this->conPool->has($name)) {
+            return $this->conPool->get($name);
+        }
+
+        // データソース名を取得
+        if (!$this->conDSNs->has($name)) {
+            throw new Exception\Exception([
+                "%sに対応するデータソース名が取得できません",
+                $name
+            ]);
+        }
+        $dsn = $this->conDSNs->get($name);
+
+        // データソースをオープンする
+        $ds  = DataSource::factory($dsn, $this);
+
+        $this->conPool->set($name, $ds);
+        return $ds;
     }
 
-    protected function realQuery($sql)
+    /**
+     * リクエストを作成する
+     *
+     * @param string 処理区分 (QUERY|INSERT|UPDATE...)
+     */
+    public function newRequest ($type)
     {
-        $result = new Result(
-            $this,
-            $this->con->query($sql)
-        );
+        $request = Request::factory($type);
+        $request->setHandler($this);
+        return $request;
+    }
 
-        if ($result->isError()) {
-            $this->logger()->warn('Error:'.$result->getError());
+    /**
+     * リクエストを処理する
+     *
+     * @param Request
+     */
+    public function execute (Request $request)
+    {
+        $request = $this->normalizeRequest($request);
+
+
+        // キャッシュの使用
+        if (!$request->isAllowCache()) return $this->_execute($request);
+
+
+        $key = $request->getHash();
+        $expires = $request->getCacheExpires();
+
+        if ($this->cache->has($key)) {
+            $result = $this->cache->getCachedData($key, $status);
+            $result->setCacheStatus(sprintf('Hit Created:%s Expires:%s',
+                $status['created'],
+                $status['expire']
+            ));
+            return $result;
+        }else{
+            $result = $this->_execute($request);
+
+            if ($result->isError()) { // エラー時にはキャッシュを作らない
+                return $result;
+            }
+
+            $result->save();
+            $this->cache->put($key, $expires, $result);
+            return $result;
         }
+    }
+
+    private function _execute (Request $request)
+    {
+        // ターゲットコネクションをオープンする
+        $con = $this->open($request->getTarget());
+        $result = $con->request($request);
+
+        // 結果クラスを作成する
+        $result =  new Result($con, $result, $this);
+
         return $result;
     }
 
-    public function begin ( )
-    {
-        $this->realQuery('BEGIN');
-    }
-
-    public function commit ( )
-    {
-        $this->realQuery('COMMIT');
-    }
-
     /**
-     * 結果セットを必要としないクエリの実行
+     * リクエストをノーマライズする
      *
-     * @param string
-     * @return bool
+     * @param Request
+     * @return Request
      */
-    public function execute ($sql)
+    protected function normalizeRequest (Request $request)
     {
-        $res = $this->query($sql);
-        return $res->isError() ? false: true;
-    }
+        // 宛先テーブルからコネクションを判定
+        if ($tt = $request->getTargetTable()) {
+            // テーブルマップを参照
+            $tm = $this->tableMap;
 
-    /**
-     * SQLステートメントを取得する
-     */
-    public function prepare ($sql)
-    {
-        return new Statement($this, $sql);
-    }
+            if($tm->has($tt)) {
+                $request->setTarget(
+                    $tm($tt.'.datasource')
+                );
+            }
+        }
+        // 宛先がなければデフォルトのコネクションへ
+        if ($request->getTarget() == false) {
+            $request->setTarget($this->defaultConnection);
+        }
 
-    // -------------------------------------
-    // エスケープ
-    // -------------------------------------
-
-    /**
-     * 文字列をエスケープする
-     *
-     * @param string
-     * @param string
-     * @return string
-     */
-    public function escapeValue ($value, $type)
-    {
-        return $this->con->escapeValue($value, $type);
-    }
-
-    // -------------------------------------
-    // エラー管理
-    // -------------------------------------
-
-    /**
-     * エラー判定
-     *
-     * @param mixed
-     * @return bool
-     */
-    public function isError ($result)
-    {
-        return $this->con->isError($result);
-    }
-
-    /**
-     * エラー取得
-     *
-     * @return string
-     */
-    public function getError ($result)
-    {
-        return $this->con->getError($result);
-    }
-
-    // -------------------------------------
-    // レコード取得
-    // -------------------------------------
-
-    /**
-     * 連想配列でレコードを取得
-     *
-     * @param mixed
-     * @return array
-     */
-    public function fetchAssoc ($result)
-    {
-        return $this->con->fetchAssoc($result);
-    }
-
-    // -------------------------------------
-    // モデル関係
-    // -------------------------------------
-
-    /**
-     * スキーマからテーブルを生成
-     */
-    public function createTableBySchema ($schema)
-    {
-        $sql = $this->con->getCreateTableSQLBySchema($schema);
-        $this->execute($sql);
-    }
-
-    /**
-     * スキーマからテーブルを生成
-     */
-    public function dropTableBySchema ($schema)
-    {
-        $sql = $this->con->getDropTableSQLBySchema($schema);
-        $this->execute($sql);
+        return $request;
     }
 
     /**
      * テーブルを取得する
      */
-    public function table ($name)
+    public function getTable ($name)
     {
-        $table = new Table($name);
-        $table->setHandler($this);
-        return $table;
+        return new Table($name, $this);
+    }
+
+    /**
+     * openへのシンタックスシュガー
+     */
+    public function __invoke ($name)
+    {
+        return $this->open($name);
+    }
+
+    /**
+     * getTableへのシンタックスシュガー
+     */
+    public function __get ($name)
+    {
+        return $this->getTable($name);
     }
 }

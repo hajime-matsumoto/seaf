@@ -5,6 +5,16 @@ namespace Seaf\Cache;
 class CacheHandler
 {
     /**
+     * キャッシュハンドラを作成する
+     */
+    public static function factory ($config)
+    {
+        $ch = new CacheHandler();
+        $ch->setStorage($config['storage']);
+        return $ch;
+    }
+
+    /**
      * キャッシュ経由でデータを取得する
      */
     public function cache ($key, $expire, $until, $callback, &$isHit = null)

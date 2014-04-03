@@ -3,15 +3,20 @@
 namespace Seaf\Core\Component;
 
 use Seaf;
-use Seaf\Pattern;
-use Seaf\DB\TransactionHandler as Base;
-use Seaf\DB\DB as DBConnector;
+use Seaf\DB\Handler;
 
 /**
  * データベース
  */
-class DB extends Base
+class DB extends Handler
 {
+    /**
+     * 遅延束縛
+     */
+    protected static function who( ) {
+        return __CLASS__;
+    }
+
     /**
      * 作成するメソッド
      *
@@ -19,16 +24,12 @@ class DB extends Base
      */
     public static function componentFactory ( )
     {
-        $trh = new self();
-        $c = Seaf::Config('db.handlers', array());
-        foreach($c as $k=>$v) {
-            $trh->setDBHandler($k, DBConnector::connect($v['dsn']));
-        }
-        $trh->setCacheHandler(
-            $trh->makeCacheHandler(
-                Seaf::Config('db.cache')
-            )
-        );
-        return $trh;
+        return static::Factory(Seaf::Config('database'));
+    }
+
+    public function helper ($name = null)
+    {
+        if ($name == null) return $this;
+        return $this->open($name);
     }
 }

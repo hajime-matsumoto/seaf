@@ -6,7 +6,7 @@ use Seaf\Exception;
 use Seaf\Data\Container\ArrayContainer;
 
 /**
- * データソース名の構造体
+ * DSN構造体
  *
  * 構造
  * type://user:passwd@host/table
@@ -42,7 +42,7 @@ class DSN
     {
         if ($this->type) return $this->type;
 
-        // データソースタイプを取得する
+        // エンジンタイプを取得する
         return $this->type = substr($this->dsn, 0, $p = strpos($this->dsn, '://'));
     }
 

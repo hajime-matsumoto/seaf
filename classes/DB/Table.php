@@ -2,91 +2,99 @@
 
 namespace Seaf\DB;
 
-use Seaf;
-
-/**
- * テーブルオブジェクト
- */
-class Table implements HaveHandlerIF, TableDecleationIF
+class Table
 {
-    use HaveHandler;
-    use TableDecleation;
-
     /**
      * @var string
      */
-    private $model_class = false;
+    private $name;
 
+     /**
+      * @var Handler
+      */
+    private $handler;
+
+     /**
+      * @var DataSource
+      */
+    private $ds = false;
 
     /**
      * コンストラクタ
+     *
+     * @param string
+     * @param Handler
      */
-    public function __construct ($model_class = null)
+    public function __construct ($name, Handler $handler)
     {
-        if ($model_class !== null) $this->useModel($model_class);
+        $this->name = $name;
+        $this->handler = $handler;
     }
-
-    // ------------------------------------
-    // 操作
-    // ------------------------------------
-
-    public function select ($sql = null)
-    {
-        $builder = new SqlBuilder($sql);
-        $builder->setHandler($this->getHandler());
-        $builder->setModelClass($this->model_class);
-        return $builder->type('select')->table($this->table_name);
-    }
-
-    public function useModel ($class)
-    {
-        $this->model_class = $class;
-
-        // スキーマから設定する
-        $schema = $class::schema( );
-        $schema->implementTableScheme($this);
-    }
-
 
     /**
-     * プライマリキーでデータを取得する
+     * データソースを設定する
+     *
+     * @param DataSource
      */
-    public function get ($key)
+    public function setDataSource (DataSource $ds)
     {
-        $result = $this
-            ->select()
-            ->fields('*')
-            ->eq($this->primary_key, $key)
-            ->first();
-        if ($this->model_class) {
-            $model = $this->create($result, false);
-            $model->isNew(false);
-            $model->initFirstParams();
-            return $model;
+        $this->ds = $ds;
+    }
+
+    /**
+     * リクエストを作成する
+     *
+     * @param string
+     */
+    public function newRequest ($proc_type)
+    {
+        if ($this->ds) {
+            $req = $this->ds->newRequest($proc_type);
         }else{
-            return $result;
+            $req = $this->handler->newRequest($proc_type);
         }
+        $req->setTargetTable($this->name);
+        return $req;
+    }
+
+    /**
+     * インサートリクエストを作成する
+     */
+    public function insert ( )
+    {
+        return $this->newRequest('INSERT');
+    }
+
+    /**
+     * 更新リクエストを作成する
+     */
+    public function update ( )
+    {
+        return $this->newRequest('UPDATE');
+    }
+
+    /**
+     * 取得リクエストを作成する
+     */
+    public function find ( )
+    {
+        return $this->newRequest('FIND');
+    }
+
+    /**
+     * 削除リクエストを作成する
+     */
+    public function delete ( )
+    {
+        return $this->newRequest('DELETE');
     }
 
 
     /**
-     * データモデルを取得する
+     * クエリリクエストを作成する
      */
-    public function create ($params = [], $isNew = true)
+    public function query ( )
     {
-        if ($this->model_class == __NAMESPACE__.'\\Model') {
-            $model = new Model( );
-            $model->setTableName($this->table_name);
-            $model->declearPrimaryKey($this->primary_key);
-            $model->declearPrimaryKey($this->primary_key);
-            foreach ($this->columns as $k => $v) {
-                $model->declearColumn($k, $v['type'], $v['size']);
-            }
-        } else {
-            $model = Seaf::ReflectionClass($this->model_class)->newInstance($params, $isNew);
-        }
-        $model->setHandler($this->handler);
-        $model->setParams($params);
-        return $model;
+        return $this->newRequest('QUERY');
     }
 }

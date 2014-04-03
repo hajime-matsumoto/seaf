@@ -3,109 +3,170 @@
 namespace Seaf\DB;
 
 use Seaf;
-use Seaf\Data\Container\ArrayContainer;
+use Seaf\Exception;
+use Seaf\Util;
 
+/**
+ * テーブルスキーマ
+ */
 class Schema
 {
-    public function __construct ($class)
+    public $table;
+    public $fields = [];
+    public $indexes = [];
+    public $primary = [];
+    public $autoIncrement;
+
+    /**
+     * データモデルから完全なスキーマを作成する
+     */
+    public static function createByModel($class)
     {
-        $schame = array();
-        // モデルのテーブルを取得
-        Seaf::ReflectionClass($class)
-            ->mapClassAnnotation(
-                function($class, $anot) use (&$schema){
-                    if (array_key_exists('table', $anot)) {
-                        $schema['table'] = $anot['table'][0];
-                    }
-                }
-        );
+        if (!class_exists($class)) {
+            throw new Exception\Exception([
+                "クラス%sは存在しません",
+                $class
+            ]);
+        }
+        $schema = new self();
+        $class = Seaf::ReflectionClass($class);
 
-        // モデルのプロパティスキーマを取得
-        Seaf::ReflectionClass($class)
-            ->mapPropAnnotation(
-                function($prop, $anot) use(&$schema) {
+        // クラスファイル
+        $file = Seaf::FileSystem($class->getFileName());
 
-                    if (array_key_exists('dataType' ,$anot)) {
-                        $type = $anot['dataType'][0];
-                        if (false !== $p = strpos($type,'#')) {
-                            $type = trim(substr($type,0,$p));
-                        }
-                        $name = array_key_exists('dataName', $anot) ?
-                            $anot['dataName'][0]:
-                            $name=$prop->getName();
-                        $desc = $anot['desc'];
+        // キャッシュキー
+        $cache_key = (string) $file;
+
+        // クラスファイルの更新時刻
+        $cache_until = $file->mtime();
+        if (Seaf::Cache()->has($cache_key, $cache_until)) {
+            return Seaf::Cache()->getCachedData($cache_key);
+        }
 
 
-                        $ret = compact('type','name','desc');
-                        $ret['prop'] = $prop->getName();
+        // テーブル定義を取得
+        $anotation_getter = ['table','primary','index'=>['type'=>'multi']];
+        $anot = $class->getClassAnnotation($anotation_getter,'SeafData');
 
-                        if (array_key_exists('dataDefault', $anot)) {
-                            $ret['default'] = $anot['dataDefault'][0];
-                        }
-                        if (array_key_exists('dataPrimary', $anot)) {
-                            $ret['primary'] = true;
-                        }
-                        if (array_key_exists('dataOption', $anot)) {
-                            $ret['options'] = $anot['dataOption'];
-                        }
-                        if (array_key_exists('dataSize', $anot)) {
-                            $ret['size'] = $anot['dataSize'][0];
-                        }
-                        $schema['cols'][$name] = $ret;
-                    }
-                }
-        );
+        $schema->table($anot['table']);
+        if (isset($anot['primary'])) {
+            $schema->primary($anot['primary']);
+        }
+        if (isset($anot['index'])) {
+            $schema->index($anot['index']);
+        }
 
-        $this->schema = new ArrayContainer($schema);
+        // フィールド定義を取得
+        $anot = $class->getPropAnnotation([
+            'name',
+            'type',
+            'size',
+            'default',
+            'nullable'=>['type'=>'bool'],
+            'option'=>['type'=>'multi']
+        ],'SeafData');
+
+        foreach ($anot as $key=>$field) 
+        {
+            $f = Util\ArrayHelper::container($field);
+            $schema->field(
+                $f('name',$key),
+                $f('type','str'),
+                $f('size',null),
+                $f('default',null),
+                $f('nullable',true),
+                $f('option', []),
+                $key
+            );
+        }
+
+        Seaf::Cache()->put($cache_key, 0, $schema);
+
+        return $schema;
     }
 
-    public function implementTableScheme($object)
+    /**
+     * テーブル名を追加する
+     *
+     * @param string
+     */
+    public function table($name)
     {
-        $schema = $this->schema;
+        $this->table = $name;
+        return $this;
+    }
 
-        if (isset($schema['table'])) {
-            $object->setTableName($schema['table']);
-        }
-        if (isset($schema['cols']) && is_array($schema['cols'])) {
-            foreach ($schema['cols'] as $k => $col) {
-                // タイプを変換
-                $type = $this->convertType($col['type']);
-                $object->declearColumn($k, $type);
-                if (isset($col['primary']) && $col['primary'] == true) {
-                    $object->declearPrimaryKey($k);
-                }
+    /**
+     * フィールドを追加する
+     *
+     * @param string
+     * @param string
+     * @param int
+     * @param string
+     * @param bool
+     */
+    public function field(
+        $name,
+        $type,
+        $size = null,
+        $default = null,
+        $nullable = true,
+        $options = [],
+        $alias = false
+    )
+    {
+        $this->fields_alias[($alias) ? $alias: $name] = $name;
+        $this->fields[$name] = compact('type','size','default', 'nullable', 'options', 'alias');
+        return $this;
+    }
 
-                if (isset($col['prop'])) {
-                    $object->setAlias($col['prop'], $k);
+    /**
+     * インデックスを追加する
+     *
+     * @param string
+     * @param string
+     * @param bool
+     */
+    public function index($name, $field = null, $uniq = false)
+    {
+        if (is_array($name)) {
+            foreach ($name as $k=>$v) {
+                if (is_int($k)) {
+                    $this->index($v);
+                }else{
+                    $this->index($k, $v);
                 }
             }
+            return $this;
         }
+        if ($field == null) {
+            $field = $name;
+            $name = $field."_idx";
+        }
+
+        $this->indexes[$name] = compact('field','uniq');
+        return $this;
     }
 
-    private function convertType ($type)
+    /**
+     * プライマリキーを追加する
+     *
+     * @param string
+     */
+    public function primary($field)
     {
-        if (false !== $p = strpos($type, '(')) {
-            $type = strtolower(substr($type, 0, $p));
-        }
-        switch ($type) {
-        case 'enum':
-            $type = DB::DATA_TYPE_INT;
-            break;
-        default:
-            $type = DB::DATA_TYPE_STR;
-            break;
-        }
-
-        return $type;
+        $this->primary = $field;
+        return $this;
     }
 
-    public function __invoke ()
+    /**
+     * オートインクリメントを使用する
+     *
+     * @param string
+     */
+    public function autoIncrement($flg = true)
     {
-        return call_user_func_array(
-            $this->schema,
-            func_get_args()
-        );
+        $this->autoIncrement = $flg;
+        return $this;
     }
-
-
 }

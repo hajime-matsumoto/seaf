@@ -112,24 +112,30 @@ default:
     # Cacheの設定
     #--------------------------------
     cache:
-        engine:
-            type: 'file'
-            config:
-                path: $dirs.cache$/default
+        storage:
+            type: 'memcache'
+            servers:
+                - 'localhost:11211'
 
     #--------------------------------
-    # RDBの設定
+    # Databaseの設定
     #--------------------------------
-    db:
-        handlers:
-            default:
-                dsn: mysql://root:deganjue@localhost:1111
-            mysql:
-                dsn: mysql://root:deganjue@localhost:1111
-            sqlite:
-                dsn: sqlite://$dirs.var$/sqlite.db
-            pgsql:
-                dsn: pgsql://root:deganjue@localhost:1111
+    database:
+        setting:
+            default_connection: sql
+        connectMap:
+            nosql: 'mongo:///test'
+            sql  : 'mysql://root:deganjue@localhost:3306/seaf_test'
+        tableMap:
+            access_log : nosql
+            user_pre   :
+                - sql
+                - UserPreModel::schema()
+        cache:
+            storage:
+                type: 'memcache'
+                servers:
+                    - 'localhost:11211'
 #===========================================
 #
 # 開発時の設定

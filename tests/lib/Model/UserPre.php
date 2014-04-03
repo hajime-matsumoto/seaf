@@ -6,9 +6,13 @@ use Seaf;
 use Seaf\DB;
 
 /**
- * @SeafTable user_pre
+ * ユーザ仮登録データ
+ *
+ * @SeafDataTable user_pre
+ * @SeafDataPrimary reg_key
+ * @SeafDataIndex login
  */
-class UserPre extends DB\Model
+class UserPre
 {
     public static function who ( )
     {
@@ -18,7 +22,6 @@ class UserPre extends DB\Model
     /**
      * 仮登録キー
      *
-     * @SeafDataPrimary true
      * @SeafDataName reg_key
      * @SeafDataType varchar
      * @SeafDataSize 100

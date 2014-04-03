@@ -2,22 +2,19 @@
 
 namespace Seaf\DB;
 
-use Seaf;
-
 /**
- * リザルトセット
+ * 結果クラス
  */
-class Result implements \Iterator
+class Result
 {
-    /**
-     * @var string
-     */
-    protected $model_class = false;
+    const FETCH_MODE_ASSOC  = 'assoc';
+    const FETCH_MODE_ARRAY  = 'array';
+    const FETCH_MODE_OBJECT = 'object';
 
     /**
-     * @var Handler
+     * @var DataSource
      */
-    private $handler;
+    private $ds;
 
     /**
      * @var mixed
@@ -25,140 +22,143 @@ class Result implements \Iterator
     private $result;
 
     /**
-     * コンストラクタ
-     *
-     * @param Handler
-     * @param mixed
+     * @var Handler
      */
-    public function __construct (Handler $handler, $result)
-    {
-        $this->handler = $handler;
-        $this->result = $result;
-    }
+    private $handler;
 
     /**
-     * モデルクラスを設定する
-     *
-     * @return string
+     * @var string
      */
-    public function setModelClass ($class)
+    private $fetch_class = 'Seaf\Data\Container\ArrayContainer';
+
+    /**
+     * @var array
+     */
+    private $recs = [];
+
+    /**
+     * @var array
+     */
+    private $saved = false;
+
+    /**
+     * @var string
+     */
+    private $cache_status = false;
+
+    /**
+     * コンストラクタ
+     *
+     * @param DataSource
+     * @param mixed
+     * @param Handler
+     */
+    public function __construct (DataSource $ds, $result, Handler $handler)
     {
-        return $this->model_class = $class;
+        $this->ds      = $ds;
+        $this->result  = $result;
+        $this->handler = $handler;
     }
 
     /**
      * エラー判定
-     *
-     * @return bool
      */
-    public function isError ( )
+    public function isError( )
     {
-        return $this->handler->isError($this->result);
+        return $this->ds->isError($this->result);
     }
 
     /**
      * エラー取得
-     *
-     * @return string
      */
-    public function getError ( )
+    public function getError( )
     {
-        return $this->handler->getError($this->result);
+        return $this->ds->getError($this->result);
+    }
+
+
+    /**
+     * 結果レコードを内部に取り込む
+     */
+    public function save( )
+    {
+        $this->recs = $this->fetchAll();
+        $this->saved = true;
     }
 
     /**
-     * 連想配列でレコードを取得
-     *
-     * @return array
+     * 結果の全部取得
      */
-    public function fetchAssoc ( )
+    public function fetchAll($mode = self::FETCH_MODE_ASSOC)
     {
-        return $this->handler->fetchAssoc($this->result);
-    }
-
-    /**
-     * モデルでレコードを取得
-     *
-     * @return array
-     */
-    public function fetchModel ( )
-    {
-        if (!$result = $this->fetchAssoc()) return false;
-
-        $model = Seaf::ReflectionClass($this->model_class)->newInstance();
-        $model->setParams($result);
-        $model->initFirstParams();
-        $model->isNew(false);
-        $model->setHandler(Seaf::DB());
-        return $model;
-    }
-
-    /**
-     * 連想配列でレコード取得をすべて取得
-     *
-     * @return array
-     */
-    public function fetchAssocAll ( )
-    {
-        $rows = [];
-        while($row = $this->fetchAssoc( ))
-        {
-            $rows[] = $row;
+        $recs = [];
+        while ($rec = $this->fetch(self::FETCH_MODE_ASSOC)) {
+            $recs[] = $rec;
         }
-        return $rows;
+        return $recs;
+    }
+    /**
+     * 結果取得
+     */
+    public function fetch($mode = self::FETCH_MODE_ASSOC)
+    {
+        $method = "fetch".$mode;
+        return $this->$method();
     }
 
     /**
-     * 最初のレコードのカラムを取得する
+     * 結果を連想配列で取得
      */
-    public function getCols ($name)
+    public function fetchAssoc( )
     {
-        $rec = $this->fetchAssoc();
-        if (func_num_args() > 1) {
-            foreach (func_gat_args() as $name) {
-                $ret[$name] = $rec[$name];
-            }
-        } else {
-            return $rec[$name];
+        if (!$this->saved) {
+            return $this->ds->fetchAssoc($this->result);
+        }else{
+            $rec = current($this->recs);
+            next($this->recs);
+            return $rec;
         }
     }
 
-    // ---------------------------------------------
-    // イテレータ
-    // ---------------------------------------------
-
-    public function rewind ( )
+    /**
+     * 結果をオブジェクトで取得
+     */
+    public function fetchObject( )
     {
-        $this->key = 0;
+        $params = $this->fetchAssoc( );
+        return $this->createObject($params);
     }
 
-    public function valid ( )
+    /**
+     * 返却用オブジェクトを作成
+     */
+    private function createObject($params)
     {
-        $this->current = $this->fetchAssoc();
-        return $this->current ? true: false;
+        $class = $this->getClass();
+        $object = new $class ( );
+        foreach ($params as $k=>$v) {
+            $object->$k = $v;
+        }
+        return $object;
     }
 
-    public function current ( )
+    public function setClass($class)
     {
-        return $this->current;
+        $this->fetch_class = $class;
     }
 
-    public function next ( )
+    protected function getClass( )
     {
-        $this->key++;
+        return $this->fetch_class;
     }
 
-    public function key ( )
+    public function setCacheStatus($status)
     {
-        return $this->key;
+        $this->cache_status = $status;
     }
 
-    // ---------------------------------------------
-    // Cache
-    // ---------------------------------------------
-
-    public function createCacheableResult ( )
+    public function getCacheStatus( )
     {
-        return new CacheableResult($this);
+        return $this->cache_status;
     }
 }
