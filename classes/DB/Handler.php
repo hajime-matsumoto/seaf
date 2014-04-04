@@ -174,7 +174,7 @@ class Handler
      * @param Request
      * @return Request
      */
-    protected function normalizeRequest (Request $request)
+    public function normalizeRequest (Request $request)
     {
         // 宛先テーブルからコネクションを判定
         if ($tt = $request->getTargetTable()) {

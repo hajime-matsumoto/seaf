@@ -35,15 +35,67 @@ class Base
     }
 
     /**
+     * モデルを新規作成する
+     *
+     * @return Base
+     */
+    public static function create ($params = null)
+    {
+        $class = static::who( );
+        $model = new $class($params);
+        $model->onCreate( );
+        return $model;
+    }
+
+    /**
+     * 新規作成時に呼ばれる
+     */
+    protected function onCreate ( )
+    {
+    }
+
+    /**
+     * モデルをプライマリキーで取得する
+     *
+     * @return Base
+     */
+    public static function getOne ($pkey)
+    {
+        $table = static::table( );
+        return $table->find( )
+            ->where([static::schema()->primary => $pkey])
+            ->execute()->fetch( );
+    }
+
+
+    /**
+     * 初期値を設定
+     *
+     */
+    public function __construct ($params = null)
+    {
+        if (is_array($params)) {
+            foreach ($params as $k=>$v) {
+                $this->set($k, $v);
+            }
+        }
+    }
+
+    /**
      * モデルにセッターをつける
      *
      * @param string
      * @param string
      */
-    public function set ($name, $value)
+    public function set ($name, $value = null)
     {
+        if (is_array($name)) {
+            foreach($name as $k=>$v) $this->set($k,$v);
+            return;
+        }
 
-        $prop_name =  $this->validFieldName($name);
+        $prop_name =  $this->validFieldName($name, $field_info, false);
+        if ($prop_name == false) return;
 
         // セッターメソッドが存在すればコールする
         if (method_exists($this, $method = 'set'.ucfirst($prop_name))) {
@@ -82,7 +134,7 @@ class Base
     /**
      * アトリビュート名を取得する
      */
-    private function validFieldName($name, &$field_info = null)
+    private function validFieldName($name, &$field_info = null, $strict = true)
     {
         $schema = self::schema( );
 
@@ -95,11 +147,15 @@ class Base
 
         // スキーマでの存在確認
         if (!isset($schema->fields[$field_name])) {
-            throw new Exception\Exception([
-                "%sに%sは存在しません",
-                get_class($this),
-                $name
-            ]);
+            if ($strict) {
+                throw new Exception\Exception([
+                    "%sに%sは存在しません",
+                    get_class($this),
+                    $name
+                ]);
+            }else {
+                return false;
+            }
         }
         $field_info = $schema->fields[$field_name];
         $prop_name = $field_info['alias'];

@@ -69,7 +69,10 @@ class Result
      */
     public function lastInsertId( )
     {
-        return $this->ds->lastInsertId($this->result);
+        if (method_exists($this->ds,'lastInsertId')) {
+            return $this->ds->lastInsertId($this->result);
+        }
+        return false;
     }
 
     /**

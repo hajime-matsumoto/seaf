@@ -154,4 +154,20 @@ class Mongo extends DB\DataSource
         }
         return $where;
     }
+
+    public function createTable(DB\Schema $schema, $drop = false)
+    {
+        $table = $schema->table;
+        $index = [];
+        foreach($schema->indexes as $k=>$v)
+        {
+            $index[$v['field']] = true;
+        }
+
+        if ($drop == true) {
+            $this->db->$table->drop();
+        }
+
+        $this->db->$table->ensureIndex($index);
+    }
 }
