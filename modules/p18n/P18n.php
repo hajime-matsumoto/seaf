@@ -3,6 +3,7 @@
 namespace Seaf\Module\P18n;
 
 use Seaf;
+use Seaf\Exception;
 use Seaf\Pattern;
 use Seaf\Data\Container\ArrayContainer;
 
@@ -81,7 +82,7 @@ class P18n
     public function initP18n ( )
     {
         foreach ($this->lang_dir as $file) {
-            $lang = $file->basename(false);
+            $lang = $file->basename();
             $this->lang_enables[$lang] = $file;
         }
         /**
@@ -100,12 +101,12 @@ class P18n
 
         if (!array_key_exists($lang, $this->lang_enables)) {
             if ($lang == $this->default_lang) {
-                throw \RuntimeException($lang." 指定できない言語を指定しています。");
+                throw new Exception\Exception($lang." 指定できない言語を指定しています。");
             }
             return $this->langContainer($this->default_lang);
         }
 
-        return $this->locals[$lang] = new LanguageContainer($this->lang_enables[$lang]->toArray());
+        return $this->locals[$lang] = new LanguageContainer($this->lang_enables[$lang]);
     }
 
     /**

@@ -47,7 +47,7 @@ abstract class RDB extends DB\DataSource
         }
 
         // クエリのログを書く
-        Seaf::Logger('DB')->info('Query:'.$query);
+        Seaf::Logger('DB')->debug('Query:'.$query);
         return $result;
     }
 
