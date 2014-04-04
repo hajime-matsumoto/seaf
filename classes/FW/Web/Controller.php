@@ -60,12 +60,11 @@ class Controller extends FW\Controller
      */
     public function _afterRun ($request, $response, $dispatchFlag, $controller)
     {
-        if ($dispatchFlag == false) {
-            $controller->notfound($request, $response, $controller);
+        if ($dispatchFlag == true) {
+            $response
+                ->write(ob_get_clean())
+                ->send();
         }
-        $response
-            ->write(ob_get_clean())
-            ->send();
     }
 
     /**
@@ -93,7 +92,10 @@ class Controller extends FW\Controller
     public function _redirect ($uri)
     {
         // パスを変換する
-        $uri = $this->request()->uri()->abs($uri);
+        if ($uri{0} !== '/') {
+            $uri = $this->request()->uri()->abs('/'.$uri);
+        }
+
         $this->response()
             ->clear()
             ->status(303)

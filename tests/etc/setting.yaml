@@ -96,6 +96,7 @@ default:
         defaultLang: en
         lang: ja
         langDir: $project.root$/etc/i18n.d
+        dsn: 'mongo:///translation'
 
     #--------------------------------
     # Key Value Storeの設定
@@ -118,7 +119,7 @@ default:
     #--------------------------------
     # SESSIONの設定
     #--------------------------------
-    cache:
+    session:
         storage:
             type: 'memcache'
             prefix: 'session'
@@ -145,6 +146,11 @@ default:
                 type: 'memcache'
                 servers:
                     - 'localhost:11211'
+        logger:
+            writers:
+                default:
+                    type     : echo
+                    level    : 'all ^ debug'
 #===========================================
 #
 # 開発時の設定
