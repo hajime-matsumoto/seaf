@@ -62,7 +62,7 @@ class Mongo extends DB\DataSource
         $table = $this->requestTable($req);
 
         $params = $req->getParams();
-        $cursor = $this->db->$table->find($req->getWhere());
+        $cursor = $this->db->$table->find($this->buildWhere($req->getWhere()));
 
         $order = $req->getOrder();
         if (!empty($order)) {
@@ -87,11 +87,22 @@ class Mongo extends DB\DataSource
     public function commandRequest (DB\Request $req)
     {
         // テーブル名を取得
-        //$table = $this->requestTable($req);
-        $params = $req->getParams();
-
-        $res = $this->db->command($req->getParams());
-        return $this->db->selectCollection($res['result'])->find();
+        try {
+            $table = $this->requestTable($req);
+            $params = $req->getParams();
+            $res = [];
+            if (isset($params['drop']) && $params['drop'] === true) {
+                $res['drop'] = $this->db->$table->drop();
+            }
+            if (isset($params['createIndex'])) {
+                $res['createIndex'] = $this->db->$table->ensureIndex($params['createIndex']);
+            }
+            return $res;
+        } catch (\Exception $e) {
+            $params = $req->getParams();
+            $res = $this->db->command($req->getParams());
+            return $this->db->selectCollection($res['result'])->find();
+        }
     }
 
     /**
@@ -107,9 +118,9 @@ class Mongo extends DB\DataSource
 
         $res = $this->db->$table
             ->update(
-                $req->getWhere(),
+                $this->buildWhere($req->getWhere()),
                 ['$set'=>$params],
-                ["multiple" => true]
+                ($req->getOptions() ? $req->getOptions(): ["multiple" => true])
             );
         return $res;
     }
@@ -127,5 +138,20 @@ class Mongo extends DB\DataSource
     public function fetchAssoc ($result)
     {
         return $result->getNext();
+    }
+
+    public function buildWhere($where)
+    {
+        foreach ($where as $k=>$v)
+        {
+            if (is_array($v)) {
+                list($flag,$value) = [key($v),current($v)];
+                if ($flag == '$regex') {
+                    $v = new \MongoRegex($value);
+                }
+            }
+            $where[$k] = $v;
+        }
+        return $where;
     }
 }

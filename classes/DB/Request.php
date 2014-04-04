@@ -64,6 +64,14 @@ abstract class Request
     private $params = [];
 
     /**
+     * 処理オプション
+     *
+     * @var array
+     */
+    private $options = [];
+
+
+    /**
      * スキーマ
      *
      * @var Schema
@@ -181,6 +189,17 @@ abstract class Request
     }
 
     /**
+     * リクエストオプションを取得する
+     *
+     * @return string
+     */
+    public function getOptions ( )
+    {
+        return $this->options;
+    }
+
+
+    /**
      * キャッシュの有効期間を取り出す
      *
      * @return int
@@ -274,6 +293,19 @@ abstract class Request
             return $this;
         }
         $this->params[$key] = $value;
+        return $this;
+    }
+
+    /**
+     * オプションを設定する
+     */
+    public function option ($key, $value = null)
+    {
+        if (is_array($key)) {
+            foreach ($key as $k=>$v) $this->option($k, $v);
+            return $this;
+        }
+        $this->options[$key] = $value;
         return $this;
     }
 

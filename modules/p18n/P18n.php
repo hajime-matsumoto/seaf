@@ -3,6 +3,8 @@
 namespace Seaf\Module\P18n;
 
 use Seaf;
+use Seaf\Util;
+use Seaf\DB;
 use Seaf\Exception;
 use Seaf\Pattern;
 use Seaf\Data\Container\ArrayContainer;
@@ -11,10 +13,12 @@ class P18n
 {
     use Pattern\Configure;
 
-    protected $default_lang;
-    protected $lang;
+    protected $default_lang = 'en';
+    protected $lang = 'ja';
     protected $lang_dir;
     protected $lang_enables = array();
+
+    protected $db;
 
     //----------------------------
     // 設定
@@ -37,6 +41,16 @@ class P18n
     public function configLang ($lang)
     {
         $this->locale($lang);
+    }
+    /**
+     * 現在のデフォルトのロケールを設定/取得する
+     *
+     * @param string
+     */
+    public function defaultLocale ($lang = null)
+    {
+        if ($default_lang == null) return $this->default_lang;
+        $this->default_lang = $default_lang;
     }
 
     /**
@@ -68,12 +82,84 @@ class P18n
      */
     public static function factory ($config = array())
     {
-        $c = Seaf::Config('p18n', array()) + $config;
+        $c = Util\ArrayHelper::container(
+            Seaf::Config('p18n', array()) + $config
+        );
 
         $p18n = new self();
-        $p18n->configure($c);
-        $p18n->initP18n();
+
+        // バックエンドのデータソース
+        if ($c('dsn')) {
+            $p18n->db = DB\Handler::factory([
+                'connectMap'=>[
+                    'default' => $c('dsn')
+                ]
+            ]);
+        }
+
         return $p18n;
+    }
+
+    /**
+     * インストール
+     */
+    public function install ( )
+    {
+        $this->db->getTable('translation')->newRequest('command')->param([
+            'drop' => true,
+            'createIndex'=>['lang'=>1,'key'=>1 ]
+        ])->execute();
+    }
+
+    /**
+     * インポート
+     */
+    public function import ($lang, $prefix, $data )
+    {
+        $c = 0;
+        foreach ($data as $k=>$v)
+        {
+            $c++;
+            $key = $prefix.'.'.$k;
+            $translation = $v;
+            $this->getTable( )
+                ->update()
+                ->option(['upsert'=>true])
+                ->where(compact('lang','key'))
+                ->param(compact('lang','key','translation'))
+                ->execute();
+        }
+        return $c;
+    }
+
+    public function getTable( )
+    {
+        return $this->db->getTable('translation');
+    }
+
+    /**
+     * トランスレーションを追加する
+     *
+     * @param array
+     */
+    public function addTranslation ($lang, $key, $translation)
+    {
+        $res = $this->db->translation
+            ->update( )
+            ->option(['upsert'=>true])
+            ->where(compact('lang','key'))
+            ->param(compact('lang','key','translation'))
+            ->execute();
+    }
+
+    /**
+     * トランスレーションを取得する
+     *
+     * @param array
+     */
+    public function getTranslation ($key)
+    {
+        return new Translation($key, $this);
     }
 
     /**
