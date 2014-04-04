@@ -68,7 +68,7 @@ class Uri extends Container\ArrayContainer
      */
     public function abs ($uri)
     {
-        return $this->get('mask','').$uri;
+        return rtrim($this->get('mask',''),'/').'/'.ltrim($uri,'/');
     }
 
     /**

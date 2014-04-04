@@ -93,8 +93,9 @@ class Controller extends FW\Controller
     {
         // パスを変換する
         if ($uri{0} !== '/') {
-            $uri = $this->request()->uri()->abs('/'.$uri);
+            $uri = $this->request()->uri()->abs($uri);
         }
+
 
         $this->response()
             ->clear()
