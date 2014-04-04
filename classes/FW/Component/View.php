@@ -29,11 +29,13 @@ class View extends Base
      */
     public function enable ( )
     {
-        $this->afterRunOrg = $this->controller->getMethod('afterRun');
-        $this->beforeRunOrg = $this->controller->getMethod('beforeRun');
+        //$this->afterRunOrg = $this->controller->getMethod('afterRun');
+        //$this->beforeRunOrg = $this->controller->getMethod('beforeRun');
 
-        $this->controller->map('afterRun', array($this,'_afterRun'));
-        $this->controller->map('beforeRun', array($this,'_beforeRun'));
+        //$this->controller->map('afterRun', array($this,'_afterRun'));
+        //$this->controller->map('beforeRun', array($this,'_beforeRun'));
+        //
+        $this->controller->map('display', [$this,'_display']);
         return $this;
     }
 
@@ -44,8 +46,8 @@ class View extends Base
      */
     public function disable ( )
     {
-        $this->controller->map('afterRun', $this->afterRunOrg);
-        $this->controller->map('beforeRun', $this->beforeRunOrg);
+        //$this->controller->map('afterRun', $this->afterRunOrg);
+        //$this->controller->map('beforeRun', $this->beforeRunOrg);
         return $this;
     }
 
@@ -80,6 +82,17 @@ class View extends Base
         $tpl = $controller->get('template',self::DEFAULT_TPL);
 
         $response->clear()
+            ->write($this->render($tpl, $params))
+            ->send();
+    }
+
+    public function _display($options)
+    {
+        if (!is_array($options)) $options = ['template'=>$options];
+        $params = $this->controller->response()->getParams();
+        $params['contents'] = ob_get_clean();
+        $tpl = $options['template'];
+        $this->controller->response()->clear()
             ->write($this->render($tpl, $params))
             ->send();
     }
