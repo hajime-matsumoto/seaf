@@ -35,7 +35,6 @@ default:
     startup:
         modules: # 起動時に有効にするモジュール
             - mailer
-            - session
     #--------------------------------
     # ディレクトリの設定
     #--------------------------------
@@ -96,7 +95,7 @@ default:
     p18n:
         defaultLang: en
         lang: ja
-        langDir: $project.root$/etc/i18n
+        langDir: $project.root$/etc/i18n.d
 
     #--------------------------------
     # Key Value Storeの設定
@@ -116,6 +115,16 @@ default:
             type: 'memcache'
             servers:
                 - 'localhost:11211'
+    #--------------------------------
+    # SESSIONの設定
+    #--------------------------------
+    cache:
+        storage:
+            type: 'memcache'
+            prefix: 'session'
+            servers:
+                - 'localhost:11211'
+
 
     #--------------------------------
     # Databaseの設定
