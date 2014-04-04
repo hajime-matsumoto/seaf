@@ -64,6 +64,20 @@ abstract class Request
     private $params = [];
 
     /**
+     * スキーマ
+     *
+     * @var Schema
+     */
+    private $schema = null;
+
+    /**
+     * モデル
+     *
+     * @var string
+     */
+    private $model = false;
+
+    /**
      * リクエストファクトリ
      */
     public static function factory($type)
@@ -184,10 +198,45 @@ abstract class Request
         return $this->isAllowCache;
     }
 
+    /**
+     * スキーマを取得する
+     *
+     * @param Schema
+     */
+    public function getSchema( )
+    {
+        if ($this->schema == false && $this->model) {
+            $class = $this->model;
+            return $class::schema();
+        }
+        return $this->schema;
+    }
+
+    /**
+     * モデルを設定
+     *
+     * @param string
+     */
+    public function setModel($model)
+    {
+        return $this->model = $model;
+    }
+
     //--------------------------------------
     //
     //--------------------------------------
-    
+
+    /**
+     * スキーマを設定する
+     *
+     * @param Schema
+     */
+    public function schema (Schema $schema)
+    {
+        $this->schema = $schema;
+        return $this;
+    }
+
     /**
      * キャッシュタイムを設定する
      */
@@ -233,7 +282,9 @@ abstract class Request
      */
     public function execute ( )
     {
-        return $this->handler->execute($this);
+        $result =  $this->handler->execute($this);
+        $result->setClass($this->model);
+        return $result;
     }
 
     /**

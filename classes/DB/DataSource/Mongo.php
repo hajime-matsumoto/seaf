@@ -62,7 +62,16 @@ class Mongo extends DB\DataSource
         $table = $this->requestTable($req);
 
         $params = $req->getParams();
-        $cursor = $this->db->$table->find($params);
+        $cursor = $this->db->$table->find($req->getWhere());
+
+        $order = $req->getOrder();
+        if (!empty($order)) {
+            $sort = [];
+            foreach($req->getOrder() as $k=>$v){
+                $sort[$k] = $v == 'asc' ? 1: -1;
+            }
+            $cursor->sort($sort);
+        }
 
         if ($req->getLimit() > 0) {
             $cursor->limit($req->getLimit());
@@ -81,18 +90,28 @@ class Mongo extends DB\DataSource
         //$table = $this->requestTable($req);
         $params = $req->getParams();
 
-        // $req->commandType(); 
-        /*
-        $res = $this->db->command(array(
-            'mapreduce' => $table,
-            'map' => $params['map'],
-            'reduce'=>$params['reduce'],
-            'out' => $params['out']
-        ));
-         */
-        // $req->commandType();
         $res = $this->db->command($req->getParams());
         return $this->db->selectCollection($res['result'])->find();
+    }
+
+    /**
+     * 更新リクエストの処理
+     *
+     * @param DB\Request
+     */
+    public function updateRequest (DB\Request $req)
+    {
+        // テーブル名を取得
+        $table = $this->requestTable($req);
+        $params = $req->getParams();
+
+        $res = $this->db->$table
+            ->update(
+                $req->getWhere(),
+                ['$set'=>$params],
+                ["multiple" => true]
+            );
+        return $res;
     }
 
     /**

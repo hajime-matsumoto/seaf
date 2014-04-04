@@ -12,6 +12,10 @@ class Result
     const FETCH_MODE_OBJECT = 'object';
 
     /**
+     */
+    private $fetch_mode = self::FETCH_MODE_ASSOC;
+
+    /**
      * @var DataSource
      */
     private $ds;
@@ -61,6 +65,14 @@ class Result
     }
 
     /**
+     * ラストインサートIDを取得する
+     */
+    public function lastInsertId( )
+    {
+        return $this->ds->lastInsertId($this->result);
+    }
+
+    /**
      * エラー判定
      */
     public function isError( )
@@ -82,26 +94,41 @@ class Result
      */
     public function save( )
     {
-        $this->recs = $this->fetchAll();
+        $this->recs = [];
+        while($rec = $this->ds->fetchAssoc($this->result)) {
+            $this->recs[] = $rec;
+        }
         $this->saved = true;
     }
 
     /**
      * 結果の全部取得
      */
-    public function fetchAll($mode = self::FETCH_MODE_ASSOC)
+    public function fetchAll($mode = null)
     {
         $recs = [];
-        while ($rec = $this->fetch(self::FETCH_MODE_ASSOC)) {
+        while ($rec = $this->fetch($mode)) {
             $recs[] = $rec;
         }
         return $recs;
     }
+
+    /**
+     * fetch modeの変更
+     */
+    public function fetchMode($mode)
+    {
+        $this->fetch_mode = $mode;
+    }
+
     /**
      * 結果取得
      */
-    public function fetch($mode = self::FETCH_MODE_ASSOC)
+    public function fetch($mode = null)
     {
+        if ($mode == null) {
+            $mode = $this->fetch_mode;
+        }
         $method = "fetch".$mode;
         return $this->$method();
     }
@@ -126,7 +153,13 @@ class Result
     public function fetchObject( )
     {
         $params = $this->fetchAssoc( );
-        return $this->createObject($params);
+        if (!$params) return false;
+
+        $object =  $this->createObject($params);
+        if ($object instanceof Model\Base) {
+            $object->rebaseParams();
+        }
+        return $object;
     }
 
     /**
@@ -135,7 +168,7 @@ class Result
     private function createObject($params)
     {
         $class = $this->getClass();
-        $object = new $class ( );
+        $object = new $class( );
         foreach ($params as $k=>$v) {
             $object->$k = $v;
         }
@@ -144,7 +177,10 @@ class Result
 
     public function setClass($class)
     {
-        $this->fetch_class = $class;
+        if (class_exists($class)) {
+            $this->fetchMode(self::FETCH_MODE_OBJECT);
+            $this->fetch_class = $class;
+        }
     }
 
     protected function getClass( )

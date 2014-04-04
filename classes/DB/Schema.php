@@ -12,11 +12,11 @@ use Seaf\Util;
 class Schema
 {
     public $table;
-    public $fields = [];
-    public $indexes = [];
-    public $primary = [];
+    public $fields       = [];
+    public $indexes      = [];
+    public $primary      = [];
+    public $fields_alias = [];
     public $autoIncrement;
-
     /**
      * データモデルから完全なスキーマを作成する
      */
@@ -45,8 +45,15 @@ class Schema
 
 
         // テーブル定義を取得
-        $anotation_getter = ['table','primary','index'=>['type'=>'multi']];
-        $anot = $class->getClassAnnotation($anotation_getter,'SeafData');
+        $anotation_getter = [
+            'autoIncrement'=>['type'=>'bool'],
+            'table',
+            'primary',
+            'index'=>['type'=>'multi']
+        ];
+        $anot = Util\ArrayHelper::container(
+            $class->getClassAnnotation($anotation_getter,'SeafData')
+        );
 
         $schema->table($anot['table']);
         if (isset($anot['primary'])) {
@@ -54,6 +61,9 @@ class Schema
         }
         if (isset($anot['index'])) {
             $schema->index($anot['index']);
+        }
+        if ($anot['autoIncrement'] == true) {
+            $schema->autoIncrement(true);
         }
 
         // フィールド定義を取得

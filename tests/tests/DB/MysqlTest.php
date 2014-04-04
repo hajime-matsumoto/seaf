@@ -70,10 +70,6 @@ class MysqlTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(
             $result->fetch('object')->name,'hajime_updated'
         );
-        $this->assertEquals(
-            5,
-            count($result)
-        );
     }
 
     public function testDeleteRequest ( )

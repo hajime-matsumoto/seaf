@@ -59,6 +59,29 @@ class MongoDBTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    public function testUpdateRequest ( )
+    {
+        // アクセスログへの更新を実行
+        Seaf::DB()->access_log->update( )
+            ->param(['status'=>0])
+            ->where(array('user_id'=>1))
+            ->execute();
+
+        $res = Seaf::DB()->access_log->find( )
+            ->where(['user_id' => 1])
+            ->limit(10)
+            ->order('user_id')
+            ->execute();
+
+        foreach($res->fetchAll() as $line) {
+            $this->assertEquals(
+                $line['status'],
+                0
+            );
+        }
+
+
+    }
     public function testMapReduce ( )
     {
         // アクセスログへのコマンドリクエストを作成

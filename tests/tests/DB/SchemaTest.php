@@ -6,6 +6,9 @@ use Seaf;
 
 class SchemaTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * 手作業でスキーマを生成する
+     */
     public function testCreateSchema ( )
     {
         $schema = new Schema( );

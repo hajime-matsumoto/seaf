@@ -12,7 +12,7 @@ use Seaf\DB;
  * @SeafDataPrimary reg_key
  * @SeafDataIndex login
  */
-class UserPre
+class UserPre extends DB\Model\Base
 {
     public static function who ( )
     {
@@ -34,7 +34,7 @@ class UserPre
      * @SeafDataName reg_time
      * @SeafDataType timestamp
      */
-    protected $regDate;
+    protected $regTime;
 
     /**
      * 仮登録ホスト
@@ -85,4 +85,29 @@ class UserPre
         $this->regDate = time();
         $this->regHost = Seaf::Globals('_SERVER.REMOTE_ADDR', '127.0.0.1');
     }
+
+    /**
+     * Reg Keyのセッター
+     */
+    public function setRegKey($value)
+    {
+        return sha1($value);
+    }
+
+    /**
+     * Reg Keyのゲッター
+     */
+    public function getRegKey( )
+    {
+        return $this->regKey;
+    }
+
+    /**
+     * Reg Timeのセッター
+     */
+    public function setRegTime($value)
+    {
+        return date('Y-m-d G:i:s', $value);
+    }
+ 
 }

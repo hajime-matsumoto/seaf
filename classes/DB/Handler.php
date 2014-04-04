@@ -150,6 +150,7 @@ class Handler
             }
 
             $result->save();
+
             $this->cache->put($key, $expires, $result);
             return $result;
         }

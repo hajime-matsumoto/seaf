@@ -15,6 +15,11 @@ class Table
     private $handler;
 
      /**
+      * @var Model
+      */
+    private $model = false;
+
+     /**
       * @var DataSource
       */
     private $ds = false;
@@ -54,6 +59,7 @@ class Table
             $req = $this->handler->newRequest($proc_type);
         }
         $req->setTargetTable($this->name);
+        $req->setModel($this->model);
         return $req;
     }
 
@@ -96,5 +102,14 @@ class Table
     public function query ( )
     {
         return $this->newRequest('QUERY');
+    }
+
+    /**
+     * 対応するモデルを設定する
+     */
+    public function model ($class)
+    {
+        $this->model = $class;
+        return $this;
     }
 }

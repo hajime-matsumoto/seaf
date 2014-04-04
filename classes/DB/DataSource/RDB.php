@@ -70,18 +70,28 @@ abstract class RDB extends DB\DataSource
         $sql = ' WHERE';
         foreach ($where as $field => $value)
         {
-            $parts[] = $this->safeSprintf(
-                '%s %s %s',
-                $field,
-                '=',
-                $this->quoteParam(
-                    $this->escapeParam($value),
-                    $field
-                )
-            );
+            if (is_int($field)) {
+                $parts[] = $value;
+            } else {
+                $parts[] = $this->safeSprintf(
+                    '%s %s',
+                    (false === strpos($field,' ') ? $field.' = ': $field),
+                    (is_array($value) ? 
+                    $this->quoteEscapeParam($value[0], $value[1]):
+                    $this->quoteEscapeParam($value, 'str'))
+                );
+            }
         }
         $sql.= " ".implode(" ", $parts);
         return $sql;
+    }
+
+    protected function quoteEscapeParam ($value, $type)
+    {
+        return $this->quoteParam(
+            $this->escapeParam($value, $type),
+            $type
+        );
     }
 
     /**

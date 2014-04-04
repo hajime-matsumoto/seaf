@@ -59,21 +59,12 @@ class Mysql extends RDB
         // クエリの取得
         $query = $request->getBody();
 
+
         if (false !== strpos($query, ';')) {
-            $sql = strtok($query,';');
-            do {
-                $result = $this->query(trim($sql).';');
-                if ($this->isError($result)) {
-                    $error = $this->getError($result);
-                    throw new Exception\Exception([
-                        'QueryError: %s', $error
-                    ]);
-                }
-            } while($sql = strtok(';'));
-            return $result = true;
+            return $this->multiQuery($query);
         }
 
-        return $result = $this->query($sql);
+        return $result = $this->query($query);
 
     }
 
@@ -91,12 +82,12 @@ class Mysql extends RDB
         $raw_params = $request->getParams();
 
         // パラメタのエスケープ
-        $escaped_params = $this->escapeParam($raw_params);
+        $escaped_params = $this->escapeParam($raw_params, null, $request->getSchema());
 
         // フィールド名と値に分ける
-        array_walk($escaped_params, function($value, $field) use(&$fields, &$values) {
+        array_walk($escaped_params, function($value, $field) use($request, &$fields, &$values) {
             $fields[] = '`'.$field.'`';
-            $values[] = $this->quoteParam($value, $field);
+            $values[] = $this->quoteParam($value, $field, $request->getSchema());
         });
 
         // INSERT QUERYを生成
@@ -125,14 +116,14 @@ class Mysql extends RDB
         $raw_params = $request->getParams();
 
         // パラメタのエスケープ
-        $escaped_params = $this->escapeParam($raw_params);
+        $escaped_params = $this->escapeParam($raw_params, null, $request->getSchema());
 
         // フィールド名=値にする
-        array_walk($escaped_params, function($value, $field) use(&$parts) {
+        array_walk($escaped_params, function($value, $field) use($request, &$parts) {
             $parts[] = $this->safeSprintf(
                 "`%s` = %s",
                 $field,
-                $this->quoteParam($value, $field)
+                $this->quoteParam($value, $field, $request->getSchema())
             );
         });
 
@@ -239,15 +230,28 @@ class Mysql extends RDB
      *
      * @param array $raw_params
      */
-    protected function escapeParam ($raw_param)
+    protected function escapeParam ($raw_param, $data_type = null, DB\Schema $schema = null)
     {
         if (is_array($raw_param)) {
             $escaped_params = [];
             foreach ($raw_param as $key=>$value) {
-                $escaped_params[$key] = $this->escapeParam($value);
+
+                if ($schema != null) {
+                    $data_type = $this->convertEscapeDataType($schema->fields[$key]['type']);
+                } else {
+                    $data_type = 'str';
+                }
+                $escaped_params[$key] = $this->escapeParam($value, $data_type);
             }
             return $escaped_params;
         }
+
+        if ($data_type == null) {
+            $data_type = 'str';
+        } elseif ($data_type == 'int') {
+            $raw_param = intval($raw_param);
+        }
+
 
         return mysqli_real_escape_string($this->con, $raw_param);
     }
@@ -257,20 +261,34 @@ class Mysql extends RDB
      *
      * @param array $raw_params
      */
-    protected function quoteParam ($param, $field = null)
+    protected function quoteParam ($param, $type = null, $field = null, DB\Schema $schema = null)
     {
         if (is_array($param)) {
             $params = [];
             foreach ($param as $key=>$value) {
-                $params[$key] = $this->escapeParam($value, $key);
+                $params[$key] = $this->quoteParam($value, $type, $key, $schema);
             }
             return $params;
         }
 
-        if (is_int($param)) {
-            return $param;
+        if ($schema == null) {
+            if ($type == null) {
+                if (is_int($param)) {
+                    $data_type = int;
+                }
+                $data_type = 'str';
+            } else {
+                $data_type = $type;
+            }
+        } else {
+            $data_type = $this->convertEscapeDataType($schema->fields[$field]['type']);
         }
-        return '"'.$param.'"';
+
+        if ($data_type == 'int') {
+            return $param;
+        }else{
+            return '"'.$param.'"';
+        }
     }
 
     /**
@@ -284,6 +302,14 @@ class Mysql extends RDB
     // ---------------------------------
     // 結果処理関連
     // ---------------------------------
+    
+    /**
+     * ラストインサートIDを取得する
+     */
+    public function lastInsertId( )
+    {
+        return mysqli_insert_id($this->con);
+    }
 
     /**
      * 結果がエラー判定
@@ -398,6 +424,19 @@ class Mysql extends RDB
 
 
         return $this->multiQuery(trim($sql));
+    }
+
+    protected function convertEscapeDataType($type)
+    {
+        switch ($type) {
+        case 'int':
+            return 'int';
+            break;
+        case 'varchar':
+        default:
+            return 'str';
+            break;
+        }
     }
 
     protected function convertType($type) 
