@@ -47,7 +47,7 @@ class P18n
      *
      * @param string
      */
-    public function defaultLocale ($lang = null)
+    public function defaultLocale ($default_lang = null)
     {
         if ($default_lang == null) return $this->default_lang;
         $this->default_lang = $default_lang;
@@ -97,6 +97,14 @@ class P18n
             ]);
         }
 
+        // ランゲージディレクトリの設定
+        $p18n->lang_dir = $c('langDir');
+        $p18n->locale($c('lang', 'ja'));
+        $p18n->defaultLocale($c('lang', 'en'));
+
+        // インストールされていなければインストールする
+        $p18n->install();
+
         return $p18n;
     }
 
@@ -105,10 +113,41 @@ class P18n
      */
     public function install ( )
     {
-        $this->db->getTable('translation')->newRequest('command')->param([
-            'drop' => true,
-            'createIndex'=>['lang'=>1,'key'=>1 ]
-        ])->execute();
+        // ステータスを取得する
+        $res = $this->db->getTable('status')->find( )
+            ->where(['id'=>1])
+            ->execute();
+
+        if (($status = $res->fetch()) == null) {
+            // インデックスを作成する
+            $this->db->getTable('translation')->newRequest('command')->param([
+                'drop' => true,
+                'createIndex'=>['lang'=>1,'key'=>1 ]
+            ])->execute();
+
+            // ステータスを作る
+            $status = ['id' => 1];
+        }
+
+
+        foreach (Seaf::FileSystem($this->lang_dir) as $file) {
+            if ('yaml' == $file->ext( )) {
+                $lang = $file->basename(false);
+
+                if (
+                    !isset($status[(string)$file]) ||
+                    $status[(string)$file] < $file->mtime()
+                ) { 
+                    $c = $this->import($lang, '', $file->toArray());
+                }
+            }
+        }
+        // ステータスを保存
+        $this->db->getTable('status')->update( )
+            ->option(['upsert'=>true])
+            ->where(['id'=>1])
+            ->param($status)
+            ->execute();
     }
 
     /**
@@ -119,8 +158,16 @@ class P18n
         $c = 0;
         foreach ($data as $k=>$v)
         {
+            if (is_array($v)) {
+                $c += $this->import(
+                    $lang,
+                    ($prefix ? $prefix.".": "").$k,
+                    $v
+                );
+                continue;
+            }
             $c++;
-            $key = $prefix.'.'.$k;
+            $key = ($prefix ? $prefix.'.':'').$k;
             $translation = $v;
             $this->getTable( )
                 ->update()
@@ -157,7 +204,7 @@ class P18n
      *
      * @param array
      */
-    public function getTranslation ($key)
+    public function getTranslation ($key = '')
     {
         return new Translation($key, $this);
     }

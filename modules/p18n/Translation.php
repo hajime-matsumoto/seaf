@@ -29,7 +29,7 @@ class Translation
     public function get($key = null)
     {
         $locale = $this->p18n->locale();
-        $key = $key != null ? $this->key.'.'.$key: $this->key;
+        $key = $key != null ? ($this->key ? $this->key.'.': '').$key: $this->key;
 
         if (false === $res = $this->find($locale, $key)) {
             if (false === $res = $this->find($this->p18n->defaultLocale(), $key)) {
@@ -39,6 +39,11 @@ class Translation
 
         if (count($res) == 1) {
             $value = current($res);
+
+            if ( func_num_args( ) > 1 )
+            {
+                return vsprintf($value, array_slice(func_get_args(),1));
+            }
             return $value;
         }
     }
