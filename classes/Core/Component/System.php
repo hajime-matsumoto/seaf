@@ -20,7 +20,8 @@ class System
     {
         $this->bind($this, array(
             'halt' => '_halt',
-            'header' => '_header'
+            'header' => '_header',
+            'setcookie' => '_setcookie'
         ));
     }
 
@@ -51,6 +52,18 @@ class System
         }else{
             header($string, $replace, $code);
         }
+    }
+
+    /**
+     * クッキーを設定する
+     *
+     * @param string
+     * @param string
+     * @param int
+     */
+    public function _setcookie($name, $value, $expire = 0)
+    {
+        setcookie($name, $value, $expire, '/');
     }
 
     /**

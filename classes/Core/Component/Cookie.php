@@ -19,7 +19,7 @@ class Cookie
      */
     public function set ($name, $value)
     {
-        setcookie($name, $value);
+        $this->setcookie($name, $value);
         return $this;
     }
 
@@ -57,7 +57,7 @@ class Cookie
 
     protected function setcookie($name, $value, $expire = 0)
     {
-        setcookie($name, $value, $expire, '/');
+        Seaf::System()->setcookie($name, $value, $expire, '/');
     }
 
 }
