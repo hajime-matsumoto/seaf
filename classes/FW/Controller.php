@@ -212,7 +212,7 @@ class Controller
     {
         if (is_string($mount) && class_exists($mount)) {
             $ctl = new $mount();
-        } elseif (is_object($mount)) {
+        } elseif (is_object($mount) && !($mount instanceof \Closure)) {
             $ctl = $mount;
         } elseif (is_callable($mount)) {
             $ctl = $mount();

@@ -5,6 +5,7 @@ namespace Seaf\DB;
 use Seaf\Util\ArrayHelper;
 use Seaf\Exception;
 use Seaf\Cache;
+use Seaf;
 
 
 /**
@@ -135,7 +136,8 @@ class Handler
         $key = $request->getHash();
         $expires = $request->getCacheExpires();
 
-        if ($this->cache->has($key)) {
+        if ($this->cache->has($key) && !empty($expires)) {
+            Seaf::Logger('DB')->debug('CACHE-USED');
             $result = $this->cache->getCachedData($key, $status);
             $result->setCacheStatus(sprintf('Hit Created:%s Expires:%s',
                 $status['created'],

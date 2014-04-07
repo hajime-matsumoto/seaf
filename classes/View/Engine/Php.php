@@ -40,6 +40,6 @@ class Php extends Base
         }
 
         $vars['title'] = 'Seaf';
-        return $tpl->includeWithVars($vars);
+        return $tpl->includeWithVars($vars, true);
     }
 }

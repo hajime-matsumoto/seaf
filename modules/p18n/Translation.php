@@ -52,4 +52,11 @@ class Translation
     {
         return call_user_func_array([$this,'get'], func_get_args());
     }
+
+    /*
+    public function __toString( )
+    {
+        $res = $this->find($this->lang, $this->key)
+    }
+     */
 }

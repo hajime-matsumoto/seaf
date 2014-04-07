@@ -68,4 +68,22 @@ class FindRequest extends DB\Request
         $this->fields[] = $field;
         return $this;
     }
+
+    /**
+     * リクエストのハッシュキーを取得
+     */
+    public function getHash( )
+    {
+        return sha1(
+            $this->getTarget().
+            $this->getTargetTable().
+            $this->getBody().
+            $this->limit.
+            $this->offset.
+            print_r($this->where, true).
+            print_r($this->orders, true).
+            print_r($this->fields, true).
+            print_r($this->getParams(), true)
+        );
+    }
 }

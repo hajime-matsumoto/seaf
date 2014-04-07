@@ -2,6 +2,7 @@
 
 namespace Seaf\DB\DataSource;
 
+use Seaf;
 use Seaf\DB;
 use Mongo as PHPMongo;
 
@@ -47,6 +48,8 @@ class Mongo extends DB\DataSource
 
         // インサート
         $res = $this->db->$table->insert($req->getParams());
+
+        Seaf::Logger('DB')->debug('MongoDB-INSERT-TO: '.$table);
 
         return $res;
     }

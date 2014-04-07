@@ -44,7 +44,7 @@ abstract class Base
         return implode(" ", $opts);
     }
 
-    public function compile ($file)
+    public function compile ($file, &$error = null)
     {
         $files = func_get_args();
         $desc = array(
@@ -57,8 +57,10 @@ abstract class Base
 
         $proc = proc_open($cmd, $desc, $pipes);
 
+
         foreach($files as $file) {
-            fwrite($pipes[0], Seaf::fileSystem($file)->getContents());
+            if (empty($file)) continue;
+            fwrite($pipes[0], Seaf::FileSystem($file)->getContents());
         }
         fclose($pipes[0]);
 

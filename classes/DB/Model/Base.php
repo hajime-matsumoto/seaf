@@ -3,6 +3,7 @@
 namespace Seaf\DB\Model;
 
 use Seaf;
+use Seaf\Validator\Validator;
 use Seaf\DB;
 use Seaf\Exception;
 
@@ -55,15 +56,29 @@ class Base
     }
 
     /**
+     * モデルを配列に変換する
+     */
+    public function toArray( )
+    {
+        $params = [];
+        // パラメタを取得する
+        foreach (self::schema( )->fields_alias as $k=>$v) {
+            $params[$v] = $this->$k;
+        }
+        return $params;
+    }
+
+    /**
      * モデルをプライマリキーで取得する
      *
      * @return Base
      */
-    public static function getOne ($pkey)
+    public static function getOne ($pkey, $expire = 0)
     {
         $table = static::table( );
         return $table->find( )
             ->where([static::schema()->primary => $pkey])
+            ->cache($expire)
             ->execute()->fetch( );
     }
 
@@ -187,7 +202,7 @@ class Base
     {
         $ret = [];
         foreach (self::schema( )->fields_alias as $k=>$v) {
-            if ($this->baseParams[$k] !== $this->$k) {
+            if (!isset($this->baseParams[$k]) || $this->baseParams[$k] !== $this->$k) {
                 $ret[$v] = $this->$k;
             }
         }
@@ -285,5 +300,61 @@ class Base
         return Seaf::DB()
             ->{static::schema()->table}
             ->model(static::who());
+    }
+
+    /**
+     * バリデーション
+     */
+    public function getValidator( )
+    {
+        $validator = new Validator( );
+        $anot = Seaf::ReflectionClass(static::who())->getPropAnnotation(
+            ['type'=>['type'=>'multi'],'message'], 'SeafValid'
+        );
+        foreach ($anot as $k=>$v) {
+            foreach ($v['type'] as $type) {
+                $value = [];
+
+                if (($p=strpos($type, ' '))==false) {
+                    $value = [];
+                }else{
+                    $part = substr($type, 0, $p);
+                    parse_str(trim(substr($type,$p)), $value);
+                    $type = $part;
+                }
+                if (isset($v['message'])) {
+                    $value['message'] = $v['message'];
+                }
+                $validator->addValidation($k, $type, $value);
+            }
+        }
+        $anot = Seaf::ReflectionClass(static::who())->getMethodAnnotation(
+            ['function', 'target', 'message'], 'SeafValid'
+        );
+        foreach ($anot as $k=>$v) {
+            $validator->addValidation($v['target'], 'callback', ['method'=>[$this,$k]]+$v);
+        }
+        return $validator;
+    }
+
+    public function validate(&$errors = null)
+    {
+        $validator = $this->getValidator( );
+        $map = array_flip(static::schema()->fields_alias);
+        $all_errors = [];
+        foreach ($this->modifiedParams() as $k=>$v) {
+            $field = $map[$k];
+            if (!$validator->validate($field, $v, $errors)) {
+                // キーを差し替える
+                $all_errors[$k] = current($errors);
+            }
+        }
+        $errors = $all_errors;
+        return empty($errors) ? true: false;
+    }
+
+    public function getPrimaryKey( )
+    {
+        return $this->get(static::schema()->primary);
     }
 }

@@ -2,15 +2,25 @@
 
 namespace Seaf\Util\FileSystem;
 
-class FileSystem
+class FileLoader
 {
-    private $paths = array();
+    public $paths = array();
 
     public function __construct ($paths = array())
     {
         foreach ($paths as $path) {
             $this->addPath($path);
         }
+    }
+
+    public function find($base, $extensions=[])
+    {
+        foreach ($extensions as $ext) {
+            if($file = $this->get($base.".".$ext)) {
+                return $file;
+            }
+        }
+        return false;
     }
 
     public function addPath($path)
@@ -29,7 +39,7 @@ class FileSystem
     {
         foreach ($this->paths as $path) {
             if(file_exists($path.'/'.$file)) {
-                return Base::factory($path.'/'.$file);
+                return Base::factory(realpath($path.'/'.$file));
             }
         }
         return false;

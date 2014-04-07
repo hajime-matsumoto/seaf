@@ -37,11 +37,28 @@ class SeafReflectionClass extends \ReflectionClass
         foreach ($this->getProperties() as $prop) {
             if ($prop->getDeclaringClass()->getName() == $this->getName()) {
                 $anot = $this->_getAnnotation($prop->getDocComment(), $getter, $prefix);
-                $anots[$prop->getName()] = $anot;
+                if (!empty($anot)) {
+                    $anots[$prop->getName()] = $anot;
+                }
             }
         }
         return $anots;
     }
+
+    public function getMethodAnnotation($getter, $prefix = 'Seaf')
+    {
+        $anots = [];
+        foreach ($this->getMethods() as $prop) {
+            if ($prop->getDeclaringClass()->getName() == $this->getName()) {
+                $anot = $this->_getAnnotation($prop->getDocComment(), $getter, $prefix);
+                if (!empty($anot)) {
+                    $anots[$prop->getName()] = $anot;
+                }
+            }
+        }
+        return $anots;
+    }
+
 
 
     public function mapAnnotation($callback, $prefix = 'Seaf')
@@ -135,6 +152,7 @@ class SeafReflectionClass extends \ReflectionClass
                 $key = false;
             }
         }
+        if (empty($anots)) return;
         $anots['comment'] = trim($comment);
         return $anots;
     }

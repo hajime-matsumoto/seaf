@@ -36,6 +36,13 @@ class File implements \Iterator
         return substr($this->path, $p+1);
     }
 
+    public function getExt(&$other = null)
+    {
+        $ext = $this->ext();
+        $other = substr($this->path, 0, -(strlen($ext)+1));
+        return $ext;
+    }
+
     /**
      * 配列にする
      *
@@ -131,12 +138,20 @@ class File implements \Iterator
      *
      * @return string
      */
-    public function includeWithVars ($vars)
+    public function includeWithVars ($vars, $useCompile = false)
     {
         extract($vars);
 
+        if ($useCompile == false) {
+            ob_start();
+            include $this->path;
+            return ob_get_clean();
+        }
         ob_start();
-        include $this->path;
+        eval(
+            '?>'.
+            $comp = preg_replace('/\{\{(.*)\}\}/U','<?\1;?>', file_get_contents($this->path))
+        );
         return ob_get_clean();
     }
 
