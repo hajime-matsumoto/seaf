@@ -75,6 +75,7 @@ class Base
      */
     public static function getOne ($pkey, $expire = 0)
     {
+        if (empty($pkey)) return false;
         $table = static::table( );
         return $table->find( )
             ->where([static::schema()->primary => $pkey])

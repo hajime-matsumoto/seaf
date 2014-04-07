@@ -3,6 +3,7 @@
 namespace Seaf\DB\DataSource;
 
 use Seaf;
+use Seaf\Exception;
 use Seaf\DB;
 use Mongo as PHPMongo;
 
@@ -27,9 +28,15 @@ class Mongo extends DB\DataSource
         $db = trim($params['db'],'/');
 
         try {
-            $this->con = new PHPMongo( );
-            $this->db = $this->con->selectDB($db);
+            if (class_exists('MongoClient')) {
+                $this->con = new \MongoClient( );
+                $this->db = $this->con->$db;
+            }else{
+                $this->con = new PHPMongo( );
+                $this->db = $this->con->selectDB($db);
+            }
         }catch (\MongoConnectionException $e) {
+            echo $e;
             throw new Exception\Exception([
                 "MongoDBに接続できません"
             ]);
@@ -119,6 +126,9 @@ class Mongo extends DB\DataSource
         $table = $this->requestTable($req);
         $params = $req->getParams();
 
+        if (isset($params['_id'])) {
+            unset($params['_id']);
+        }
         $res = $this->db->$table
             ->update(
                 $this->buildWhere($req->getWhere()),
