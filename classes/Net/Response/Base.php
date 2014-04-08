@@ -37,6 +37,8 @@ class Base
      */
     public $headers = array();
 
+    public $isSent = false;
+
     /**
      * レスポンスを初期化する
      */
@@ -46,6 +48,7 @@ class Base
         $this->body = '';
         $this->headers = array();
         $this->params = array();
+        $this->isSent = false;
         return $this;
     }
 
@@ -177,6 +180,7 @@ class Base
      * 送信する
      */
     public function send ( ) {
+        $this->isSent = true;
         $this->sendHeaders();
         Seaf::system()->halt($this->body);
     }

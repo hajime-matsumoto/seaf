@@ -60,7 +60,7 @@ class Controller extends FW\Controller
      */
     public function _afterRun ($request, $response, $dispatchFlag, $controller)
     {
-        if ($dispatchFlag == true) {
+        if ($dispatchFlag == true && $response->isSent == false) {
             $response
                 ->write(ob_get_clean())
                 ->send();
