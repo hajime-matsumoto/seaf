@@ -1,122 +1,114 @@
-<?php
+<?php // vim: set ft=php ts=4 sts=4 sw=4 et:
+
 namespace Seaf\DI;
 
-use Seaf\Pattern;
-use Seaf\Data;
-use Seaf\Exception;
+use Seaf\Container\ArrayContainer;
 
-/**
- * DIコンテナ
- */
-class Container extends Data\Container\ArrayContainer
+class Container extends ArrayContainer
 {
-    use Pattern\Factory;
-    use Pattern\Event;
-
-    private $owner;
-    public $factory;
+    /**
+     * @var array[Factory,,,]
+     */
+    private $factories = [];
 
     /**
-     * コンストラクタ
+     * @var array
      */
-    public function __construct ($owner = null)
+    private $cfg = [];
+
+    /**
+     * @var Factory
+     */
+    private $runtimeFuctory = [];
+
+    /**
+     *
+     */
+    public function __construct ( )
     {
-        $this->owner = $owner;
-        $this->factory = new Factory( );
+        parent::__construct ( );
+
+        $this->addFactory($this->runtimeFuctory = new Factory\RuntimeFactory());
     }
 
-    public function register($name, $definition, $opts = array(), $callback=null)
+    /**
+     * 設定を読み込む
+     *
+     * @param array
+     */
+    public function loadConfig ($cfg = [])
     {
-        $name = ucfirst($name);
-
-        if (is_object($definition) && !($definition instanceof \Closure)) {
-            $this->set($name, $definition);
-            return $this;
+        $this->cfg = $cfg;
+        if (is_array($cfg)) foreach ($cfg as $k=>$v) {
+            //コンフィグが変更されたオブジェクトをリセットする
+            $this->del($k);
         }
-
-        $this->factory->register($name, $definition, $opts, $callback);
-        return $this;
     }
 
-
     /**
-     * Hasをオーバライドする
+     * インスタンスを登録する
+     *
+     * @param string
+     * @param object
      */
-    public function has ($name)
+    public function register ($name, $instance)
     {
         $name = ucfirst($name);
-
-        if (parent::has($name)) return true;
-        if ($this->factory->has($name)) return true;
-
-        return false;
+        if (is_object($instance) && !($instance instanceof \Closure)) {
+            $this->set($name, $instance);
+        }else{
+            $this->runtimeFuctory->register($name, $instance);
+        }
     }
 
     /**
-     * GETをオーバライドする
+     * インスタンスを取得する
+     *
+     * @param string
+     * @return object
      */
     public function get ($name)
     {
         $name = ucfirst($name);
 
-        if (parent::has($name)) return parent::get($name);
-
-        if ($this->factory->has($name)) {
-            $instance = $this->create($name);
-            $this->set($name, $instance);
-            return $instance;
+        if (parent::has($name)) {
+            return parent::get($name);
         }
 
-        return false;
+        $object = $this->create($name);
+        $this->set($name, $object);
+        return $object;
     }
 
     /**
-     * GetKeysをオーバライドする
+     * インスタンスを作成する
+     *
+     * @param string
+     * @return object
      */
-    public function getKeys ( )
+    public function create ($name)
     {
-        return array_merge(
-            parent::getKeys( ),
-            $this->factory->getKeys( )
-        );
-    }
+        foreach ($this->factories as $factory) {
+            if ($factory->has($name)) {
 
-
-    /**
-     * Createする
-     */
-    protected function create ($name)
-    {
-        $name = ucfirst($name);
-        $instance = $this->factory->get($name)->create( );
-        $this->trigger('create', $instance);
-        return $instance;
-    }
-
-    /**
-     * ファクトリを設定する
-     */
-    public function configFactory ($config)
-    {
-        $this->factory->configure($config);
-    }
-
-    /**
-     * call
-     */
-    public function call ($name, $params)
-    {
-        $name = ucfirst($name);
-
-        if ($this->has($name)) {
-            $instance = $this->get($name);
-
-            if (method_exists($instance, 'helper')) {
-                return call_user_func_array(array($instance, 'helper'), $params);
+                // 設定があれば読み込む
+                return $factory->create($name, isset($this->cfg[$name]) ? $this->cfg[$name]: []);
             }
-            return $instance;
         }
 
-        throw new Exception\InvalidCall($name, $this);
+        if (class_exists($name)) {
+            return new $name( );
+        }
+
+        throw new Exception\InvalidInstanceName(["%sは登録されていません", $name]);
+    }
+
+    /**
+     * ファクトリを追加する
+     */
+    public function addFactory (Factory $factory)
+    {
+        array_push($this->factories, $factory);
+        return $this;
     }
 }

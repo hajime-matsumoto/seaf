@@ -3,14 +3,19 @@
 namespace Seaf\FW;
 
 use Seaf;
-use Seaf\Pattern;
+use Seaf\Base;
+use Seaf\Container\ArrayContainer;
 
 /**
  * FW用のController
  */
 class Controller
 {
-    use Pattern\Environment;
+    use Base\SeafAccessTrait;
+    use Base\LoggerTrait;
+    use Base\EventTrait;
+    use Base\ComponentCompositeTrait;
+    use Base\DynamicMethodTrait;
 
     protected $name = 'FW';
 
@@ -18,7 +23,13 @@ class Controller
 
     public function __construct ( )
     {
-        $this->initController( );
+        $this->setComponentContainer('Seaf\FW\ComponentContainer');
+        $this->mounts = new ArrayContainer( );
+    }
+
+    public function callFallBack($name, $params)
+    {
+        return $this->componentCall($name, $params);
     }
 
     /**
@@ -26,30 +37,6 @@ class Controller
      */
     public function initController( )
     {
-        // Environmentの初期化
-        $this->initEnvironment();
-
-        // -----------------------------------
-        // DIの調整
-        // -----------------------------------
-        $di = $this->di();
-
-        // 動的に読み込むクラスを設定
-        $di->factory->configAutoload(__NAMESPACE__.'\\Component\\');
-
-        // Loggerはシングルトンから取得する
-        $di->register('logger', function ( ) {
-            return Seaf::logger($this->name);
-        });
-
-        // DI作成時にAcceptControllerを呼ぶ
-        // -----------------------------------
-        $di->on('create', function ($instance) {
-            if (method_exists($instance, 'acceptController')) {
-                $instance->acceptController($this);
-            }
-        });
-
         // -----------------------------------
         // マップ処理
         // -----------------------------------
@@ -115,49 +102,27 @@ class Controller
      */
     public function _run ($request = null, $response = null, $dispatchFlag = false)
     {
-        if ($request == null) $request = $this->request();
+        if ($request == null)  $request = $this->request();
         if ($response == null) $response = $this->response();
 
-        $this->logger($this->name)->debug(array(
-            'Recived-Path: %s', $request->uri()->path()
-        ));
+        $this->debug(['Recived-Path: %s', $request->getPath()]);
+
 
         // --------------------------------------------------
         // マウントの処理
         // --------------------------------------------------
-        foreach ($this->mounts as $path=>$m) 
-        {
-            if (0 === strpos($request->uri()->path(), $path)) {
-                // リクエスト情報をコピーする
-                $newRequest = $request->getClone();
-                // URIをマスクする
-                $newRequest->uri()->set('mask', $path);
-                // マウントしているコントローラを実体化
-                $ctl = $this->buildMount($m);
-                $ctl->register('request', $newRequest);
-                $ctl->register('response', $response);
-
-                // ログを吐いておく
-                $this->logger($this->name)->debug(array(
-                    "Mounted: Path %s To %s Class: %s",
-                    $request->uri()->path(),
-                    $newRequest->uri()->path(),
-                    get_class($ctl)
-                ));
-
-                $dispatchFlag = $ctl->run($newRequest, $response, $dispatchFlag);
-
-                // ディスパッチ成功していたら以降処理しない
-                if ($dispatchFlag == true) {
-                    return true;
-                }
-            }
-        }
+        $dispatchFlag = $this->procMounts($request, $response, $dispatchFlag);
 
         // --------------------------------------------------
         // ルートの処理
         // --------------------------------------------------
-        $this->trigger('before.run', $request, $response, $this);
+        $this->trigger('before.run', [
+            'request'      => $request,
+            'response'     => $response,
+            'dispatchFlag' => &$dispatchFlag,
+            'controller'   => $this
+        ]);
+
         while ($route = $this->router()->route($request)) {
 
             $this->dispatch($route, $request, $response, $dispatchFlag);
@@ -170,12 +135,12 @@ class Controller
             $this->router()->next();
         }
 
-        $this->triggerArgs('after.run', array(
-            $request,
-            $response,
-            &$dispatchFlag,
-            $this
-        ));
+        $this->trigger('after.run', [
+            'request'      => $request,
+            'response'     => $response,
+            'dispatchFlag' => &$dispatchFlag,
+            'controller'   => $this
+        ]);
         return $dispatchFlag;
     }
 
@@ -221,4 +186,41 @@ class Controller
         }
         return $ctl;
     }
+
+    private function procMounts($request, $response, $dispatchFlag)
+    {
+        // --------------------------------------------------
+        // マウントの処理
+        // --------------------------------------------------
+        foreach ($this->mounts as $path=>$m) 
+        {
+            if (0 === strpos($request->getPath(), $path)) {
+                // リクエスト情報をコピーする
+                $newRequest = clone $request;
+                // URIをマスクする
+                $newRequest->pathMask($path);
+                // マウントしているコントローラを実体化
+                $ctl = $this->buildMount($m);
+                $ctl->component()->register('request', $newRequest);
+                $ctl->component()->register('response', $response);
+
+                // ログを吐いておく
+                $this->debug(array(
+                    "Mounted: Path %s To %s Class: %s",
+                    $request->getPath(),
+                    $newRequest->getPath(),
+                    get_class($ctl)
+                ));
+
+                $dispatchFlag = $ctl->run($newRequest, $response, $dispatchFlag);
+
+                // ディスパッチ成功していたら以降処理しない
+                if ($dispatchFlag == true) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 }

@@ -3,24 +3,16 @@
 namespace Seaf\Core\Component;
 
 use Seaf;
-use Seaf\Pattern;
-use Seaf\Cache\CacheHandler;
 
-/**
- * データベース
- */
-class Cache extends CacheHandler
+class Cache extends Seaf\Cache\Cache
 {
-    /**
-     * 作成するメソッド
-     *
-     * @param array
-     */
-    public static function componentFactory ( )
+    use ComponentTrait;
+
+
+    protected function _componentHelper ($name)
     {
-        $cache = new self();
-        $c = Seaf::Config('cache.storage', array());
-        $cache->setStorage($c);
-        return $cache;
+        return $this->getHandler($name);
     }
+
+
 }

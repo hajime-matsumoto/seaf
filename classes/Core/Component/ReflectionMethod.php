@@ -5,11 +5,9 @@ use Seaf;
 
 class ReflectionMethod
 {
-    public function __construct ( )
-    {
-    }
+    use ComponentTrait;
 
-    public function helper ($class, $method)
+    public function _componentHelper ($class, $method)
     {
         if (is_object($class)) $class = get_class($class);
 

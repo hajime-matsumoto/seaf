@@ -2,28 +2,15 @@
 
 namespace Seaf\Core\Component;
 
-use Seaf;
-use Seaf\Pattern;
-use Seaf\Session\Handler as Base;
+use Seaf\Base;
 
-/**
- * セッション
- */
-class Session extends Base
+class Session extends \Seaf\Session\Session
 {
-    use Pattern\Configure;
+    use ComponentTrait;
 
-    public $name = 'Seaf';
 
-    /**
-     * 作成するメソッド
-     *
-     * @param array
-     */
-    public static function componentFactory ( )
+    public function _componentHelper ($name)
     {
-        $c = Seaf::Config('session.storage');
-        $session = self::factory($c);
-        return $session;
+        return $this->helper($name);
     }
 }

@@ -6,6 +6,9 @@ use Seaf;
 
 abstract class Base
 {
+    use Seaf\Base\SeafAccessTrait;
+    use Seaf\Base\LoggerTrait;
+
     protected $opts = array();
 
     public function __construct( )
@@ -53,14 +56,14 @@ abstract class Base
             2 => array('pipe','w')
         );
         $cmd = $this->buildCommand();
-        Seaf::logger('compiler')->debug("Execute:" . $cmd . " files: ".implode(" ", $files));
+        $this->debug("Execute:" . $cmd . " files: ".implode(" ", $files));
 
         $proc = proc_open($cmd, $desc, $pipes);
 
 
         foreach($files as $file) {
             if (empty($file)) continue;
-            fwrite($pipes[0], Seaf::FileSystem($file)->getContents());
+            fwrite($pipes[0], file_get_contents($file));
         }
         fclose($pipes[0]);
 
@@ -70,7 +73,7 @@ abstract class Base
         $error = stream_get_contents($pipes[2]);
         fclose($pipes[2]);
         if (!empty($error)) {
-            Seaf::logger('compiler')->warn($error);
+            $this->warn($error);
         }
 
         $return = proc_close($proc);

@@ -2,7 +2,7 @@
 
 namespace Seaf\Core\Component;
 
-use Seaf\Data\Container;
+use Seaf\Container;
 
 /**
  * セキュリティに関するヘルパ

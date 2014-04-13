@@ -6,7 +6,7 @@ use Seaf;
 /**
  * クラスローダを設定する
  */
-Seaf::autoLoader()->addNamespace(
+Seaf::AutoLoader()->addNamespace(
     'Seaf\Module\P18n',
     __DIR__
 );
@@ -15,8 +15,5 @@ Seaf::autoLoader()->addNamespace(
  * Seafコンポーネントに設定する
  */
 Seaf::register(
-    'p18n',
-    function ( ) {
-        return P18n::factory();
-    }
+    'p18n',  __NAMESPACE__.'\\P18n'
 );

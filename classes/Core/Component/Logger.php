@@ -3,35 +3,20 @@
 namespace Seaf\Core\Component;
 
 use Seaf;
-use Seaf\Pattern;
-use Seaf\Logger\Base;
+use Seaf\Logger\Writer;
 
-/**
- * ロガー
- */
-class Logger extends Base
+class Logger extends Seaf\Logger\Logger
 {
-    use Pattern\Configure;
+    use ComponentTrait;
 
-    public $name = 'Seaf';
-
-    /**
-     * 作成するメソッド
-     *
-     * @param array
-     */
-    public static function componentFactory ($config = [])
+    public function __construct ($cfg)
     {
-        $c = Seaf::Config('logger') + $config;
-        $logger = new static();
-        $logger->configure($c);
-        return $logger;
     }
 
 
-    public function helper($name = null)
+    public function attach($level, $callback)
     {
-        if ($name == null) return $this;
-        return $this->getHandler($name);
+        return $this->attachWriter(new Writer\CallbackWriter($callback));
     }
+
 }

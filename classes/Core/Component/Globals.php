@@ -2,7 +2,7 @@
 
 namespace Seaf\Core\Component;
 
-use Seaf\Data\Container;
+use Seaf\Container;
 
 /**
  * スーパーグローバル変数を取得する
@@ -11,6 +11,8 @@ use Seaf\Data\Container;
  */
 class Globals extends Container\ArrayContainer
 {
+    use ComponentTrait;
+
     public function __construct ( )
     {
         parent::__construct( );
@@ -43,7 +45,7 @@ class Globals extends Container\ArrayContainer
      * @param string $name = null
      * @return mixed
      */
-    public function helper ($name = null, $default = null)
+    public function _componentHelper ($name = null, $default = null)
     {
         if ($name == null) return $this;
         return $this->get($name, $default);

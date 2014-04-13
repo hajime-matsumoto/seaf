@@ -1,9 +1,8 @@
-<?php
+<?php // vim: set ft=php ts=4 sts=4 sw=4 et:
+
 namespace Seaf\Core\Component;
 
-use Seaf\Pattern\DynamicMethod;
-use Seaf\Exception;
-use Seaf;
+use Seaf\Base;
 
 /**
  * システムユーティリティ
@@ -11,7 +10,7 @@ use Seaf;
  */
 class System
 {
-    use DynamicMethod;
+    use Base\DynamicMethodTrait;
 
     /**
      * コンストラクタ

@@ -28,11 +28,11 @@ class Translation
 
     public function get($key = null)
     {
-        $locale = $this->p18n->locale();
+        $locale = $this->p18n->getLocale();
         $key = $key != null ? ($this->key ? $this->key.'.': '').$key: $this->key;
 
         if (false === $res = $this->find($locale, $key)) {
-            if (false === $res = $this->find($this->p18n->defaultLocale(), $key)) {
+            if (false === $res = $this->find($this->p18n->getDefaultLocale(), $key)) {
                 return '[['.$key.']]';
             }
         }

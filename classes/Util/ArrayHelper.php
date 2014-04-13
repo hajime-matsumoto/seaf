@@ -95,7 +95,7 @@ class ArrayHelper
      */
     public static function getter ( )
     {
-        return Seaf::ReflectionMethod(__CLASS__, 'get')->getClosure( );
+        return self::getClosure('get');
     }
 
     /**

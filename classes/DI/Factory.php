@@ -1,145 +1,29 @@
-<?php
+<?php // vim: set ft=php ts=4 sts=4 sw=4 et:
+
 namespace Seaf\DI;
 
-use Seaf\Pattern;
-use Seaf\Data;
+use Seaf\DI;
+use Seaf\Container\ArrayContainer;
 
-/**
- * DIコンテナ
- */
-class Factory extends Data\Container\ArrayContainer
+class Factory extends ArrayContainer
 {
-    use Pattern\Factory;
-    use Pattern\Event;
-
-    /**
-     * オートロード
-     * @var array
-     */
-    protected $autoloads = array();
-
-    /**
-     * ファクトリコンフィグ
-     * @var array
-     */
-    protected $factory_configs = array();
-
-    public function __construct( )
+    public function register ($name, $define)
     {
-        $this->factory_configs = new Data\Container\ArrayContainer();
+        $this->set($name, $define);
     }
 
-    /**
-     * Register
-     *
-     * @param string
-     * @param string
-     */
-    public function register ($name, $definition, $options = null, $callback = null)
+    public function create ($name, $cfg = [])
     {
-        $name = ucfirst($name);
-
-        $this->set(
-            $name,
-            Definition::factory(
-                compact('definition','options','callback')
-            )
-        );
-    }
-
-    /**
-     * ファクトリコンフィグをセットする
-     */
-    public function setFactoryConfigs($configs)
-    {
-        $c = new Data\Container\ArrayContainer($configs);
-
-        foreach ($c('definitions', array()) as $k=>$v)
-        {
-            $this->register($k, $v['definition']);
-        }
-
-        foreach ($c('configs', array()) as $k=>$v)
-        {
-            $this->setFactoryConfig($k, $v);
-        }
-    }
-
-    /**
-     * ファクトリコンフィグをセットする
-     */
-    public function setFactoryConfig($name, $config)
-    {
-        $name = ucfirst($name);
-
-        $this->factory_configs[$name] = $config;
-    }
-
-    /**
-     * オートロードクラスを取得する
-     */
-    public function getClass($name)
-    {
-        $name = ucfirst($name);
-
-        // AutoLoading
-        foreach ($this->autoloads as $autoload) {
-            $class = sprintf('%s%s%s',
-                $autoload['prefix'],
-                ucfirst($name),
-                $autoload['suffix']
-            );
-            if (class_exists($class)) {
-                return $class;
+        $define = $this->get($name);
+        if (is_string($define)) {
+            if (method_exists($this, $method = 'create'.$define)) {
+                return call_user_func([$this,$method], $cfg);
             }
-        };
-
-        return false;
-    }
-
-
-    /**
-     * Hasをオーバライドする
-     */
-    public function has ($name)
-    {
-        $name = ucfirst($name);
-
-        if (parent::has($name)) return true;
-
-        // AutoLoading
-        if ($class = $this->getClass($name)) {
-            if (is_callable($method = $class.'::componentFactory')) {
-                $this->register($name, $method, array(
-                    $this->factory_configs->get($name, array())
-                ));
-            } else {
-                $this->register($name, $class);
-            }
-            return true;
+            return new $define($cfg);
+        }elseif($define instanceof \Closure){
+            return call_user_func($define, $cfg);
+        }elseif(is_callable($define)) {
+            return call_user_func($define, $cfg);
         }
-        return false;
-    }
-
-
-    /**
-     * オートロード
-     */
-    public function configAutoloads ($autoloads)
-    {
-        foreach ($autoloads as $autoload) {
-            call_user_func_array(
-                array($this, 'configAutoload'),
-                $autoload
-            );
-        }
-    }
-
-    /**
-     * オートロード
-     */
-    public function configAutoload ($prefix, $suffix = null)
-    {
-        array_unshift($this->autoloads, compact('prefix','suffix'));
     }
 }

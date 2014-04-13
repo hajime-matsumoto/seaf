@@ -10,7 +10,7 @@ class Sass extends Base
     {
         $this->opts = array(
             '--compass',
-            '--cache-location'=>Seaf::Config('dirs.cache','/tmp/sass'),
+            '--cache-location'=>Seaf::Config( )->get('dirs.cache','/tmp/sass'),
             '-s',
             '-E'=>'utf-8'
         );

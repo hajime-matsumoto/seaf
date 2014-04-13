@@ -2,12 +2,17 @@
 
 namespace Seaf\Util\Compiler;
 
-use Seaf\Util\FileSystem\FileLoader;
+use Seaf\Util\FileSystem\Loader as FileLoader;
+use Seaf\Util\FileSystem;
 use Seaf\Exception;
 use Seaf;
+use Seaf\Base;
 
 class AssetCompiler
 {
+    use Base\SeafAccessTrait;
+    use Base\CacheTrait;
+
     public $fileLoader;
     private $compilers;
     private $map = [
@@ -34,7 +39,7 @@ class AssetCompiler
     private function _sass ( )
     {
         $sass = new Command\Sass( );
-        foreach ($this->fileLoader->paths as $path) {
+        foreach ($this->fileLoader->getPaths() as $path) {
             $sass->setOpt('-I',$path);
         }
         return $sass;
@@ -55,31 +60,35 @@ class AssetCompiler
     public function compile ($path)
     {
         // 拡張子判定
-        $ext = Seaf::FileSystem($path)->getExt($file);
+        $ext = FileSystem\Helper::getExt($path);
+
         // 検索対処
-        $file = $this->fileLoader->find($file, $this->map[$ext]['exts']);
+        foreach ($this->map[$ext]['exts'] as $try_ext) {
+            $file = $this->fileLoader->file(FileSystem\Helper::swapExt($path, $try_ext));
+            if ($file) {
+                break;
+            }
+        }
+
         if (!$file) {
             throw new Exception\Exception([
                 '%sは存在しません', $path
             ]);
         }
 
+        echo $this->useCache((string) $file, function (&$isSuccess) use ($file) {
+            $real_ext = $file->ext();
+            $compiler = $this->$real_ext();
 
-        $real_ext = $file->ext();
-        $compiler = $this->$real_ext();
-        if(Seaf::Cache()->has((string) $file, $file->mtime()) ) {
-            echo Seaf::Cache()->getCachedData((string) $file);
-        }else{
             ob_start();
             $compiler->compile($file, $error);
-            if (empty($error)) {
-                Seaf::Cache()->put((string) $file, 0, $data = ob_get_contents());
-                ob_end_clean();
-                echo $data;
+            if (!empty($error)) {
+                $isSuccess = false;
+                return $error.ob_get_clean();
             }else{
-                echo $error;
+                return ob_get_clean();
             }
-        }
+        }, 0, $file->mtime());
     }
 
     public function __call($name, $params)

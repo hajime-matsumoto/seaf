@@ -3,6 +3,7 @@
 namespace Seaf\View\Engine;
 
 use Seaf;
+use Seaf\Util\FileSystem;
 use Seaf\Exception;
 
 /**
@@ -17,29 +18,13 @@ class Php extends Base
      */
     public function render($file, $vars = array())
     {
-        $file = Seaf::fileSystem($file);
-        if (false === $file->ext()) {
-            $file->ext('php');
+        if (false === FileSystem\Helper::getExt($file)) {
+            $file.=".php";
         }
-
-        $found = false;
-
-        foreach ($this->paths as $dir) {
-            $dir = Seaf::fileSystem($dir);
-
-            $tpl = $dir->get($file);
-
-            if ($tpl->isExists()) {
-                $found = true;
-                break;
-            }
-        }
-
-        if (!$found) {
+        $File = $this->view->loader->file($file);
+        if(!$File) {
             throw new Exception\Exception(array("%sがみつかりません",$tpl));
         }
-
-        $vars['title'] = 'Seaf';
-        return $tpl->includeWithVars($vars, true);
+        return $File->includeWithVars($vars);
     }
 }

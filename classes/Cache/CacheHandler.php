@@ -4,102 +4,32 @@ namespace Seaf\Cache;
 
 class CacheHandler
 {
-    /**
-     * キャッシュハンドラを作成する
-     */
-    public static function factory ($config)
+    private $cache;
+    private $name;
+
+    public function __construct ($name, Cache $cache)
     {
-        $ch = new CacheHandler();
-        $ch->setStorage($config['storage']);
-        return $ch;
+        $this->cache = $cache;
+        $this->name = $name;
     }
 
-    /**
-     * キャッシュ経由でデータを取得する
-     */
-    public function cache ($key, $expire, $until, $callback, &$isHit = null)
+    public function has ($name, $unless = 0)
     {
-        if ($expire == 0) {
-        }
-        if ($this->has($key, $until)) {
-            $isHit = true;
-            return $this->getCachedData($key);
-        } else {
-            $isHit = false;
-            return $this->put($key, $expire, $callback( ));
-        }
+        return $this->cache->has($this->getName($name), $unless);
     }
 
-    /**
-     * キャッシュストレージを設定する
-     */
-    public function setStorage($storage)
+    public function create ($name, $data, $expires = 0)
     {
-        $this->storage = Storage::factory($storage);
+        return $this->cache->create($this->getName($name), $data, $expires);
     }
 
-
-    /**
-     * キャッシュストレージを取得する
-     */
-    public function getStorage( )
+    public function get ($name, &$stat = null)
     {
-        if (isset($this->storage)) {
-            return $this->storage;
-        }
-
-        $this->setStorage([
-            'type' => 'fileSystem',
-            'path' => '/tmp/seaf.cache'
-        ]);
-
-        return $this->getStorage();
+        return $this->cache->get($this->getName($name), $stat);
     }
 
-    /**
-     * キャッシュが存在するか
-     *
-     * @return bool
-     */
-    public function has ($key, $until = 0)
+    protected function getName($name)
     {
-        $result = $this->getStorage( )->has($key, $status);
-        if ($result == false) return false;
-
-        if ($until > 0 && $status['created'] < $until) {
-            return false;
-        }
-        if ($status['expire'] > 0 && $status['expire'] < time()) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * キャッシュを作成する
-     */
-    public function put ($key, $expire, $data) 
-    {
-        $status['created'] = time();
-        $status['expire'] = $expire;
-        $this->getStorage( )->put($key, $data, $status);
-        return $data;
-    }
-
-    /**
-     * キャッシュを削除する
-     */
-    public function del ($key)
-    {
-        $this->getStorage( )->del($key);
-        return $this;
-    }
-
-    /**
-     * キャッシュを取得する
-     */
-    public function getCachedData ($key, &$status = null)
-    {
-        return $this->getStorage( )->get($key, $status);
+        return $this->name.'_'.$name;
     }
 }

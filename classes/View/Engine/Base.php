@@ -4,19 +4,20 @@ namespace Seaf\View\Engine;
 use Seaf\View;
 
 /**
- * テンプレータ
+ * テンプレータ エンジン
  */
-class Base extends View\Base
+class Base
 {
+    protected $view;
+
     /**
      * __construct
      *
      * @param View $view
      */
-    public function __construct (View\Base $view)
+    public function __construct (View\View $view)
     {
-        parent::__construct();
-        $this->addPath($view->paths);
+        $this->view = $view;
     }
 
     /**

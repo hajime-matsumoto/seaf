@@ -6,19 +6,40 @@ use Seaf;
 use Seaf\Util;
 use Seaf\DB;
 use Seaf\Exception;
-use Seaf\Pattern;
-use Seaf\Data\Container\ArrayContainer;
+use Seaf\Base;
+use Seaf\Container\ArrayContainer;
 
 class P18n
 {
-    use Pattern\Configure;
+    use Base\ComponentCompositeTrait;
 
-    protected $default_lang = 'en';
-    protected $lang = 'ja';
-    protected $lang_dir;
+    protected $default_locale = 'en';
+    protected $locale = 'ja';
+    protected $dir;
     protected $lang_enables = array();
 
     protected $db;
+
+    /**
+     * コンストラクタ
+     */
+    public function __construct ($cfg)
+    {
+        $cfg = new ArrayContainer($cfg);
+        $this
+            ->defaultLocale($cfg('default-locale', $this->default_locale))
+            ->locale($cfg('locale', $this->locale));
+        if ($cfg->has('dir')) {
+            $this->dir = $cfg('dir');
+        }
+
+        $this->setComponentContainer(__NAMESPACE__.'\\ComponentContainer');
+        $this->component()->loadConfig([
+            'Datasource' => $cfg('datasource')
+        ]);
+        $this->db = $this->component('Datasource');
+        $this->install();
+    }
 
     //----------------------------
     // 設定
@@ -28,9 +49,10 @@ class P18n
      *
      * @param string
      */
-    public function configDefaultLang ($lang)
+    public function defaultLocale ($code)
     {
-        $this->default_lang = $lang;
+        $this->default_locale = $code;
+        return $this;
     }
 
     /**
@@ -38,75 +60,35 @@ class P18n
      *
      * @param string
      */
-    public function configLang ($lang)
+    public function locale ($code)
     {
-        $this->locale($lang);
-    }
-    /**
-     * 現在のデフォルトのロケールを設定/取得する
-     *
-     * @param string
-     */
-    public function defaultLocale ($default_lang = null)
-    {
-        if ($default_lang == null) return $this->default_lang;
-        $this->default_lang = $default_lang;
+        $this->locale = $code;
+        return $this;
     }
 
-    /**
-     * 現在のロケールを設定/取得する
-     *
-     * @param string
-     */
-    public function locale ($lang = null)
-    {
-        if ($lang == null) return $this->lang;
-        $this->lang = $lang;
-    }
-
+    //----------------------------
+    // 取得
 
     /**
-     * 言語ファイルディレクトリ
+     * 現在のデフォルトのロケールを取得する
      *
-     * @param string
+     * @return string
      */
-    public function configLangDir ($dir)
+    public function getDefaultLocale ($default_lang = null)
     {
-        $this->lang_dir = Seaf::FileSystem($dir);
+        return $this->default_locale;
     }
 
     /**
-     * P18nを作成する
+     * 現在のロケールを取得する
      *
-     * @param array
+     * @return string
      */
-    public static function factory ($config = array())
+    public function getLocale ($lang = null)
     {
-        $c = Util\ArrayHelper::container(
-            Seaf::Config('p18n', array()) + $config
-        );
-
-        $p18n = new self();
-
-        // バックエンドのデータソース
-        if ($c('dsn')) {
-            $p18n->db = DB\Handler::factory([
-                'connectMap'=>[
-                    'default' => $c('dsn')
-                ]
-            ]);
-        }
-
-        // ランゲージディレクトリの設定
-        $p18n->lang_dir = $c('langDir');
-        $p18n->locale($c('lang', 'ja'));
-        $p18n->defaultLocale($c('lang', 'en'));
-
-        // インストールされていなければインストールする
-        $p18n->install();
-
-        return $p18n;
+        return $this->locale;
     }
+
 
     /**
      * インストール
@@ -118,7 +100,8 @@ class P18n
             ->where(['id'=>1])
             ->execute();
 
-        if (($status = $res->fetch()) == null) {
+        $install_status = $res->fetch();
+        if ($install_status == null) {
             // インデックスを作成する
             $this->db->getTable('translation')->newRequest('command')->param([
                 'drop' => true,
@@ -129,24 +112,26 @@ class P18n
             $status = ['id' => 1];
         }
 
-
-        foreach (Seaf::FileSystem($this->lang_dir) as $file) {
-            if ('yaml' == $file->ext( )) {
-                $lang = $file->basename(false);
+        foreach(glob($this->dir.'/*.yaml') as $file) {
+            $File = new Seaf\Util\FileSystem\File($file);
+            if ('yaml' == $File->ext( )) {
+                $lang = $File->basenameWithOutExt();
 
                 if (
                     !isset($status[(string)$file]) ||
-                    $status[(string)$file] < $file->mtime()
+                    $status[(string)$file] < $File->mtime()
                 ) { 
-                    $c = $this->import($lang, '', $file->toArray());
+                    $c = $this->import($lang, '', $File->toArray());
                 }
             }
+
         }
+
         // ステータスを保存
         $this->db->getTable('status')->update( )
             ->option(['upsert'=>true])
             ->where(['id'=>1])
-            ->param($status)
+            ->param($install_status)
             ->execute();
     }
 
@@ -169,7 +154,7 @@ class P18n
             $c++;
             $key = ($prefix ? $prefix.'.':'').$k;
             $translation = $v;
-            $this->getTable( )
+            $res = $this->getTable( )
                 ->update()
                 ->option(['upsert'=>true])
                 ->where(compact('lang','key'))

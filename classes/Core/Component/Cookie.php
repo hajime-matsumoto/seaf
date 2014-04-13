@@ -3,7 +3,7 @@
 namespace Seaf\Core\Component;
 
 use Seaf;
-use Seaf\Data\Container;
+use Seaf\Container;
 
 /**
  * クッキー関するヘルパ

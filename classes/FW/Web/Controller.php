@@ -10,6 +10,8 @@ class Controller extends FW\Controller
 
     public function __construct ( ) 
     {
+        $this->setComponentContainer('Seaf\FW\Web\ComponentContainer');
+
         $this->initWeb();
     }
 
@@ -20,9 +22,6 @@ class Controller extends FW\Controller
     {
         $this->initController();
 
-        // コンポーネントネームスペースを追加
-        $this->di( )->factory->configAutoLoad(__NAMESPACE__.'\\Component\\');
-
         // Mapを追加
         $this->bind($this, [
             'beforeRun' => '_beforeRun',
@@ -32,20 +31,19 @@ class Controller extends FW\Controller
         ]);
 
         // レスポンスを常に使用させる
-        $this
-            ->on('before.run', 'beforeRun')
-            ->on('after.run', 'afterRun');
+        $this->on([
+            'before.run' => 'beforeRun',
+            'after.run'  => 'afterRun'
+        ]);
 
     }
 
     /**
      * BeforeRun
      *
-     * @param Request
-     * @param Response
-     * @param Controller
+     * @param Event
      */
-    public function _beforeRun ($request, $response, $controller)
+    public function _beforeRun ($event)
     {
         ob_start();
     }
@@ -58,10 +56,10 @@ class Controller extends FW\Controller
      * @param bool
      * @param Controller
      */
-    public function _afterRun ($request, $response, $dispatchFlag, $controller)
+    public function _afterRun ($event)
     {
-        if ($dispatchFlag == true) {
-            $response
+        if ($event->dispatchFlag == true) {
+            $event->response
                 ->write(ob_get_clean())
                 ->send();
         }
@@ -93,9 +91,8 @@ class Controller extends FW\Controller
     {
         // パスを変換する
         if ($uri{0} !== '/') {
-            $uri = $this->request()->uri()->abs($uri);
+            $uri = $this->request()->getPath($uri, false);
         }
-
 
         $this->response()
             ->clear()
