@@ -39,6 +39,11 @@ class Config
         return $this;
     }
 
+    /**
+     * $nameのコンフィグファイルを読み込む
+     *
+     * setting.yaml
+     */
     public function load ($name)
     {
         $file = $this->dir->find($name.".yaml");
@@ -65,7 +70,7 @@ class Config
             }, 0, $file->mtime(), $cache_status
         );
 
-        $this->debug('Cache-Status', $cache_status);
+        $this->debug(['Cache-Status'=>$cache_status]);
     }
 
     public function __invoke($name)
