@@ -19,6 +19,22 @@ trait CacheTrait
             }
         }
 
+        public function saveCache($key, $data, $expire = 0)
+        {
+            $handler = $this->getCacheHandler();
+            $handler->create($key, $data, $expire);
+        }
+
+        public function getCache($key, $unless, $default = null)
+        {
+            $handler = $this->getCacheHandler();
+
+            if ($handler->has($key, $unless)) {
+                return $handler->get($key, $stat);
+            }
+            return $default;
+        }
+
         public function useCache($key, $callback, $expire = 0, $unless = 0, &$stat = null)
         {
             $handler = $this->getCacheHandler();
