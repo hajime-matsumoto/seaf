@@ -25,7 +25,7 @@ trait CacheTrait
             $handler->create($key, $data, $expire);
         }
 
-        public function getCache($key, $unless, $default = null)
+        public function getCache($key, $unless = 0, $default = null)
         {
             $handler = $this->getCacheHandler();
 

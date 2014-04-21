@@ -47,6 +47,14 @@ class ArrayContainer implements \ArrayAccess,\Iterator
         return ArrayHelper::get($this->data, $name, $default);
     }
 
+    public function getOnlyArray($name)
+    {
+        $res = ArrayHelper::get($this->data, $name, []);
+        if (!is_array($res)) {
+            return array();
+        }
+        return $res;
+    }
     /**
      * 値を設定する
      *

@@ -72,7 +72,7 @@ class ComponentContainer extends DI\Container
      */
     public function initWeb( )
     {
-        return new \Seaf\FW\Web\Controller( );
+        return new \Seaf\FW\Web\Controller();
     }
 
 }

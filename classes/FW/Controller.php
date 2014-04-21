@@ -107,7 +107,6 @@ class Controller
 
         $this->debug(['Recived-Path: %s', $request->getPath()]);
 
-
         // --------------------------------------------------
         // マウントの処理
         // --------------------------------------------------
@@ -155,7 +154,6 @@ class Controller
     public function dispatch ($route, $request, $response, &$dispatchFlag)
     {
         $this->trigger('before.dispatch', $request, $response, $dispatchFlag);
-
 
         $result = call_user_func_array($route->getAction(), $route->getParams(
             array($request, $response,$this)

@@ -3,9 +3,12 @@
 namespace Seaf\DI;
 
 use Seaf\Container\ArrayContainer;
+use Seaf\Base;
 
 class Container extends ArrayContainer
 {
+    use Base\EventTrait;
+
     /**
      * @var array[Factory,,,]
      */
@@ -88,19 +91,25 @@ class Container extends ArrayContainer
      */
     public function create ($name)
     {
+        $instance = false;
         foreach ($this->factories as $factory) {
             if ($factory->has($name)) {
 
                 // 設定があれば読み込む
-                return $factory->create($name, isset($this->cfg[$name]) ? $this->cfg[$name]: []);
+                $instance = $factory->create($name, isset($this->cfg[$name]) ? $this->cfg[$name]: []);
             }
         }
 
-        if (class_exists($name)) {
-            return new $name( );
+        if ($instance === false && class_exists($name)) {
+            $instance = new $name( );
         }
 
-        throw new Exception\InvalidInstanceName(["%sは登録されていません", $name]);
+        if ($instance == false) {
+            throw new Exception\InvalidInstanceName(["%sは登録されていません", $name]);
+        }
+
+        $this->trigger('create', ['instance'=>$instance]);
+        return $instance;
     }
 
     /**

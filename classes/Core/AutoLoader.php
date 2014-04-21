@@ -135,6 +135,15 @@ class AutoLoader
                 require_once $file_path;
                 return;
             }
+
+            // Traitの場合はTrait/もチェックする
+            if (substr($filename,-5) == 'Trait') {
+                $file_path = $path.'/'.dirname($filename).'/Trait/'.basename($filename).'.php';
+                if (file_exists($file_path)) {
+                    require_once $file_path;
+                    return;
+                }
+            }
         }
     }
 

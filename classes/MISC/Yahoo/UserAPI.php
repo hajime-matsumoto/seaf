@@ -7,20 +7,15 @@ use Seaf\DOM\HTML;
 use Seaf\Base;
 
 /**
- * Yahooログインユーザ
+ * ユーザAPI
  */
-class User
+class UserAPI
 {
     use Base\SeafAccessTrait;
     use Base\CacheTrait;
 
     const LOGIN_URL = "https://login.yahoo.co.jp/config/login?.lg=jp&.intl=jp&.src=auc&.done=http://auctions.yahoo.co.jp/jp";
     const DUMMY_USER_AGENT  = 'Mozilla/5.0 (Windows NT 5.1; rv:12.0) Gecko/20100101 Firefox/12.0';
-
-    /**
-     * @var Environment
-     */
-    private $Env;
 
     /**
      * @var string
@@ -33,9 +28,9 @@ class User
     public $passwd;
 
     /**
-     * @var array
+     * @var API
      */
-    public $api;
+    private $api;
 
     /**
      * @var string
@@ -52,25 +47,12 @@ class User
      *
      * @param string
      * @param string
-     * @param array
-     * @param Environment
      */
-    public function __construct ($account, $passwd, $api, Environment $env)
+    public function __construct ($account, $passwd, API $api)
     {
         $this->account = $account;
-        $this->passwd  = $passwd;
-        $this->api     = $api;
-        $this->Env     = $env;
-    }
-
-    /**
-     * ユーザに紐づくAPIキーを取得する
-     *
-     * @return string
-     */
-    public function getApiKey ( )
-    {
-        return $this->api['id'];
+        $this->passwd = $passwd;
+        $this->api = $api;
     }
 
     /**
@@ -78,7 +60,7 @@ class User
      *
      * @return HTTP\Client
      */
-    public function client( )
+    private function client( )
     {
         // クライアントを生成
         $client = HTTP\Client::factory([
@@ -89,30 +71,6 @@ class User
         return $client;
     }
 
-    /**
-     * クッキー情報を取得する
-     *
-     * @return string
-     */
-    public function getCurlCookieData ( )
-    {
-        if (empty($this->curl_cookie)) {
-            return $this->getCache($this->account);
-        }else{
-            return $this->curl_cookie;
-        }
-    }
-
-    /**
-     * クッキー情報を保存する
-     *
-     * @param string
-     */
-    public function saveCurlCookieData ($data)
-    {
-        $this->saveCache($this->account, $data);
-        $this->curl_cookie = $data;
-    }
 
     /**
      * ログイン状態を取得
@@ -134,8 +92,6 @@ class User
      */
     public function login( )
     {
-        if ($this->isLogin()) return true;
-
         // クライアントを取得
         $client = $this->client();
         $client->get(self::LOGIN_URL);
@@ -150,10 +106,6 @@ class User
 
         // スクレイピングしてLoginURLとパラメタを取得する
         $html = HTML\Parser::parse($res);
-        if (!$html) {
-            var_dump($res);
-            die('COUDNOT GET LOGIN URL');
-        }
         $form = $html->find('form[id=login_form]', 0);
         $login_url = $form->action;
 
@@ -186,9 +138,29 @@ class User
         return false;
     }
 
-    public function cookie( )
+
+    /**
+     * クッキー情報を取得する
+     *
+     * @return string
+     */
+    public function getCurlCookieData ( )
     {
-        $data = $this->client( )->parseCookieFile($this->cookie_file);
-        return $data;
+        if (empty($this->curl_cookie)) {
+            $this->getCache($this->account);
+        }else{
+            return $this->curl_cookie;
+        }
+    }
+
+    /**
+     * クッキー情報を保存する
+     *
+     * @param string
+     */
+    public function saveCurlCookieData ($data)
+    {
+        $this->saveCache($this->account, $data);
+        $this->curl_cookie = $data;
     }
 }

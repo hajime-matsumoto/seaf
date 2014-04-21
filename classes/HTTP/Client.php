@@ -146,6 +146,49 @@ class Client
         return $this;
     }
 
+    /**
+     * クッキーをパースする
+     */
+    public function parseCookieFile($file)
+    {
+        $cookies = array();
+
+        $lines = explode("\n", file_get_contents($file));
+
+        // iterate over lines
+        foreach ($lines as $line) {
+
+            // we only care for valid cookie def lines
+            if (isset($line[0]) && substr_count($line, "\t") == 6) {
+
+                // get tokens in an array
+                $tokens = explode("\t", $line);
+
+                // trim the tokens
+                $tokens = array_map('trim', $tokens);
+
+                $cookie = array();
+
+                // Extract the data
+                $cookie['domain'] = $tokens[0];
+                $cookie['flag'] = $tokens[1];
+                $cookie['path'] = $tokens[2];
+                $cookie['secure'] = $tokens[3];
+
+                // Convert date to a readable format
+                $cookie['expiration'] = date('Y-m-d h:i:s', $tokens[4]);
+
+                $cookie['name'] = $tokens[5];
+                $cookie['value'] = $tokens[6];
+
+                // Record the cookie.
+                $cookies[] = $cookie;
+            }
+        }
+
+        return $cookies;
+    }
+
     public function __destruct( )
     {
         if (file_exists($this->cookie_file_path)) {
@@ -231,4 +274,6 @@ class Client
         curl_close($this->curl);
         return $res;
     }
+
+
 }

@@ -20,6 +20,10 @@ trait LoggerTrait
         {
             $this->logHandler( )->post(LogLevel::ERROR, $data);
         }
+        protected function warn ($data)
+        {
+            $this->logHandler( )->post(LogLevel::WARNING, $data);
+        }
 
         protected function logHandler ( )
         {

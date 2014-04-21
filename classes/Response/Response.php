@@ -95,6 +95,16 @@ class Response extends ArrayContainer
         return $this->body;
     }
 
+    /**
+     * レスポンスコードを取得する
+     *
+     * @return int
+     */
+    public function getStatus( )
+    {
+        return $this->status;
+    }
+
     //---------------------------------------
     // 変換系
     //---------------------------------------

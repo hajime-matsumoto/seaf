@@ -49,6 +49,44 @@ class Base
     }
 
     /**
+     * 条件に従うモデルを取得
+     *
+     * @return mixed
+     */
+    public static function FindOne ($where)
+    {
+        $table = static::table( );
+        return $table->find( )->where($where)->execute()->fetch();
+    }
+
+    /**
+     * 条件に従うモデルを取得
+     *
+     * @return mixed
+     */
+    public static function Find ($where)
+    {
+        $table = static::table( );
+        return $table->find( )->where($where)->execute();
+    }
+
+    /**
+     * 条件に従うモデルがあれば取得
+     * なければ作成する
+     *
+     * @return Base
+     */
+    public static function FindOneOrCreate ($where, $datas)
+    {
+        $model = static::FindOne($where);
+        if (false == $model) {
+            return static::create($datas);
+        }
+        $model->set($datas);
+        return $model;
+    }
+
+    /**
      * 新規作成時に呼ばれる
      */
     protected function onCreate ( )

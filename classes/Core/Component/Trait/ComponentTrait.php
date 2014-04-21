@@ -3,6 +3,7 @@ namespace Seaf\Core\Component;
 
 trait ComponentTrait
     {
+
         public function componentHelper ($name = null) 
         {
             if (func_num_args() == 0 || !method_exists($this, '_componentHelper')) {

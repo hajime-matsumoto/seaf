@@ -239,9 +239,9 @@ class P18n
         // 現在の言語から検索して見つからなければ
         // デフォルトの言語から検索する
         //
-        $result = $this->_translate($this->lang, $word);
+        $result = $this->_translate($this->locale, $word);
         if (false === $result) {
-            $result = $this->_translate($this->default_lang, $word);
+            $result = $this->_translate($this->default_locale, $word);
         }
 
         // ------------------------------------------

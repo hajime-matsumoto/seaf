@@ -1,10 +1,11 @@
 <?php // vim: set ft=php ts=4 sts=4 sw=4 et:
 
-namespace Seaf\MISC\Yahoo;
+namespace Seaf\Module\Yahoo\Account;
 
 use Seaf\Net\HTTP;
 use Seaf\DOM\HTML;
 use Seaf\Base;
+use Seaf\Module\Yahoo\Environment;
 
 /**
  * Yahooログインユーザ

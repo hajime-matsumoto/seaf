@@ -38,13 +38,23 @@ class Translation
         }
 
         if (count($res) == 1) {
+
             $value = current($res);
 
-            if ( func_num_args( ) > 1 )
-            {
+            if ( func_num_args( ) > 1 ) {
                 return vsprintf($value, array_slice(func_get_args(),1));
             }
             return $value;
+        } else {
+            $arg = func_get_arg(1);
+            $key = $key.".".$arg;
+            if (isset($res[$key])) {
+                $value = $res[$key];
+            }
+
+            if ( func_num_args( ) > 1 ) {
+                return vsprintf($value, array_slice(func_get_args(),1));
+            }
         }
     }
 
