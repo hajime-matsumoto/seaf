@@ -73,5 +73,4 @@ class KVSHandlerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertFalse($kvs->has($k));
     }
-
 }

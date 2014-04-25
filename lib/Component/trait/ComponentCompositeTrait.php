@@ -7,8 +7,6 @@ trait ComponentCompositeTrait
     {
         use Container\ArrayContainerTrait;
 
-        abstract public function raiseError($code, $params =[]);
-
         /**
          * @var array
          */
@@ -50,11 +48,14 @@ trait ComponentCompositeTrait
 
             foreach ($this->loaders as $loader) {
                 $instance = $loader->create($name, [$this->getComponentConfig($name)]);
-                if ($instance === false) continue;
+                if ($instance === false) {
+                    continue;
+                }
+                break;
             }
 
             if ($instance == false) {
-                $this->raiseError('COMPONENT_NOT_FOUND', [$name]);
+                throw new Exception\ComponentNotFound($name, $this);
             }
             $this->setVar($name, $instance);
             return $instance;
