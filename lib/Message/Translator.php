@@ -108,6 +108,17 @@ class Translator
         if (!$data = $this->find($code)) {
             return '[['.$code.']]';
         }
+
+        if (func_num_args() > 1) {
+            if (is_string($data)) {
+                return vsprintf($data, array_slice(func_get_args(),1));
+            }elseif(is_array($data)) {
+                $key = func_get_arg(1);
+                $format = isset($data[$key]) ? $data[$key]: current($data);
+                return sprintf($format, $key);
+            }
+        }
+
         return $data;
     }
 

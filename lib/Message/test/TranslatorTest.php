@@ -30,8 +30,8 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
     public function testLoadMessageDir ( )
     {
         $t = new Translator( );
-        $t->setCacheHandler(Seaf::Cache( )->section('message'));
         $t->useCache(false);
+        $t->setCacheHandler(Seaf::Cache( )->section('message'));
         $t->setMessageDir(__DIR__.'/lang');
 
         $this->assertEquals(
@@ -44,6 +44,24 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(
             'Hajime',
             $t->translate('site.name')
+        );
+
+        $this->assertEquals(
+            'I am hajime',
+            $t->translate('person.I_AM', 'hajime')
+        );
+
+        $this->assertEquals(
+            'nobody',
+            $t->translate('person.count', 0)
+        );
+        $this->assertEquals(
+            'a person',
+            $t->translate('person.count', 1)
+        );
+        $this->assertEquals(
+            '10 people',
+            $t->translate('person.count', 10)
         );
     }
 

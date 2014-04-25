@@ -1,0 +1,5 @@
+I_AM: 'I am %1$s'
+count:
+    n: "%1$s people"
+    0: "nobody"
+    1: "a person"
