@@ -1,0 +1,23 @@
+# vim: set ft=yaml ts=4 sts=4 sw=4 :
+#
+# Seaf設定ファイル
+# 
+#
+useSection: 1
+
+# ====================================
+# ロギングの設定
+#
+
+default:
+    Writers:
+        -
+            type      : fileSystem
+            fileName  : $setting.project_root$/var/log/seaf.log
+            writeMode : a
+            formatter :
+                type: text
+                format: '%time% [%tags%] [%level%] %message% %params%'
+            filters:
+                - type: level
+                  value: ALL
