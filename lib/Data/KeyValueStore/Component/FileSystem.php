@@ -14,7 +14,7 @@ class FileSystem implements KeyValueStore\KVSComponentIF
     public function __construct($cfg)
     {
         $cfg = new Container\ArrayContainer($cfg);
-        $this->setFileSystem(new FSHandler($cfg('roorPath', '/tmp/seaf')));
+        $this->setFileSystem($f = new FSHandler($cfg('rootPath', '/tmp/seaf')));
     }
 
     public function setFileSystem(FSHandler $fs)

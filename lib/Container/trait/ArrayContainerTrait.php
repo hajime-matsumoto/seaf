@@ -11,7 +11,18 @@ trait ArrayContainerTrait
          */
         protected function initContainerData ($data) 
         {
+            if (is_object($data)) {
+                $data = $data->toArray();
+            }
             $this->data = $data;
+        }
+
+        /**
+         * 配列にする
+         */
+        public function toArray ( ) 
+        {
+            return $this->data;
         }
 
         /**
@@ -31,11 +42,18 @@ trait ArrayContainerTrait
          *
          * @param string
          * @param mixed
-         * @return void
+         * @return ArrayContainer
          */
         public function setVar ($key, $value = null)
         {
+            if (is_array($key)) {
+                foreach ($key as $k=>$v) {
+                    $this->setVar($k, $v);
+                }
+                return $this;
+            }
             ArrayHelper::set($this->data, $key, $value);
+            return $this;
         }
 
         /**
@@ -57,7 +75,7 @@ trait ArrayContainerTrait
          */
         public function hasVar ($key)
         {
-            ArrayHelper::has($this->data, $key);
+            return ArrayHelper::has($this->data, $key);
         }
 
 

@@ -10,7 +10,7 @@ class FSHandler
     {
         $this->rootPath = $root;
         if (!is_dir($root)) {
-            mkdir($root);
+            mkdir($root, 0777, true);
         }
     }
 

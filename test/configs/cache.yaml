@@ -1,0 +1,13 @@
+default:
+    component:
+        KeyValueStore:
+            FileSystem:
+                rootPath:
+                    $SEAF_PROJECT_ROOT$/var/kvs
+            Memcache:
+                servers:
+                    - localhost
+        Cache:
+            KeyValueStore: memcache
+development:
+production:

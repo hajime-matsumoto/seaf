@@ -9,7 +9,7 @@ use Seaf\Base;
 
 class KVSHandler
 {
-    private $table;
+    private $default;
 
     use Base\RaiseErrorTrait;
     use Component\ComponentCompositeTrait;
@@ -18,6 +18,7 @@ class KVSHandler
     {
         $cfg = Container\ArrayHelper::useContainer($cfg);
         $kvs = new static( );
+        $kvs->default = $cfg('default');
         $kvs->loadComponentConfig($cfg('component'));
         return $kvs;
     }
@@ -34,8 +35,10 @@ class KVSHandler
     /**
      * 処理用のハンドラを取得する
      */
-    public function table($name = 'default', $engine = 'FileSystem')
+    public function table($name = 'default', $engine = null)
     {
+        if ($engine == null) $engine = $this->default;
+
         return new Table($name, $this->getComponent($engine));
     }
 

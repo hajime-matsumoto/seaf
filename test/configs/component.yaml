@@ -1,0 +1,28 @@
+# vim: set ft=yaml ts=4 sts=4 sw=4 :
+#
+# Seaf設定ファイル
+# 
+#
+useSection: 0
+
+# ====================================
+# コンポーネントの設定
+#
+
+#===========================================
+# KVSの設定
+#===========================================
+KeyValueStore:
+    component:
+        FileSystem:
+            rootPath:
+                $SEAF_PROJECT_ROOT$/var/kvs
+        Memcache:
+            servers:
+                - localhost
+
+#===========================================
+# キャッシュの設定
+#===========================================
+Cache:
+    KeyValueStore: memcache

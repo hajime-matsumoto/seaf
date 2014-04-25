@@ -1,11 +1,14 @@
 <?php // vim: set ft=php ts=4 sts=4 sw=4 et:
 
 namespace Seaf\Component;
+
 use Seaf\Container;
+use Seaf\Event;
 
 trait ComponentCompositeTrait
     {
         use Container\ArrayContainerTrait;
+        use Event\ObservableTrait;
 
         /**
          * @var array
@@ -58,6 +61,9 @@ trait ComponentCompositeTrait
                 throw new Exception\ComponentNotFound($name, $this);
             }
             $this->setVar($name, $instance);
+            $this->trigger('component.create',[
+                'component' => $instance
+            ]);
             return $instance;
         }
 
@@ -68,7 +74,7 @@ trait ComponentCompositeTrait
         {
             if (!isset($this->configs[$name])) return [];
 
-            return $this->configs[$name];
+            return new Container\ArrayContainer($this->configs[$name]);
         }
 
     }
