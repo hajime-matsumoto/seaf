@@ -122,7 +122,7 @@ class ArrayHelper
      * @param stirng $name
      * @return ArrayContainer
      */
-    public static function container ($array)
+    public static function useContainer ($array)
     {
         return new ArrayContainer($array);
     }

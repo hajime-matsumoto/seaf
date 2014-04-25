@@ -15,8 +15,8 @@ class ArrayContainer implements \ArrayAccess,\Iterator
         $this->initContainerData ($data);
     }
 
-    public function __invoke($key)
+    public function __invoke($key, $default = null)
     {
-        return $this->getVar($key);
+        return $this->getVar($key, $default);
     }
 }

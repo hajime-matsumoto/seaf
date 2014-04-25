@@ -154,7 +154,7 @@ class ClassLoader
         }
 
         // IFの場合はinterface/もチェックする
-        if (substr($filename,-5) == 'IF') {
+        if (substr($filename,-2) == 'IF') {
             $file_path = $path.dirname($filename).'/interface/'.basename($filename).'.php';
             $this->logs[] = $file_path;
             if (file_exists($file_path)) {
@@ -162,6 +162,7 @@ class ClassLoader
                 return true;
             }
         }
+
     }
 
 
