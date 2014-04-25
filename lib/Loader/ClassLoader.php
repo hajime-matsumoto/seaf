@@ -143,9 +143,19 @@ class ClassLoader
             return true;
         }
 
-        // Traitの場合はTrait/もチェックする
+        // Traitの場合はtrait/もチェックする
         if (substr($filename,-5) == 'Trait') {
             $file_path = $path.dirname($filename).'/trait/'.basename($filename).'.php';
+            $this->logs[] = $file_path;
+            if (file_exists($file_path)) {
+                require_once $file_path;
+                return true;
+            }
+        }
+
+        // IFの場合はinterface/もチェックする
+        if (substr($filename,-5) == 'IF') {
+            $file_path = $path.dirname($filename).'/interface/'.basename($filename).'.php';
             $this->logs[] = $file_path;
             if (file_exists($file_path)) {
                 require_once $file_path;
