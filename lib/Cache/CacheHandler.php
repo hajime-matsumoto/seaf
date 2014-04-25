@@ -14,6 +14,13 @@ class CacheHandler
         $this->key = $key;
     }
 
+    public function section ($key)
+    {
+        $cache = new CacheHandler($key);
+        $cache->setKvsTable($this->getKvsTable());
+        return $cache;
+    }
+
     public function getKvsTable( )
     {
         return $this->kvs;
@@ -22,6 +29,14 @@ class CacheHandler
     public function setKvsTable(KVS\Table $kvs)
     {
         return $this->kvs = $kvs;
+    }
+
+    public function useCacheIf($bool, $key, $callback, $expires = 0, $until = 0, &$cacheStatus = null)
+    {
+        if ($bool) {
+            return $this->useCache($key, $callback, $expires, $until, $cacheStatus);
+        }
+        return $callback($isSuccess);
     }
 
     public function useCache($key, $callback, $expires = 0, $until = 0, &$cacheStatus = null)
