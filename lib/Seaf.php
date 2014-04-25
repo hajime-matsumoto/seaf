@@ -5,6 +5,7 @@ use Seaf\Container;
 use Seaf\Base;
 use Seaf\Cache;
 use Seaf\Data\KeyValueStore;
+use Seaf\Logging;
 
 class Seaf
 {
@@ -63,12 +64,24 @@ class Seaf
         // 設定を読み込む
         $c = $this->Config( )->loadConfigFiles($project_root.'/configs');
 
+        // コンポーネント群を設定する
+        $this->loadComponentConfig($c('component', []));
+
         // PHPを設定する
         mb_internal_encoding($c('setting.encoding', 'utf-8'));
         mb_language($c('setting.lang', 'ja'));
         date_default_timezone_set($c('setting.timezone', 'Asia/Tokyo'));
 
-        $this->loadComponentConfig($c('component', []));
+        // グローバルのロガーをセットアップする
+        $logger = Logging\LogHandler::getSingleton( );
+        $logger->setup($c('logging', []));
+        $logger->register();
+
+        // 開始メッセージを送出する
+        $logger->info('START',null,['SEAF','SYSTEM']);
+
+        // ロガーをコンポーネントに登録する
+        $this->setComponent('Logger', $logger);
     }
 
 

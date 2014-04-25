@@ -2,10 +2,28 @@
 
 namespace Seaf\Logging;
 
+use Seaf\Base;
+use Seaf\Container;
 
 class LogHandler 
 {
     use LoggingTrait;
+    use Base\SingletonTrait;
+
+    public static function who ( ) 
+    {
+        return __CLASS__;
+    }
+
+    public function setup ($cfg)
+    {
+        $c = new Container\ArrayContainer($cfg);
+        foreach($c('Writers',[]) as $v) {
+            $writer = Writer::factory($v);
+            $writer->attach($this);
+        }
+    }
+
 
     public function register ( )
     {
@@ -33,10 +51,11 @@ class LogHandler
      */
     public function phpErrorHandler( $eno, $msg, $file, $line)
     {
-        $code = Code\LogLevel::convertPHPErrorCode($eno);
+        $code = Code\LogLevel::convertPHPErrorCode($eno, $name);
         $this->logPost(new Log($code, $msg, $params = [
             'file' => $file,
-            'line' => $line
+            'line' => $line,
+            'phpErrorName' => $name
         ], $tags = ['php']));
     }
 
@@ -45,6 +64,7 @@ class LogHandler
      */
     public function phpShutdownFunction( )
     {
+
         if ($err = error_get_last()) {
             $this->phpErrorHandler(
                 $err['type'],
@@ -53,5 +73,7 @@ class LogHandler
                 $err['line']
             );
         }
+
+        $this->trigger('shutdown');
     }
 }

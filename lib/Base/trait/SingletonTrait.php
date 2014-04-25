@@ -6,7 +6,9 @@ trait SingletonTrait
     {
         private static $instance;
 
-        abstract public static function who ( );
+        public static function who ( ) {
+            throw Exception\Exception('whoを実装してください');
+        }
 
         /**
          * シングルトンインスタンスを取得する

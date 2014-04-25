@@ -39,6 +39,14 @@ trait ComponentCompositeTrait
         }
 
         /**
+         * コンポーネントを設定する
+         */
+        public function setComponent ($name, $component)
+        {
+            $this->setVar($name, $component);
+        }
+
+        /**
          * コンポーネントを取得する
          */
         public function getComponent ( $name )

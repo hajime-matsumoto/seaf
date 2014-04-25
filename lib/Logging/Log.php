@@ -15,7 +15,7 @@ class Log
         $this->level   = $level;
         $this->message = $message;
         $this->params  = $params;
-        $this->tags    = $tags;
+        $this->tags    = is_string($tags) ? [$tags]: $tags;
         $this->time    = time();
     }
 

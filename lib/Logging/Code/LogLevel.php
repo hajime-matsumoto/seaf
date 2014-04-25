@@ -53,6 +53,27 @@ class LogLevel {
         E_STRICT            => self::WARNING
     );
 
+    /**
+     * PHPエラーマップリバース
+     */
+    public static $php_error_map_string = array(
+        E_COMPILE_ERROR     => "E_COMPILE_ERROR",
+        E_ERROR             => "E_ERROR",
+        E_PARSE             => "E_PARSE",
+        E_CORE_ERROR        => "E_CORE_ERROR",
+        E_RECOVERABLE_ERROR => "E_RECOVERABLE_ERROR",
+        E_USER_ERROR        => "E_USER_ERROR",
+        E_WARNING           => "E_WARNING",
+        E_CORE_WARNING      => "E_CORE_WARNING",
+        E_COMPILE_WARNING   => "E_COMPILE_WARNING",
+        E_USER_WARNING      => "E_USER_WARNING",
+        E_DEPRECATED        => "E_DEPRECATED",
+        E_USER_DEPRECATED   => "E_USER_DEPRECATED",
+        E_NOTICE            => "E_NOTICE",
+        E_USER_NOTICE       => "E_USER_NOTICE",
+        E_STRICT            => "E_STRICT"
+    );
+
     public static function parse ($str)
     {
         $t = strtok($str, ' ');
@@ -75,8 +96,9 @@ class LogLevel {
         return $int;
     }
 
-    public static function convertPHPErrorCode($eno)
+    public static function convertPHPErrorCode($eno, &$name = null)
     {
+        $name = self::$php_error_map_string[$eno];
         return isset(self::$php_error_map[$eno]) ?
             self::$php_error_map[$eno]:
             self::ERROR;
@@ -88,4 +110,5 @@ class LogLevel {
             self::$map[$code]:
             'UNDEFINED('.$code.')';
     }
+
 }

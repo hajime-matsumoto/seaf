@@ -67,7 +67,7 @@ class Config implements Core\ComponentIF
         if (isset($data['useSection']) && $data['useSection'] == 1) {
             unset($data['useSection']);
             foreach ($data as $section=>$vars) {
-                $this->getConfigContainer($section)->setVar($key, $data);
+                $this->getConfigContainer($section)->setVar($key, $vars);
             }
         }else{
             unset($data['useSection']);
