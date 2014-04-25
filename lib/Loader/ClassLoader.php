@@ -102,7 +102,6 @@ class ClassLoader
                 }
             }
         }
-        var_dump($this->logs);
         return false;
     }
 
