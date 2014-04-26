@@ -56,6 +56,8 @@ class Request
         $method = self::METHOD_GET;
         if(false !== strpos($request, ' ')) {
             list($method, $path) = explode(' ', $request, 2);
+        }else{
+            $path = $request;
         }
         $this
             ->clear()
