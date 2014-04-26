@@ -13,11 +13,12 @@ class Writer
 {
     private $formatter;
     protected $buf;
+    private $filters = [];
 
     public function __construct ($cfg)
     {
         // フォーマッタを設定
-        $this->formatter = Formatter::factory($cfg('formatter'));
+        $this->formatter = Formatter::factory($cfg('formatter', ['type'=>'text']));
 
         // フィルタを設定
         foreach ($cfg('filters', []) as $v) {
@@ -40,12 +41,31 @@ class Writer
     }
 
     /**
+     * Filterを作成
+     */
+    public function addLevelFilter ($level)
+    {
+        $this->addFilter(Filter::factory([
+            'type'=>'level',
+            'value' => $level
+        ]));
+        return $this;
+    }
+
+    public function addFilter(Filter $filter)
+    {
+        $this->filters[] = $filter;
+        return $this;
+    }
+
+    /**
      * アタッチする
      */
     public function attach (LogHandler $LogHandler)
     {
         $LogHandler->on('log.post', [$this, "logPost"]);
         $LogHandler->on('shutdown', [$this, "shutdown"]);
+        return $this;
     }
 
     /**

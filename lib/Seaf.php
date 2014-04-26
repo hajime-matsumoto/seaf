@@ -9,6 +9,7 @@ use Seaf\Logging;
 use Seaf\Event;
 use Seaf\Registry;
 use Seaf\CLI;
+use Seaf\Loader;
 
 /**
  * Seafとコンポーネント取得のショートハンド
@@ -127,6 +128,7 @@ class Seaf
 
         // グローバルのロガーをセットアップする
         $logger = Logging\LogHandler::getSingleton( );
+        $logger->setName('Seaf');
         $logger->setup($c('logging', []));
         $logger->register();
 
@@ -190,5 +192,18 @@ class Seaf
     public function initCLIController($cfg)
     {
         return new CLI\CLIController( );
+    }
+
+    /**
+     * クラスローダの作成
+     *
+     * @param array
+     * @return Loader\ClassLoader
+     */
+    public function initClassLoader($cfg)
+    {
+        $loader = new Loader\ClassLoader( );
+        $loader->register();
+        return $loader;
     }
 }

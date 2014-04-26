@@ -3,12 +3,20 @@
 namespace Seaf\Wrapper;
 
 use Seaf\Container;
+use Seaf\Base;
 
 /**
  * スーパーグローバル変数用のラッパー
  */
 class SuperGlobalVars extends Container\ArrayContainer
 {
+
+    use Base\SingletonTrait;
+
+    public static function who ( )
+    {
+        return __CLASS__;
+    }
 
     public function __construct ( )
     {
@@ -29,10 +37,5 @@ class SuperGlobalVars extends Container\ArrayContainer
 
         // コンテナのイニシャルデータとして登録する
         parent::__construct($data);
-    }
-
-    public function __invoke($key)
-    {
-        return $this->getVar($key);
     }
 }

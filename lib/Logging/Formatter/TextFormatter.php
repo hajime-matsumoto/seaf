@@ -11,7 +11,7 @@ use Seaf\Wrapper;
  */
 class TextFormatter extends Logging\Formatter
 {
-    private $format;
+    private $format = '%time% [%tags%] [%level%] %message% %params%';
     private $params = [
         'message',
         'level',
@@ -21,7 +21,8 @@ class TextFormatter extends Logging\Formatter
     ];
     public function __construct ($cfg)
     {
-        $this->format = $this->compile($cfg('format'));
+        $cfg = new Container\ArrayContainer($cfg);
+        $this->format = $this->compile($cfg('format', $this->format));
     }
 
     private function compile($format)

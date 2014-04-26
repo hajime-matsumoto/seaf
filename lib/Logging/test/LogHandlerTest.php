@@ -55,7 +55,6 @@ class LogHandlerTest extends \PHPUnit_Framework_TestCase
             $message = $log->getMessage();
             $level   = $log->getLevelAsString();
             $time    = $log->getTimeWithFormat('Y-m-d G:i:s');
-            var_Dump($level, $message, $time);
         });
 
         $l->register();
@@ -64,8 +63,6 @@ class LogHandlerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('WARNING', $level);
         $this->assertEquals('test', $message);
-
-        throw new \Exception();
     }
 
 }

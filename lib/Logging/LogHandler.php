@@ -5,12 +5,27 @@ namespace Seaf\Logging;
 use Seaf\Base;
 use Seaf\Event;
 use Seaf\Container;
+use Seaf\Registry;
 
 class LogHandler 
 {
     use LoggingTrait;
     use Event\ObservableTrait;
     use Base\SingletonTrait;
+
+    public $name;
+
+    public function __construct ($name = null)
+    {
+        $this->name = $name;
+
+        Registry\Registry::registerShutDownFunction([$this,'shutdown']);
+    }
+
+    public function setName($name)
+    {
+        $this->name = $name;
+    }
 
     public static function who ( ) 
     {
@@ -26,12 +41,29 @@ class LogHandler
         }
     }
 
+    public function shutdown ( ) {
+        $this->trigger('shutdown');
+    }
+
+    /**
+     * ログを送出する
+     */
+    public function logPost(Log $log)
+    {
+        if (!empty($this->name)) {
+            $log->addTag($this->name, true);
+        }
+        $this->trigger('log.post', ['log'=>$log]);
+    }
+
 
     public function register ( )
     {
+        Registry\Registry::unRegisterShutDownFunction([$this,'shutdown']);
+
         set_error_handler([$this, 'phpErrorHandler']);
         set_exception_handler([$this, 'phpExceptionHandler']);
-        register_shutdown_function([$this, 'phpShutdownFunction']);
+        Registry\Registry::registerShutDownFunction([$this,'phpShutdownFunction']);
     }
 
     /**
@@ -66,7 +98,6 @@ class LogHandler
      */
     public function phpShutdownFunction( )
     {
-
         if ($err = error_get_last()) {
             $this->phpErrorHandler(
                 $err['type'],
@@ -76,6 +107,7 @@ class LogHandler
             );
         }
 
-        $this->trigger('shutdown');
+        $this->shutdown( );
     }
+
 }

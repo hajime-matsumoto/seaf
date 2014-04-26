@@ -6,6 +6,9 @@ use Seaf\Event;
 
 trait LoggingTrait
     {
+
+        private $logHandler;
+
         abstract public function trigger($name, $params = []);
 
         /**
@@ -76,6 +79,29 @@ trait LoggingTrait
          */
         public function logPost(Log $log)
         {
-            $this->trigger('log.post', ['log'=>$log]);
+            $this->getLogHandler( )->logPost($log);
+        }
+
+        /**
+         * ログハンドラを取得する
+         *
+         * @return LogHandler
+         */
+        public function getLogHandler( )
+        {
+            if (isset($this->logHandler)) {
+                return $this->logHandler;
+            }
+            return LogHandler::getSingleton();
+        }
+
+        /**
+         * ログハンドラをセットする
+         *
+         * @param LogHandler
+         */
+        public function setLogHandler(LogHandler $logHandler)
+        {
+            $this->logHandler = $logHandler;
         }
     }

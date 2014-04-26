@@ -35,6 +35,8 @@ class Config implements Core\ComponentIF
 
     public function loadConfigFiles ($dir)
     {
+        if (!is_dir($dir)) return $this;
+
         $Dir = dir($dir);
         while ($file = $Dir->read()) {
             if ($file{0} == '.') continue;

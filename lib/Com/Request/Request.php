@@ -109,6 +109,21 @@ class Request
     }
 
     /**
+     * Query文字列でパラメタを設定する
+     *
+     * @param string
+     * @param mixed
+     * @return Request
+     */
+    public function importQueryString ($query)
+    {
+        parse_str($query, $params);
+        $this->param($params);
+        return $this;
+    }
+
+
+    /**
      * メソッドをセットする
      *
      * @param string

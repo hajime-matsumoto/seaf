@@ -7,10 +7,15 @@ namespace Seaf\Logging;
  */
 class Log
 {
+    public $tags = [];
+    public $params = [];
+    public $message;
+    public $level;
+    public $time;
     /**
      * コンストラクタ
      */
-    public function __construct ($level, $message, $params, $tags)
+    public function __construct ($level, $message, $params, $tags = [])
     {
         $this->level   = $level;
         $this->message = is_array($message) ? 
@@ -21,9 +26,14 @@ class Log
         $this->time    = time();
     }
 
-    public function addTag($tag)
+    public function addTag($tag, $prepend = false)
     {
-        $this->tags[] = $tag;
+        if ($prepend == false) {
+            $this->tags[] = $tag;
+        }else{
+            array_unshift($this->tags, $tag);
+        }
+        return $this;
     }
 
     public function hasTag($tag)
@@ -44,5 +54,11 @@ class Log
     public function getTimeWithFormat($format)
     {
         return date($format, $this->time);
+    }
+
+    public function toString( )
+    {
+        $format = new Formatter\TextFormatter([]);
+        return $format->format($this);
     }
 }

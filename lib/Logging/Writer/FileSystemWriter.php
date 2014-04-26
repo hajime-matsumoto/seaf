@@ -27,6 +27,8 @@ class FileSystemWriter extends Logging\Writer
     public function shutdown ( ) {
         $formatter = $this->formatter( );
 
+        if (empty($this->buf)) return;
+
         $fp = fopen($this->fileName, $this->writeMode);
         flock($fp, LOCK_EX);
         foreach ($this->buf as $log) {

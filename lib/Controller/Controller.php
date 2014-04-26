@@ -29,9 +29,15 @@ class Controller
     /**
      * コンストラクタ
      */
-    public function __construct( )
+    public function __construct(Controller $parent = null)
     {
+        if ($parent !== null) {
+            // ログハンドラを親からもらう
+            $this->setLogHandler($parent->getLogHandler());
+        }
+
         $this->setupController( );
+
     }
 
     /**
@@ -40,7 +46,7 @@ class Controller
     public function logPost(Logging\Log $Log)
     {
         $Log->addTag(get_class($this));
-        Logging\LogHandler::getSingleton()->logPost($Log);
+        $this->getLogHandler()->logPost($Log);
     }
 
     /**
@@ -99,9 +105,10 @@ class Controller
     /**
      * Notfouund
      */
-    public function _notfound ($Request = null)
+    public function _notfound ($Request = null, $Result = null)
     {
         if ($Request == null) $Request = $this->Request();
+        if ($Result == null) $Result = $this->Result();
 
         $this->warn([
             'NotFound: Path %s',
@@ -109,7 +116,9 @@ class Controller
         ]);
 
         $this->trigger('notfound', [
-            'Request' => $Request
+            'Request' => $Request,
+            'Result' => $Result,
+            'Ctrl' => $this
         ]);
     }
 
@@ -175,7 +184,7 @@ class Controller
                 get_class($this)
             ]);
         }elseif ($nestLevel == 0) { // 完全にNotFound
-            $this->notfound($Request);
+            $this->notfound($Request, $Result);
         }
         return $dispatched;
     }
@@ -195,7 +204,7 @@ class Controller
                 $this->debug([
                     'Mount: Hit %s Cose %s', $path, $Request->getPath()
                 ]);
-                $Ctrl = Wrapper\ReflectionClass::create($class)->newInstance();
+                $Ctrl = Wrapper\ReflectionClass::create($class)->newInstance($this);
                 $newRequest = clone $Request;
                 $newRequest->mask($path);
                 $this->debug([
@@ -203,6 +212,7 @@ class Controller
                 ]);
                 $Ctrl->setComponent('Request', $newRequest);
                 $Ctrl->setComponent('Result', $Result);
+                $this->trigger('before.mount.run', ['Ctrl'=>$Ctrl]);
                 $dispatched = $Ctrl->run($newRequest, $Result, $nestLevel + 1);
                 $this->debug([
                     'Mount Dispatched: %s', $dispatched ? 'true': 'false'
