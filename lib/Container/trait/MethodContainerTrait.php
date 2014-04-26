@@ -11,14 +11,21 @@ trait MethodContainerTrait
          *
          * @param string
          * @param callable
+         * @return $this
          */
-        public function setMethod ($name, $callback)
+        public function setMethod ($name, $callback = null)
         {
+            if (is_array($name)) {
+                foreach ($name as $k => $v) {
+                    $this->setMethod($k, $v);
+                }
+                return $this;
+            }
             if (is_string($callback)) {
                 $callback = [$this, $callback];
             }
-
             $this->methods[$name] = $callback;
+            return $this;
         }
 
         /**

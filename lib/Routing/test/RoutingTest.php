@@ -12,6 +12,12 @@ class RoutingTest extends \PHPUnit_Framework_TestCase
     public function testInitRequest ( )
     {
         $Request = new Com\Request\Request( );
+        $Request->init('/admin/index', ['a'=>'b']);
+        $this->assertEquals (
+            '/admin/index',
+            $Request->getPath()
+        );
+
         $Request->init('GET /home/index', ['a'=>'b']);
         $this->assertEquals (
             '/home/index',

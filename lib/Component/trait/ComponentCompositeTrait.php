@@ -3,12 +3,12 @@
 namespace Seaf\Component;
 
 use Seaf\Container;
-use Seaf\Event;
 
 trait ComponentCompositeTrait
     {
         use Container\ArrayContainerTrait;
-        use Event\ObservableTrait;
+
+        abstract public function trigger($name, $params = []);
 
         /**
          * @var array
@@ -34,7 +34,8 @@ trait ComponentCompositeTrait
         public function loadComponentConfig ( $cfg )
         {
             foreach ($cfg as $k=>$v) {
-                $this->configs[ucfirst($k)] = $v;
+                $this->configs[$k = ucfirst($k)] = $v;
+                $this->delComponent($k);
             }
         }
 
@@ -44,6 +45,14 @@ trait ComponentCompositeTrait
         public function setComponent ($name, $component)
         {
             $this->setVar($name, $component);
+        }
+
+        /**
+         * コンポーネントを削除する
+         */
+        public function delComponent ($name)
+        {
+            $this->delVar($name);
         }
 
         /**

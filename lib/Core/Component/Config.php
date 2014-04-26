@@ -30,15 +30,7 @@ class Config implements Core\ComponentIF
     {
         $this->env = $seaf->Registry( )->getVar('env');
 
-        $this->cache = new Cache\CacheHandler('config');
-        $this->cache->setKvsTable(KVS\KVSHandler::factory([
-            'default'   => 'FileSystem',
-            'component' => [
-                'FileSystem' => [
-                    'rootPath'   => $seaf->Registry( )->getVar('project_root').'/var/cache'
-                ]
-            ]
-        ])->table('cache.config'));
+        $this->cache = Cache\CacheHandler::getSingleton( )->section('config');
     }
 
     public function loadConfigFiles ($dir)

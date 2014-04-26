@@ -3,46 +3,79 @@
 namespace Seaf\Cache;
 
 use Seaf\Data\KeyValueStore as KVS;
+use Seaf\Base;
 
 class CacheHandler
 {
-    private $kvs;
-    private $key;
+    use Base\SingletonTrait;
+    use KVS\KVSUserTrait;
 
-    public function __construct($key='default')
+    private $prefix;
+
+    public static function who ( )
     {
-        $this->key = $key;
+        return __CLASS__;
     }
 
-    public function section ($key)
+    /**
+     * コンストラクタ
+     */
+    public function __construct($prefix = '')
     {
-        $cache = new CacheHandler($key);
-        $cache->setKvsTable($this->getKvsTable());
+        $this->prefix = $prefix;
+    }
+
+    /**
+     * キャッシュセクションを取得する
+     */
+    public function section ($name)
+    {
+        $cache = new CacheHandler(empty($this->prefix) ? $name: $this->prefix.'.'.$name);
+        $cache->setKVSHandler($this->getKVSHandler());
         return $cache;
     }
 
+    /**
+     * KVSテーブルを取得する
+     *
+     * @return KVS\Table
+     */
     public function getKvsTable( )
     {
-        return $this->kvs;
+        return $this->getKvsHandler()->table('cache.'.$this->prefix);
     }
 
-    public function setKvsTable(KVS\Table $kvs)
-    {
-        return $this->kvs = $kvs;
-    }
 
-    public function useCacheIf($bool, $key, $callback, $expires = 0, $until = 0, &$cacheStatus = null)
-    {
+    /**
+     * @param bool
+     * @param string
+     * @param callable
+     * @param int
+     * @param int
+     * @param ref
+     * @return mixed
+     */
+    public function useCacheIf(
+        $bool, $key, $callback, $expires = 0, $until = 0, &$cacheStatus = null
+    ){
         if ($bool) {
             return $this->useCache($key, $callback, $expires, $until, $cacheStatus);
         }
         return $callback($isSuccess);
     }
 
-    public function useCache($key, $callback, $expires = 0, $until = 0, &$cacheStatus = null)
-    {
+    /**
+     * @param string
+     * @param callable
+     * @param int
+     * @param int
+     * @param ref
+     * @return mixed
+     */
+    public function useCache(
+        $key, $callback, $expires = 0, $until = 0, &$cacheStatus = null
+    ){
         $table = $this->getKvsTable();
-        $key = $this->key.'_'.$key;
 
         $data = null;
         $hasCache = false;

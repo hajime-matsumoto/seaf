@@ -6,27 +6,36 @@ use Seaf\Container;
 use Seaf\Factory;
 use Seaf\Component;
 use Seaf\Base;
+use Seaf\Event;
 
 class KVSHandler
 {
-    private $default;
+    private $default = 'FileSystem';
 
+    use Base\SingletonTrait;
     use Base\RaiseErrorTrait;
     use Component\ComponentCompositeTrait;
+    use Event\ObservableTrait;
+
+    /**
+     * クラス名の遅延束縛
+     */
+    public static function who ( )
+    {
+        return __CLASS__;
+    }
 
     public static function factory ($cfg)
     {
         $cfg = Container\ArrayHelper::useContainer($cfg);
         $kvs = new static( );
-        $kvs->default = $cfg('default');
+        $kvs->default = $cfg('default', 'FileSystem');
         $kvs->loadComponentConfig($cfg('component'));
         return $kvs;
     }
 
     public function __construct ( )
     {
-        $this->setErrorCode('COMPONENT_NOT_FOUND', 'Exception');
-
         $this->addComponentLoader(
             new Component\Loader\NamespaceLoader(__NAMESPACE__.'\\Component')
         );

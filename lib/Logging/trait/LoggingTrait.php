@@ -6,7 +6,7 @@ use Seaf\Event;
 
 trait LoggingTrait
     {
-        use Event\ObservableTrait;
+        abstract public function trigger($name, $params = []);
 
         /**
          * 緊急メッセージ

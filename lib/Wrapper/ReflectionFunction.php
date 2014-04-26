@@ -15,6 +15,9 @@ class ReflectionFunction extends \ReflectionFunction
 
     public static function create($class)
     {
+        if (is_array($class)) {
+            return ReflectionMethod::create($class[0], $class[1]);
+        }
         $rfc = new self($class);
         return $rfc;
     }

@@ -17,6 +17,10 @@ class FSHandler
     public function filePutContents ($path, $data)
     {
         $path = $this->makePath($path);
+        $dirname = dirname($path);
+        if(!is_dir($dirname)) {
+            mkdir($dirname, 0777, true);
+        }
         file_put_contents($path, $data);
     }
 

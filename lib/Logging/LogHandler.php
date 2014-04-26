@@ -3,11 +3,13 @@
 namespace Seaf\Logging;
 
 use Seaf\Base;
+use Seaf\Event;
 use Seaf\Container;
 
 class LogHandler 
 {
     use LoggingTrait;
+    use Event\ObservableTrait;
     use Base\SingletonTrait;
 
     public static function who ( ) 

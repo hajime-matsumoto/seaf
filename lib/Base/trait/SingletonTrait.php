@@ -21,4 +21,11 @@ trait SingletonTrait
                 static::$instance = new $class;
         }
 
+        /**
+         * シングルトンインスタンスを交換する
+         */
+        public function swapSingleton ( )
+        {
+            static::$instance = $this;
+        }
     }

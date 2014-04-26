@@ -6,6 +6,9 @@ use Seaf\Base;
 use Seaf\Cache;
 use Seaf\Data\KeyValueStore;
 use Seaf\Logging;
+use Seaf\Event;
+use Seaf\Registry;
+use Seaf\CLI;
 
 /**
  * Seafとコンポーネント取得のショートハンド
@@ -27,6 +30,7 @@ class Seaf
 {
     use Base\SingletonTrait;
     use Component\ComponentCompositeTrait;
+    use Event\ObservableTrait;
 
     /**
      * シングルトン用のクラス名取得メソッド
@@ -106,6 +110,7 @@ class Seaf
             ->setVar($options)
             ->setVar([
                 'project_root' => $project_root,
+                'kvs_file_dir' => $project_root.'/var/store',
                 'env'          => $env
             ]);
 
@@ -145,7 +150,7 @@ class Seaf
      */
     public function initRegistry ( )
     {
-        $data = new Container\ArrayContainer();
+        $data = Registry\Registry::getSingleton();
         return $data;
     }
 
@@ -157,7 +162,9 @@ class Seaf
      */
     public function initKeyValueStore($cfg)
     {
-        return KeyValueStore\KVSHandler::factory($cfg);
+        $kvs = KeyValueStore\KVSHandler::factory($cfg);
+        $kvs->swapSingleton();
+        return $kvs;
     }
 
     /**
@@ -168,11 +175,20 @@ class Seaf
      */
     public function initCache($cfg)
     {
-        $cache = new Cache\CacheHandler($cfg('table', 'cache'));
-        $cache->setKvsTable($this->KeyValueStore( )->table(
-            $cfg('table', 'cache'),
-            $cfg('KeyValueStore', 'FileSystem')
-        ));
+        $this->getComponent('KeyValueStore');
+        $cache = new Cache\CacheHandler('seaf');
+        $cache->swapSingleton();
         return $cache;
+    }
+
+    /**
+     * CLIコントローラの作成
+     *
+     * @param array
+     * @return CLI\CLIController
+     */
+    public function initCLIController($cfg)
+    {
+        return new CLI\CLIController( );
     }
 }

@@ -13,10 +13,17 @@ class Log
     public function __construct ($level, $message, $params, $tags)
     {
         $this->level   = $level;
-        $this->message = $message;
+        $this->message = is_array($message) ? 
+            vsprintf($message[0], array_slice($message,1)):
+            $message;
         $this->params  = $params;
         $this->tags    = is_string($tags) ? [$tags]: $tags;
         $this->time    = time();
+    }
+
+    public function addTag($tag)
+    {
+        $this->tags[] = $tag;
     }
 
     public function hasTag($tag)
