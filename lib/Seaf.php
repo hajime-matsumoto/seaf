@@ -8,7 +8,20 @@ use Seaf\Data\KeyValueStore;
 use Seaf\Logging;
 
 /**
- * ベースフレームワークコントローラ
+ * Seafとコンポーネント取得のショートハンド
+ *
+ * @param string
+ * @return mixed
+ */
+function Seaf($component_name = null) {
+    if ($component_name == null) {
+        return Seaf::getSingleton();
+    }
+    return Seaf::getSingleton( )->getComponent($component_name);
+}
+
+/**
+ * フレームワークベースコントローラ
  */
 class Seaf
 {
@@ -113,7 +126,7 @@ class Seaf
         $logger->register();
 
         // 開始メッセージを送出する
-        $logger->info('START',null,['SEAF','SYSTEM']);
+        $logger->info('START', null, ['SEAF','SYSTEM']);
 
         // ロガーをコンポーネントに登録する
         $this->setComponent('Logger', $logger);
@@ -127,6 +140,8 @@ class Seaf
 
     /**
      * レジストリの作成
+     *
+     * @return Container\ArrayContainer
      */
     public function initRegistry ( )
     {
@@ -138,6 +153,7 @@ class Seaf
      * KVSハンドラの作成
      *
      * @param array
+     * @return KeyValueStore\KVSHandler
      */
     public function initKeyValueStore($cfg)
     {
@@ -148,6 +164,7 @@ class Seaf
      * キャッシュハンドラの作成
      *
      * @param array
+     * @return Cache\CacheHandler
      */
     public function initCache($cfg)
     {
