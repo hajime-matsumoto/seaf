@@ -22,7 +22,7 @@ $writer = Logging\Writer::factory([
     'fileName'  => '/tmp/seaf.cli.log',
     'writeMode' => 'a'
 ])
-->addLevelFilter('ALL ^ DEBUG ^ INFO')
+->addLevelFilter('ALL')
 ->attach($logHandler);
 
 $cli->setLogHandler($logHandler);
@@ -34,6 +34,7 @@ $cli->setStdout('php://stdout');
 // コマンドをセットアップ
 $cli
     ->mount('test', 'SeafCLI\App\Test')
+    ->mount('install', 'SeafCLI\App\Installer')
     ->on('notfound', function ($e) {
         $Ctrl = $e->getVar('Ctrl');
         $Req = $e->getVar('Request');
