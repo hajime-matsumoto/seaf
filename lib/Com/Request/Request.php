@@ -71,7 +71,7 @@ class Request
      */
     public function clear ( )
     {
-        $this->params = [];
+        $this->params = seaf_container([]);
         $this->method = static::METHOD_GET;
         $this->path   = '/';
         $this->mask   = '';
@@ -194,8 +194,6 @@ class Request
         return $this->mask;
     }
 
-
-
     /**
      * パラメタを取得する
      *
@@ -204,5 +202,15 @@ class Request
     public function getParams ( )
     {
         return $this->params;
+    }
+
+    /**
+     * パラメタを取得する
+     *
+     * @param string
+     */
+    public function getParam ($name, $default = null)
+    {
+        return $this->params->getVar($name, $default);
     }
 }

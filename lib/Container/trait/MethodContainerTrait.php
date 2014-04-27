@@ -40,6 +40,18 @@ trait MethodContainerTrait
         }
 
         /**
+         * メソッド配列を取得する
+         *
+         * @param string
+         * @param callable
+         */
+        public function getMethodsArray( )
+        {
+            return $this->methods;
+        }
+
+
+        /**
          * メソッドが定義されているか
          *
          * @param strign

@@ -26,6 +26,37 @@ trait ArrayContainerTrait
         }
 
         /**
+         * ヒットしたバリューに関数を適用する
+         * 
+         * @param string
+         * @param callable
+         * @return $this
+         */
+        public function mapVar($key, $callback)
+        {
+            $datas = $this->getVar($key, false);
+
+            if (empty($datas)) return $this;
+
+            if (!is_array($datas)) {
+                $datas = [$datas];
+            }
+
+            foreach ($datas as $k => $v) {
+                $callback($v, $k);
+            }
+            return $this;
+        }
+        /**
+         * データをマージする
+         */
+        public function mergeVar($data)
+        {
+            $data = seaf_container($data);
+            $this->data = array_merge($this->data, $data->data);
+            return $this;
+        }
+        /**
          * データを取得する
          *
          * @param string

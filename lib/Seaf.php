@@ -10,6 +10,7 @@ use Seaf\Event;
 use Seaf\Registry;
 use Seaf\CLI;
 use Seaf\Loader;
+use Seaf\Wrapper;
 
 /**
  * Seafとコンポーネント取得のショートハンド
@@ -22,6 +23,15 @@ function Seaf($component_name = null) {
         return Seaf::getSingleton();
     }
     return Seaf::getSingleton( )->getComponent($component_name);
+}
+
+function seaf_container ($data)
+{
+    return new Container\ArrayContainer($data);
+}
+function seaf_closure ($data)
+{
+    return Wrapper\Closure::create($data);
 }
 
 /**
@@ -61,12 +71,21 @@ class Seaf
      */
     public function __construct( )
     {
+        $this->setupComponentLoader();
+    }
+
+    /**
+     * コンポーネントローダのセットアップ
+     */
+    public function setupComponentLoader ( )
+    {
         // コンポーネントローダを追加
         $this->addComponentLoader(
             new Component\Loader\InitMethodLoader(
                 $this
             )
         );
+
         $this->addComponentLoader(
             new Component\Loader\NamespaceLoader(
                 'Seaf\Core\Component'

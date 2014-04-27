@@ -83,6 +83,8 @@ class Config implements Core\ComponentIF
         return $hasValue ? $this->configFilter($value): $default;
     }
 
+
+
     public function __invoke($key, $default)
     {
         return $this->getConfig($key, $default);

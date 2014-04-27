@@ -33,6 +33,59 @@ class CLIController extends Controller\Controller
     }
 
     /**
+     * 出力する
+     */
+    public function outln($body = null)
+    {
+        $this->stdout($body."\n");
+    }
+
+    /**
+     * 出力する
+     */
+    public function outlines($lines = [], $prefix = '')
+    {
+        foreach ($lines as $line) {
+            $this->outln($prefix.$line);
+        }
+    }
+
+    /**
+     * ShellOut
+     */
+    public function shellOut($shell, &$output = null, &$return_val = null)
+    {
+        $this->debug($shell, null, ['SHELL']);
+        exec($shell, $output, $return_val);
+        $this->debug(implode("\n", $output), null, ['SHELL']);
+
+        $this->outln();
+        $this->outln(' < '.$shell);
+        $this->outln('----------------------');
+        foreach ($output as $line) {
+            $this->outln(' > '. $line);
+        }
+        $this->outln();
+
+        return $return_val;
+    }
+
+    /**
+     * SuperUserか否か
+     */
+    public function isSuperUser( )
+    {
+        if ('root' == $this->whoAmI()) {
+            return true;
+        }
+        return false;
+    }
+
+    public function whoAmI( ) 
+    {
+    }
+
+    /**
      * コントローラをイニシャライズする
      */
     protected function setupController ( )

@@ -33,6 +33,17 @@ class Registry extends Container\ArrayContainer
         return false;
     }
 
+    /**
+     * @return bool
+     */
+    public static function isDebug ( )
+    {
+        if (static::getSingleton( )->getVar('env') === 'production') {
+            return false;
+        }
+        return true;
+    }
+
     public static function registerShutdownFunction($func)
     {
         static::getSingleton()->shutdownFunctions[] = $func;

@@ -19,4 +19,5 @@ class ArrayContainer implements \ArrayAccess,\Iterator
     {
         return $this->getVar($key, $default);
     }
+
 }

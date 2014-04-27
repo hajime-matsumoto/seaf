@@ -4,7 +4,7 @@ namespace Seaf\Base;
 
 trait SingletonTrait
     {
-        private static $instance;
+        protected static $instance;
 
         public static function who ( ) {
             throw Exception\Exception('whoを実装してください');
@@ -16,9 +16,9 @@ trait SingletonTrait
         public static function getSingleton ( )
         {
             $class = static::who();
-            return isset(static::$instance) ?
-                static::$instance:
-                static::$instance = new $class;
+            return isset($class::$instance) ?
+                $class::$instance:
+                $class::$instance = new $class;
         }
 
         /**
@@ -26,6 +26,7 @@ trait SingletonTrait
          */
         public function swapSingleton ( )
         {
-            static::$instance = $this;
+            $class = static::who();
+            $class::$instance = $this;
         }
     }
