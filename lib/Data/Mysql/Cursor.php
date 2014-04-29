@@ -8,20 +8,20 @@ class Cursor implements \Iterator
     private $sql;
     private $result;
 
+    private $datas;
+    private $idx;
+
     public function __construct (MysqlHandler $handler, $sql)
     {
         $this->handler = $handler;
         $this->sql = $sql;
+        $this->result = $handler->query($sql);
     }
 
-    public function execute ( )
+
+    public function fetch ( )
     {
-        if ($this->result) {
-            $this->result->data_seek(0);
-        }else{
-            $this->result = $this->handler->query($this->sql);
-        }
-        return $this->result;
+        return $this->result->fetch_assoc();
     }
 
     // ----------------------------------
@@ -33,7 +33,7 @@ class Cursor implements \Iterator
      */
     public function current ( )
     {
-        return current($this->result);
+        return $this->current;
     }
 
     /**
@@ -41,7 +41,7 @@ class Cursor implements \Iterator
      */
     public function key ( )
     {
-        return key($this->result);
+        return $this->idx = 0;
     }
 
     /**
@@ -49,7 +49,7 @@ class Cursor implements \Iterator
      */
     public function next ( )
     {
-        return next($this->result);
+        $this->idx++;
     }
 
     /**
@@ -57,7 +57,7 @@ class Cursor implements \Iterator
      */
     public function rewind ( )
     {
-        $this->result = $this->execute();
+        $this->idx = 0;
     }
 
     /**
@@ -65,7 +65,8 @@ class Cursor implements \Iterator
      */
     public function valid ( )
     {
-        return current($this->result);
+        $this->current = $this->fetch( );
+        return $this->current ? true: false;
     }
 
 }

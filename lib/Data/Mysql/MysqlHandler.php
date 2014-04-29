@@ -79,6 +79,9 @@ class MysqlHandler extends Data\DB\ProductHandler
     {
         $result = mysqli_query($this->con, $query);
         $this->debug($query,null,['DB','MySQL']);
+        if (!$result) {
+            $this->warn($query,['error'=>$this->getLastError()],['DB','MySQL']);
+        }
         return $result;
     }
 }

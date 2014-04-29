@@ -17,14 +17,16 @@ class FindQuery implements \Iterator
     public $sort;
     public $fields;
     private $cur;
+    private $filter;
 
-    public function __construct ($table, $query)
+    public function __construct ($table, $query, $filter = null)
     {
         $this->table = $table;
         $this->query = $query;
+        $this->filter = $filter;
     }
 
-    private function execute ( )
+    public function execute ( )
     {
         return $this->table->realFind($this);
     }
@@ -55,6 +57,9 @@ class FindQuery implements \Iterator
      */
     public function current ( )
     {
+        if ($this->filter) {
+            return call_user_func($this->filter, $this->cur->current());
+        }
         return $this->cur->current();
     }
 

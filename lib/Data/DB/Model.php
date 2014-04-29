@@ -77,6 +77,9 @@ class Model extends Data\Model\Model
     {
         $this->setVars($datas);
         $this->isNewFlag = $isNewFlag;
+        if ($this->isNew() == false) {
+            $this->initialVars = $this->getVars();
+        }
     }
 
     public function setVars($datas)
@@ -124,9 +127,12 @@ class Model extends Data\Model\Model
 
     public static function table( ) 
     {
+        $class = static::who();
         return DBHandler::getSingleton( )->getTable(
             static::schema()->tableName
-        );
+        )->setMethod('outputFilter', function ($rec) use ($class){
+            return new $class($rec, false);
+        });
     }
 
     public function insert ( )
@@ -159,7 +165,7 @@ class Model extends Data\Model\Model
             }
             return true;
         }
-        throw Exception\CantSetField($name);
+        throw new Exception\CantSetField($name);
     }
 
     public function __get ($name)
@@ -172,6 +178,6 @@ class Model extends Data\Model\Model
             }
             return true;
         }
-        throw Exception\CantGetField($name);
+        throw new Exception\CantGetField($name);
     }
 }

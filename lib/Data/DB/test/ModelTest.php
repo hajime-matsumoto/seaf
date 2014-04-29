@@ -13,7 +13,7 @@ use Seaf\Data;
 class User extends Model
 {
     /**
-     * @SeafDataAttrs type=varcher&length=100
+     * @SeafDataAttrs type=varchar&length=100
      */
     protected $name;
 
@@ -57,7 +57,17 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         ]);
         $model->save();
 
+        // 更新
         $model->age = 32;
         $model->save();
+
+        var_dump(
+            User::table( )->findOne(['name'=>'hajime'])
+        );
+        foreach (User::table( )->setMethod('outputFilter', function ($m) {
+            return $m['name'];
+        })->find(['name'=>'hajime']) as $m) {
+            var_dump($m);
+        }
     }
 }

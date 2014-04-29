@@ -4,9 +4,13 @@ namespace Seaf\Data\DB;
 
 use Seaf\Base;
 use Seaf\Data;
+use Seaf\Container;
 
 class Table
 {
+
+    use Container\MethodContainerTrait;
+
     /**
      * @var DBHandler
      */
@@ -78,7 +82,26 @@ class Table
      */
     public function find ($query)
     {
-        return new FindQuery($this, $query);
+        return new FindQuery($this, $query, [$this, 'outputFilter']);
+    }
+
+    /**
+     * １件だけデータを取得する
+     */
+    public function findOne ($query)
+    {
+        return $this->outputFilter($this->find($query)->limit(1)->execute()->fetch());
+    }
+
+    /**
+     * OutPutFilter
+     */
+    public function outputFilter($array)
+    {
+        if ($this->hasMethod('outputFilter')) {
+            return $this->callMethod('outputFilter', $array);
+        }
+        return $array;
     }
 
 
