@@ -38,6 +38,19 @@ class Table
     }
 
     /**
+     * データを更新する
+     */
+    public function update ($datas, $where)
+    {
+        return $this->handler->execute(
+            Request::factory('update')
+            ->tableName($this->table_name)
+            ->param('set',$datas)
+            ->param('query', $where)
+        );
+    }
+
+    /**
      * テーブルを削除する
      */
     public function drop ( )

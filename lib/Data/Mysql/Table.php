@@ -46,6 +46,27 @@ class Table extends Data\DB\ProductTable
     }
 
     /**
+     * データを更新する
+     */
+    public function update ($datas, $where, $limit = 1) 
+    {
+        $safeVars = $this->handler->escapeVars($datas);
+
+        $set = [];
+        foreach ($safeVars as $k=>$v) {
+            $set[] = "`$k`"." = ".(is_int($v) ? $v: "'$v'");
+        }
+
+        $sql = sprintf(
+            'UPDATE %s SET %s WHERE '.$this->buildWhere($where). ' Limit '. $limit,
+            $this->table_name,
+            implode(',', $set)
+        );
+        $result = $this->handler->query($sql);
+        return $this->makeResult($result, $this->handler->getLastError());
+    }
+
+    /**
      * テーブルを削除する
      */
     public function drop ( ) 
@@ -161,14 +182,15 @@ class Table extends Data\DB\ProductTable
     }
     protected function buildWherePear($value)
     {
-        $sql = key($value)." ". $this->buildWhereValue(current($value));
+        $sql = '`'.key($value)."` ". $this->buildWhereValue(current($value));
         return $sql;
     }
 
     protected function buildWhereValue($value)
     {
         if (!is_array($value)) {
-            return $this->handler->escapeVars($value);
+            $value = $this->handler->escapeVars($value);
+            return '= ' . (is_int($value) ? intval($value): "'$value'");
         }
         switch (key($value)) {
         case '$gt':
@@ -181,7 +203,7 @@ class Table extends Data\DB\ProductTable
             $con = '=';
             break;
         }
-        return $con.' '.$this->buildWhereValue(current($value));
+        return $con.' '.$this->handler->escapeVars(current($value));
     }
 
     protected function buildSort ($sort)

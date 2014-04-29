@@ -3,17 +3,27 @@
 namespace Seaf\Data\DB;
 
 use Seaf\Data;
+use Seaf\Event;
+use Seaf\Base;
 
 /**
  * データベースハンドラ
  */
 class DBHandler
 {
+    use Event\ObservableTrait;
+    use Base\SingletonTrait;
+
     private $defaultConnectionName = 'default';
 
     private $connectionMap;
     private $tableMap;
     private $handlerList = [];
+
+    public static function who ( )
+    {
+        return __CLASS__;
+    }
 
     /**
      * テーブルを取得する
@@ -86,15 +96,23 @@ class DBHandler
     public function execute (Request $Request)
     {
         $handler = $this->getRealHandlerByTableName($Request->getTableName());
+
+        $this->trigger('execute', [
+            'Handler' => &$handler,
+            'Request' => &$Request
+        ]);
+
         return $handler->executeRequest($Request);
     }
 
     protected function getRealHandlerByTableName($name)
     {
         if (isset($this->tableMap[$name])) {
-            return $this->getRealHandler($this->tableMap[$name]);
+            $handlerName = $this->getRealHandler($this->tableMap[$name]);
+        }else{
+            $handlerName = $this->getRealHandler($this->defaultConnectionName);
         }
-        return $this->getRealHandler($this->defaultConnectionName);
+        return $handlerName;
     }
 
     protected function getRealHandler($name)

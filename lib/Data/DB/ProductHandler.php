@@ -59,6 +59,19 @@ abstract class ProductHandler
     }
 
     /**
+     * UPDATEリクエストを処理する
+     */
+    public function executeUpdateRequest ($request)
+    {
+        $tableName = $request->getTableName();
+        $result = $this->$tableName->update(
+            $request->getParam('set'),
+            $request->getParam('query')
+        );
+        return $this->makeResult($result, $this->getLastError());
+    }
+
+    /**
      * DROPリクエストを処理する
      */
     public function executeDropRequest ($request)

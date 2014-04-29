@@ -63,6 +63,61 @@ class AnnotationContainer
     }
 
     /**
+     * 検索する
+     */
+    public function findPropsHasAnot($anot) 
+    {
+        $result = [];
+        foreach($this->data['props'] as $prop=>$anots) 
+        {
+            foreach($anots['anots'] as $k=>$v) {
+                if ($anot == $k) {
+                    $result[$prop] = $v;
+                }
+            }
+        }
+        return empty($result) ? []: $result;
+    }
+
+    /**
+     * 検索結果に関数を適用する
+     */
+    public function mapPropsHasAnot($anot, $callback) 
+    {
+        foreach ($this->findPropsHasAnot($anot) as $prop=>$values) {
+            foreach ($values as $value) {
+                $callback($prop, $value);
+            }
+        }
+    }
+
+    /**
+     * 検索する
+     */
+    public function findClassHasAnot($anot) 
+    {
+        $result = [];
+        foreach($this->data['class']['anots'] as $k=>$v) {
+            if ($anot == $k) {
+                $result[] = $v;
+            }
+        }
+        return empty($result) ? []: $result;
+    }
+
+    /**
+     * 検索結果に関数を適用する
+     */
+    public function mapClassHasAnot($anot, $callback) 
+    {
+        foreach ($this->findClassHasAnot($anot) as $values) {
+            foreach ($values as $value) {
+                $callback($value);
+            }
+        }
+    }
+
+    /**
      * DocCommentブロックをパースする
      *
      * @param string
