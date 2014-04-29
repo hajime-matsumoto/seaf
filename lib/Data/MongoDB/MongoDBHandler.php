@@ -10,7 +10,7 @@ use Mongo;
 use MongoLog;
 use MongoClient;
 
-class MongoDBHandler
+class MongoDBHandler extends Data\DB\ProductHandler
 {
     use Base\SingletonTrait;
 
@@ -56,13 +56,6 @@ class MongoDBHandler
         }
     }
 
-    /**
-     * テーブルを取得する
-     */
-    public function __get($name)
-    {
-        return $this->getTable($name);
-    }
 
     /**
      * テーブルを取得する
@@ -75,49 +68,13 @@ class MongoDBHandler
     /**
      * 直近のデータを取得する
      */
-    public function getLAstError( )
+    public function getLastError( )
     {
         return $this->db->lastError();
     }
 
-    /**
-     * リクエストを処理する
-     */
-    public function executeRequest ($request)
+    protected function makeResult ($result)
     {
-        $type = $request->getType();
-        $result = $this->{'execute'.ucfirst($type).'Request'}($request);
-        return $result;
+        return new Result($result,$this->getLAstError());
     }
-
-    /**
-     * INSERTリクエストを処理する
-     */
-    public function executeInsertRequest ($request)
-    {
-        $tableName = $request->getTableName();
-        $result = $this->$tableName->insert($request->getParams());
-        return new Result($result, $this->getLastError());
-    }
-
-    /**
-     * DROPリクエストを処理する
-     */
-    public function executeDropRequest ($request)
-    {
-        $tableName = $request->getTableName();
-        $result = $this->$tableName->drop( );
-        return new Result($result, $this->getLastError());
-    }
-
-    /**
-     * Findリクエストを処理する
-     */
-    public function executeFindRequest ($request)
-    {
-        $tableName = $request->getTableName();
-        $result = $this->$tableName->realFind($request->getParam('findQuery'));
-        return $result;
-    }
-
 }

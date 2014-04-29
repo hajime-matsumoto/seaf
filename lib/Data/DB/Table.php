@@ -90,7 +90,7 @@ class Table
      */
     public function findOne ($query)
     {
-        return $this->outputFilter($this->find($query)->limit(1)->execute()->fetch());
+        return $this->outputFilter($this->find($query)->limit(1)->execute()->getNext());
     }
 
     /**

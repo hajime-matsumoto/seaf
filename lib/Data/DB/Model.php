@@ -165,6 +165,11 @@ class Model extends Data\Model\Model
             }
             return true;
         }
+
+        if ($name == "_id") {
+            $this->_id = $value;
+            return true;
+        }
         throw new Exception\CantSetField($name);
     }
 

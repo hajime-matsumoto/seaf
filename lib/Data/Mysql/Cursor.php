@@ -24,6 +24,11 @@ class Cursor implements \Iterator
         return $this->result->fetch_assoc();
     }
 
+    public function getNext ( )
+    {
+        return $this->fetch();
+    }
+
     // ----------------------------------
     // For Iterator
     // ----------------------------------

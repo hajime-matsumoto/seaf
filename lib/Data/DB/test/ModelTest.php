@@ -32,6 +32,33 @@ class User extends Model
 }
 
 /**
+ * @SeafDataTableName test
+ * @SeafDataIndex name=name
+ * @SeafDataIndex name=age
+ * @SeafDataPrimary name=name
+ */
+class UserPre extends Model
+{
+    /**
+     * @SeafDataAttrs type=varchar&length=100
+     */
+    protected $name;
+
+    /**
+     * @SeafDataAttrs type=int&length=4
+     */
+    protected $age;
+
+    /**
+     * 遅延束縛
+     */
+    public static function who ( )
+    {
+        return __CLASS__;
+    }
+}
+
+/**
  * DB Test
  */
 class ModelTest extends \PHPUnit_Framework_TestCase
@@ -40,8 +67,11 @@ class ModelTest extends \PHPUnit_Framework_TestCase
     {
         $db = new DBHandler ( );
         $db->setDefaultConnectionName('sql');
-        $db->connectionMap(['sql' => 'mysql://root:deganjue@localhost:3306/seaf_test']);
-        $db->tableMap(['test' => 'sql']);
+        $db->connectionMap([
+            'sql' => 'mysql://root:deganjue@localhost:3306/seaf_test',
+            'nosql' => 'mongodb://localhost:27017/test'
+        ]);
+        $db->tableMap(['test' => 'nosql']);
         $db->swapSingleton();
         return $db;
     }
@@ -61,13 +91,37 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $model->age = 32;
         $model->save();
 
-        var_dump(
-            User::table( )->findOne(['name'=>'hajime'])
+        $user = User::table( )->findOne(['name'=>'hajime']);
+        $this->assertEquals(
+            'hajime',$user->name
         );
-        foreach (User::table( )->setMethod('outputFilter', function ($m) {
-            return $m['name'];
-        })->find(['name'=>'hajime']) as $m) {
-            var_dump($m);
+        $this->assertEquals(
+            32, $user->age
+        );
+
+        foreach (User::table( )->find(['name'=>'hajime']) as $user) {
+            $this->assertEquals(
+                'hajime',$user->name
+            );
         }
+    }
+
+    public function testUserPre ( )
+    {
+        $db = $this->getHandler( );
+        UserPre::tableInitialize( );
+
+        UserPre::create([
+            'name' => 'sosuke',
+            'age' => 3
+        ])->save();
+
+        $m = UserPre::table()->findOne(['name'=>'sosuke']);
+        $this->assertEquals(
+            'sosuke', $m->name
+        );
+        $this->assertEquals(
+            3, $m->age
+        );
     }
 }

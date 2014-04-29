@@ -5,7 +5,7 @@ namespace Seaf\Data\MongoDB;
 use Seaf\Base;
 use Seaf\Data;
 
-class Table
+class Table extends Data\DB\ProductTable
 {
     public $handler;
     public $table;
@@ -22,6 +22,19 @@ class Table
     public function insert ($datas)
     {
         return $this->makeResult($this->table->insert($datas));
+    }
+
+    /**
+     * テーブルを作成する
+     */
+    public function create ($array)
+    {
+        $indexes=[];
+        foreach($array['indexes'] as $idx) {
+            $c = seaf_container($idx);
+            $indexes[$c('name')] = $c('desc', false) ? -1: 1;
+        }
+        return $this->ensureIndex($indexes);
     }
 
     /**
@@ -48,13 +61,6 @@ class Table
         return new Result($result, $this->handler->getLastError());
     }
 
-    /**
-     * データを検索する
-     */
-    public function find ($query)
-    {
-        return new FindQuery($this, $query);
-    }
 
     public function realFind($findQuery)
     {
