@@ -6,6 +6,16 @@ trait ArrayContainerTrait
     {
         protected $data = [];
 
+        public function __get($name)
+        {
+            return $this->getVar($name, null);
+        }
+
+        public function __set($name, $value)
+        {
+            return $this->setVar($name, $value);
+        }
+
         /**
          * データをセットする
          */
@@ -18,11 +28,27 @@ trait ArrayContainerTrait
         }
 
         /**
+         * データをリセットする
+         */
+        public function clearVars($data = [])
+        {
+            $this->data = $data;
+        }
+
+        /**
          * 配列にする
          */
         public function toArray ( ) 
         {
             return $this->data;
+        }
+
+        /**
+         * セクションを取得する
+         */
+        public function section ($name)
+        {
+            return new ArrayContainerSection($this, $name);
         }
 
         /**
@@ -85,6 +111,27 @@ trait ArrayContainerTrait
             }
             ArrayHelper::set($this->data, $key, $value);
             return $this;
+        }
+
+        /**
+         * データを追記する
+         */
+        public function appendVar($key, $value, $prepend = false)
+        {
+            $array = $this->getVar($key, []);
+            $array[] = $value;
+            $this->setVar($key, $array);
+            return $this;
+        }
+
+        /**
+         * データを取得してクリアする
+         */
+        public function getVarClear($key, $default = null)
+        {
+            $data = $this->getVar($key, $default);
+            $this->delVar($key);
+            return $data;
         }
 
         /**

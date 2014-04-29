@@ -26,6 +26,11 @@ class Log
         $this->time    = time();
     }
 
+    public function __toString ( )
+    {
+        return (string) $this->toString();
+    }
+
     public function addTag($tag, $prepend = false)
     {
         if ($prepend == false) {

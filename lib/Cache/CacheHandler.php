@@ -4,6 +4,7 @@ namespace Seaf\Cache;
 
 use Seaf\Data\KeyValueStore as KVS;
 use Seaf\Base;
+use Seaf\Registry;
 
 class CacheHandler
 {
@@ -47,6 +48,26 @@ class CacheHandler
 
 
     /**
+     * @param string
+     * @param callable
+     * @param int
+     * @param int
+     * @param ref
+     * @return mixed
+     */
+    public function useCacheIfNotDebug(
+        $key, $callback, $expires = 0, $until = 0, &$cacheStatus = null
+    ){
+        return $this->useCacheIf(
+            !Registry\Registry::isDebug(),
+            $key,
+            $callback,
+            $expires,
+            $until,
+            $cacheStatus
+        );
+    }
+    /**
      * @param bool
      * @param string
      * @param callable
@@ -58,9 +79,10 @@ class CacheHandler
     public function useCacheIf(
         $bool, $key, $callback, $expires = 0, $until = 0, &$cacheStatus = null
     ){
-        if ($bool) {
+        if ($bool == true) {
             return $this->useCache($key, $callback, $expires, $until, $cacheStatus);
         }
+        $cacheStatus = false;
         return $callback($isSuccess);
     }
 
@@ -102,6 +124,7 @@ class CacheHandler
         $data = $callback($isSuccess);
 
         if ($isSuccess) {
+
             $table->set($key, $data, [
                 'created' => time(),
                 'expires' => $expires

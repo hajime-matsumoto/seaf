@@ -4,7 +4,7 @@ namespace Seaf\View;
 
 abstract class ViewMethod implements ViewMethodIF
 {
-    public function __construct (View\View $View)
+    public function __construct (View $View)
     {
         $this->setupViewMethod($View);
     }

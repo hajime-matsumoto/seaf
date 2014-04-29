@@ -6,7 +6,7 @@ use Seaf\Container;
 
 class MessageContainer extends Container\ArrayContainer
 {
-    private $files;
+    private $files = [];
     private $messages = [];
     private $locale;
     private $Translator;

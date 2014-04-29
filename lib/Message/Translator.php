@@ -1,13 +1,30 @@
 <?php // vim: set ft=php ts=4 sts=4 sw=4 et: 
 namespace Seaf\Message;
 
+use Seaf\Base;
+use Seaf\Cache;
+use Seaf\Event;
+
 class Translator
 {
+    use Base\SingletonTrait;
+    use Cache\CacheUserTrait;
+    use Event\ObservableTrait;
+
     private $locale = 'ja';
     private $defaultLocale = 'en';
-    private $cache;
     private $messageDir;
     private $useCache = false;
+
+    public static function who  ( )
+    {
+        return __CLASS__;
+    }
+
+    public function __invoke ($code)
+    {
+        return call_user_func_array([$this,'translate'], func_get_args());
+    }
 
     /**
      * キャッシュを使う
@@ -17,15 +34,6 @@ class Translator
         $this->useCache = $flg;
     }
 
-    /**
-     * キャッシュハンドラをセットする
-     *
-     * @param Cache\CacheHandler
-     */
-    public function setCacheHandler($cache)
-    {
-        $this->cache = $cache;
-    }
 
     /**
      * 言語ファイルディレクトリを設定
@@ -55,16 +63,6 @@ class Translator
     public function setDefaultLocale ($code)
     {
         $this->defaultLocale = $code;
-    }
-
-    /**
-     * キャッシュハンドラを取得する
-     *
-     * @return Cache\CacheHandler
-     */
-    public function getCacheHandler ( )
-    {
-        return $this->cache;
     }
 
     /**
@@ -105,7 +103,7 @@ class Translator
      */
     public function translate ($code)
     {
-        if (!$data = $this->find($code)) {
+        if (!$data = $this->find($code, $this->getLocale())) {
             return '[['.$code.']]';
         }
 
@@ -122,25 +120,42 @@ class Translator
         return $data;
     }
 
-    
-
     /**
      * コードに紐づくメッセージを検索する
      *
      * @param string
+     * @param string
      * @return mixed
      */
-    public function find ($code)
+    public function find ($code, $locale)
     {
-        if ($this->getCurrentContainer( )->hasTranslation($code)) {
-            return $this->getCurrentContainer( )->getTranslation($code);
+        $translation = false;
+        $fallbacked = false;
+
+        if ($this->getMessageContainer($locale)->hasTranslation($code)) {
+            $translation = $this->getMessageContainer($locale)->getTranslation($code);
+        }elseif ($this->getDefaultContainer( )->hasTranslation($code)) {
+            $translation = $this->getDefaultContainer( )->getTranslation($code);
+            $fallbacked = true;
         }
 
-        if ($this->getDefaultContainer( )->hasTranslation($code)) {
-            return $this->getDefaultContainer( )->getTranslation($code);
+        if ($fallbacked == true || $translation == false) {
+            $this->trigger('translation.notfound', [
+                'locale' => $locale,
+                'code'   => $code,
+                'translation' => &$translation
+            ]);
         }
 
-        return false;
+        return $translation;
+    }
+
+    /**
+     * セクションを取得する
+     */
+    public function section($prefix)
+    {
+        return new TranslatorSection($this, $prefix);
     }
 
     /**
@@ -172,15 +187,16 @@ class Translator
     protected function getMessageContainer ($locale)
     {
         if (!isset($this->messageContainers[$locale])){
-            $this->messageContainers[$locale] = $this->getCacheHandler()->useCacheIf(
-                $this->useCache,
-                'translator.locale.'.$locale,
-                function (&$isSuccess) use($locale) {
-                    $isSuccess = true;
-                    $data = new MessageContainer($locale, $this);
-                    return $data;
-                },0,0,$status
-            );
+            $this->messageContainers[$locale] = $this->getCacheHandler()
+                ->useCacheIf(
+                    $this->useCache,
+                    'translator.locale.'.$locale,
+                    function (&$isSuccess) use($locale) {
+                        $isSuccess = true;
+                        $data = new MessageContainer($locale, $this);
+                        return $data;
+                    },0,0,$status
+                );
         }
         return $this->messageContainers[$locale];
     }

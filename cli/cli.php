@@ -35,6 +35,7 @@ $cli->setStdout('php://stdout');
 $cli
     ->mount('test', 'SeafCLI\App\Test')
     ->mount('install', 'SeafCLI\App\Installer')
+    ->mount('secure', 'SeafCLI\App\Secure')
     ->on('notfound', function ($e) {
         $Ctrl = $e->getVar('Ctrl');
         $Req = $e->getVar('Request');

@@ -82,9 +82,9 @@ class WebControllerTest extends \PHPUnit_Framework_TestCase
         $Web = new WebController( );
         $Web->loadComponentConfig([
             'View' => [
-                'defaultTemplateMethod' => 'twig',
+                'defaultTemplateMethod'    => 'twig',
                 'defaultTemplateExtension' => 'twig',
-                'dirs' => [__DIR__.'/views']
+                'dirs'                     => [__DIR__.'/views']
             ]
         ]);
 
@@ -95,5 +95,30 @@ class WebControllerTest extends \PHPUnit_Framework_TestCase
             '<html><h1>SEAF</h1></html>',
             trim(preg_replace('/\n/', '', $Web->render('index', ['title'=>'SEAF'])))
         );
+    }
+
+    /**
+     * TestSessionをテストする
+     */
+    public function testSession( )
+    {
+        $Web = new WebController( );
+        $Web->loadComponentConfig([
+            'Session' => [
+                'backendStorage' => [
+                    'type' => 'FileSystem',
+                    'table' => 'session'
+                ]
+            ]
+        ]);
+
+        $Session = $Web->getComponent('Session');
+        $Session->sessionOpen(1);
+        $Session->section('auth')->setVar('isLogin', true);
+        $Session->sessionClose(1);
+
+        $Session->sessionOpen(1);
+        $Session->regenerateSessionId();
+        $Session->sessionDataDestroy();
     }
 }

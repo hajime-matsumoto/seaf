@@ -5,6 +5,7 @@ namespace Seaf\Cache;
 trait CacheUserTrait
     {
         private $cacheHandler;
+        protected $cacheKey = null;
 
         /**
          * キャッシュハンドラを設定する
@@ -21,11 +22,26 @@ trait CacheUserTrait
          *
          * @return CacheHandler
          */
-        public function getCacheHandler( )
+        public function getCacheHandler($cacheKey = '')
         {
+            if (empty($cacheKey) && $this->cacheKey != null) {
+                $cacheKey = $this->cachekey;
+            }
+
             if (isset($this->cacheHandler)) {
                 return $this->cacheHandler;
             }
-            return CacheHandler::getSingleton( );
+            if ($cacheKey == null) {
+                return CacheHandler::getSingleton( );
+            }
+            return CacheHandler::getSingleton( )->section($cacheKey);
+        }
+
+        /**
+         * キャッシュキーをセット
+         */
+        public function setCacheKey($key)
+        {
+            $this->cacheKey = $key;
         }
     }

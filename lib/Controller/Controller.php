@@ -29,15 +29,24 @@ class Controller
     /**
      * コンストラクタ
      */
-    public function __construct(Controller $parent = null)
+    public function __construct($parent = null)
     {
-        if ($parent !== null) {
+        if ($parent instanceof Controller) {
             // ログハンドラを親からもらう
             $this->setLogHandler($parent->getLogHandler());
+        }elseif(is_array($parent) || $parent instanceof Container\ArrayContainer) {
+            // 設定
+            $this->setupByConfig($parent);
         }
 
         $this->setupController( );
 
+    }
+
+    /**
+     * コンフィグからセットアップする
+     */
+    public function setupByConfig($config) {
     }
 
     /**
@@ -105,10 +114,10 @@ class Controller
     /**
      * Notfouund
      */
-    public function _notfound ($Request = null, $Result = null)
+    public function _notfound ($msg = '', $code = '404')
     {
-        if ($Request == null) $Request = $this->Request();
-        if ($Result == null) $Result = $this->Result();
+        $Request = $this->Request();
+        $Result = $this->Result();
 
         $this->warn([
             'NotFound: Path %s',
@@ -117,7 +126,7 @@ class Controller
 
         $this->trigger('notfound', [
             'Request' => $Request,
-            'Result' => $Result,
+            'Result' => $Result->clear()->status($code)->write($msg),
             'Ctrl' => $this
         ]);
     }
@@ -184,7 +193,7 @@ class Controller
                 get_class($this)
             ]);
         }elseif ($nestLevel == 0) { // 完全にNotFound
-            $this->notfound($Request, $Result);
+            $this->notfound( );
         }
         return $dispatched;
     }
@@ -204,7 +213,14 @@ class Controller
                 $this->debug([
                     'Mount: Hit %s Cose %s', $path, $Request->getPath()
                 ]);
-                $Ctrl = Wrapper\ReflectionClass::create($class)->newInstance($this);
+                if (is_callable($class)) {
+                    $Ctrl = $class($this);
+                }else{
+                    $Ctrl = Wrapper\ReflectionClass::create($class)->newInstance($this);
+                }
+                $this->debug([
+                    'Mounted Class: %s',get_class($Ctrl)
+                ]);
                 $newRequest = clone $Request;
                 $newRequest->mask($path);
                 $this->debug([

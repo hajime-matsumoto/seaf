@@ -201,7 +201,7 @@ class Request
      */
     public function getParams ( )
     {
-        return $this->params;
+        return $this->params->toArray();
     }
 
     /**

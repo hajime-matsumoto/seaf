@@ -65,4 +65,21 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    /**
+     * セクションのテスト
+     */
+    public function testMessageSection ( )
+    {
+        $t = new Translator( );
+        $t->useCache(false);
+        $t->setCacheHandler(Seaf::Cache( )->section('message'));
+        $t->setMessageDir(__DIR__.'/lang');
+        $section = $t->section('site');
+        $section->translate('name');
+
+        $this->assertEquals(
+            'はじめ',
+            $section->translate('name')
+        );
+    }
 }

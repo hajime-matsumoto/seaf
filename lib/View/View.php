@@ -27,6 +27,11 @@ class View
     private $viewModel;
 
     /**
+     * @var ViewModel
+     */
+    private $defaultViewModel;
+
+    /**
      * デフォルトのエクステンション
      * @var string
      */
@@ -182,7 +187,12 @@ class View
      */
     public function createViewModel ( )
     {
-        $vm = new ViewModel();
+        if (!$this->defaultViewModel) {
+            $vm = new ViewModel();
+        } else {
+            $vm = clone $this->defaultViewModel;
+        }
+
         $vm->setMethod([
             'searchViewFilePath' => [$this, 'searchViewFilePath'],
             'getViewFileDirs' => [$this, 'getViewFileDirs']
@@ -227,6 +237,18 @@ class View
         return $this->createViewModel();
     }
 
+    /**
+     * DefaultViewModelを取得する
+     *
+     * @return ViewModel
+     */
+    public function getDefaultViewModel ( )
+    {
+        if (!isset($this->defaultViewModel)) {
+            $this->defaultViewModel = new ViewModel();
+        }
+        return $this->defaultViewModel;
+    }
 
     /**
      * ファイルパスを取得する

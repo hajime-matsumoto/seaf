@@ -65,5 +65,6 @@ class FileSystem implements KeyValueStore\KVSComponentIF
     public function del ($table, $key)
     {
         return $this->getFileSystem( )->unlink($table.'/'.sha1($key));
+        return $this->getFileSystem( )->unlink($table.'/'.sha1($key).'_status');
     }
 }

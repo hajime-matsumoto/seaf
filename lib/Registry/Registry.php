@@ -4,10 +4,14 @@ namespace Seaf\Registry;
 
 use Seaf\Base;
 use Seaf\Container;
+use Seaf\Logging;
+use Seaf\Event;
 
 class Registry extends Container\ArrayContainer
 {
     use Base\SingletonTrait;
+    use Logging\LoggingTrait;
+    use Event\ObservableTrait;
 
     private $shutdownFunctions = [];
 
@@ -41,7 +45,26 @@ class Registry extends Container\ArrayContainer
         if (static::getSingleton( )->getVar('env') === 'production') {
             return false;
         }
-        return true;
+
+        return (bool) static::getSingleton( )->getVar('isDebug', false);
+    }
+
+    /**
+     * @return bool
+     */
+    public static function enableDebug ( )
+    {
+        static::getSingleton( )->trigger('enable.debug');
+        static::getSingleton( )->setVar('isDebug', true);
+    }
+
+    /**
+     * @return bool
+     */
+    public static function disableDebug ( )
+    {
+        static::getSingleton( )->trigger('disable.debug');
+        static::getSingleton( )->setVar('isDebug', false);
     }
 
     public static function registerShutdownFunction($func)
@@ -56,6 +79,27 @@ class Registry extends Container\ArrayContainer
                 unset(static::getSingleton()->shutdownFunctions[$key]);
             }
         }
+    }
+
+    public static function regGet ($key, $default = null)
+    {
+        return static::getSingleton()->getVar($key, $default);
+    }
+
+    public static function regGetLast ($key)
+    {
+        $array = static::getSingleton()->getVar($key, []);
+        return array_pop($array);
+    }
+
+    public static function regGetClear ($key, $default = null)
+    {
+        return static::getSingleton()->getVarClear($key, $default);
+    }
+
+    public static function regSet ($key, $value)
+    {
+        return static::getSingleton()->setVar($key, $value);
     }
 
     public function shutdown ( )

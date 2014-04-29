@@ -94,4 +94,12 @@ trait ComponentCompositeTrait
             return new Container\ArrayContainer($this->configs[$name]);
         }
 
+        /**
+         * 生成したインスタンスをクリアする
+         */
+        public function clearComponents( )
+        {
+            $this->clearVars();
+            return $this;
+        }
     }

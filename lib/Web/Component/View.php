@@ -5,6 +5,7 @@ namespace Seaf\Web\Component;
 use Seaf\Web;
 
 use Seaf\View\View as Base;
+use Seaf\Com;
 
 /**
  * コントローラ
@@ -40,7 +41,12 @@ class View extends Base implements ComponentIF
      */
     public function _display ($template, $vars = [])
     {
-        return parent::display($template, $vars);
+        $this->Controller->Result( )
+            ->clear()
+            //->status(Com\Result\StatusCode::OK)
+            ->write(
+                $this->render($template, $vars)
+            )->send();
     }
 
     /**

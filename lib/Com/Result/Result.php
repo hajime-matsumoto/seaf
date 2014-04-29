@@ -14,7 +14,12 @@ class Result
     /**
      * @var string
      */
-    private $body;
+    protected $status = StatusCode::OK;
+
+    /**
+     * @var string
+     */
+    protected $body;
 
     /**
      * コンストラクタ
@@ -36,6 +41,17 @@ class Result
         return $this;
     }
 
+    /**
+     * ステータスコードをセットする
+     *
+     * @param string
+     * @return Result
+     */
+    public function status($code)
+    {
+        $this->status = $code;
+        return $this;
+    }
     /**
      * 結果本文を書き込む
      *
@@ -66,23 +82,73 @@ class Result
         return $this;
     }
 
+    //---------------------------------------
+    // 取得系
+    //---------------------------------------
+
     /**
-     * 本文を取得する
+     * レスポンスパラメタを取得する
+     *
+     * @return array()
+     */
+    public function getParams( )
+    {
+        return $this->params;
+    }
+
+
+    /**
+     * レスポンスbodyを取得する
      *
      * @return string
      */
-    public function getBody ( )
+    public function getBody( )
     {
         return $this->body;
     }
 
     /**
-     * パラメタを取得する
+     * レスポンスコードを取得する
      *
-     * @return array
+     * @return int
      */
-    public function getParams ( )
+    public function getStatus( )
     {
-        return $this->params;
+        return $this->status;
+    }
+
+    //---------------------------------------
+    // 変換系
+    //---------------------------------------
+
+    /**
+     * 文字列にする
+     */
+    public function toString( )
+    {
+        $array = $this->toArray();
+        return json_encode($array);
+    }
+
+    /**
+     * 配列にする
+     */
+    public function toArray( )
+    {
+        $array = array(
+            'status'  => $this->status,
+            'params'  => $this->getParams(),
+            'body'    => $this->body
+        );
+        return $array;
+    }
+
+    /**
+     * Jsonにする
+     */
+    public function toJson( )
+    {
+        $array = $this->toArray();
+        return json_encode($array);
     }
 }

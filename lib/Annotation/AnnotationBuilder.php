@@ -42,6 +42,7 @@ class AnnotationBuilder
             $key,
             function (&$isSuccess) use ($class) {
                 $container = new AnnotationContainer($class);
+                $isSuccess = true;
                 return $container;
             },
             0,

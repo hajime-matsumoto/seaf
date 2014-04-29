@@ -7,6 +7,7 @@ use Seaf\Component;
 use Seaf\Wrapper;
 use Seaf\Event;
 use Seaf\Session;
+use Seaf\Com\Result;
 
 /**
  * コントローラ
@@ -52,12 +53,31 @@ class WebController extends Controller\Controller
     }
 
     /**
+     * NotFoundさせる
+     */
+    public function notfound ($msg = '')
+    {
+        $this->Result( )
+            ->clear()
+            ->status(Result\StatusCode::NOT_FOUND)
+            ->write(
+                '<h1>'.
+                'Page Not Found'.
+                '<small style="margin-top: 10px;display:block">'.
+                'Url: ' . ($this->Request()->getPathWithoutMask()).
+                '</small>'.
+                '</h1>'.
+                $msg
+            )->send( );
+    }
+
+    /**
      * セッションを取得する
      */
-    public function initSession ( )
+    public function initSession ($cfg)
     {
         $Session = Session\Session::getSingleton( );
-        $Session->setup($this->Config( )->getConfig('session'));
+        $Session->setup($cfg);
         return $Session;
     }
 
@@ -89,4 +109,15 @@ class WebController extends Controller\Controller
         }
         return $Request;
     }
+
+    /**
+     * Web用のリザルトはネームスペースを使う
+     *
+     * @return Result
+     */
+    public function initResult ( )
+    {
+        return false;
+    }
+
 }

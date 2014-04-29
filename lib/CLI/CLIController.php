@@ -12,7 +12,7 @@ use Seaf\Event;
  */
 class CLIController extends Controller\Controller
 {
-    private $stdout;
+    private $stdout = 'php://output';
 
     /**
      * 標準出力を指定する
@@ -92,7 +92,13 @@ class CLIController extends Controller\Controller
     {
         parent::setupController ( );
         $this->on('before.mount.run', [$this, '_BeforeMountRun']);
+        $this->setupCLIController( );
     }
+
+    protected function setupCLIController ( ) 
+    {
+    }
+
 
     /**
      * マウントを走らせる前の処理

@@ -61,7 +61,7 @@ class LogHandlerTest extends \PHPUnit_Framework_TestCase
 
         trigger_error('test');
 
-        $this->assertEquals('WARNING', $level);
+        $this->assertEquals('DEBUG', $level);
         $this->assertEquals('test', $message);
     }
 

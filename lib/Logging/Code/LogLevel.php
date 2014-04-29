@@ -48,9 +48,9 @@ class LogLevel {
         E_USER_WARNING      => self::WARNING,
         E_DEPRECATED        => self::WARNING,
         E_USER_DEPRECATED   => self::WARNING,
-        E_NOTICE            => self::WARNING,
-        E_USER_NOTICE       => self::WARNING,
-        E_STRICT            => self::WARNING
+        E_NOTICE            => self::DEBUG,
+        E_USER_NOTICE       => self::DEBUG,
+        E_STRICT            => self::DEBUG
     );
 
     /**

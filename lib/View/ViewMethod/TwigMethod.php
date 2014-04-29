@@ -25,12 +25,11 @@ class TwigMethod extends View\ViewMethod
             throw new View\Exception\TwigClassNotFound( );
         }
 
-        $loader = new Twig_Loader_Filesystem($View->getViewFileDirs(), [
-            'debug' => Registry::isDebug()
-        ]);
+        $loader = new Twig_Loader_Filesystem($View->getViewFileDirs());
 
         $twig = new Twig_Environment($loader, [
-            'cache' => Registry::getSingleton( )->getVar('cache_dir', null)
+            'cache' => Registry::getSingleton( )->getVar('cache_dir', null),
+            'debug' => Registry::isDebug()
         ]);
 
         $this->twig = $twig;
@@ -39,10 +38,15 @@ class TwigMethod extends View\ViewMethod
     public function _render ($template, View\ViewModel $vm)
     {
         try {
-            return $this->twig->render($template, $vm->getExtractVars());
+            $rendered = $this->twig->render($template, $vm->getExtractVars());
+            return $rendered;
         } catch (\Exception $e) {
             throw new View\Exception\TwigNativeException($e);
         }
+    }
+    public function __call($name, $params)
+    {
+        return call_user_func_array([$this->twig,$name], $params);
     }
 
 }

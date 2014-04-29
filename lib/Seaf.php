@@ -9,8 +9,10 @@ use Seaf\Logging;
 use Seaf\Event;
 use Seaf\Registry;
 use Seaf\CLI;
+use Seaf\Web;
 use Seaf\Loader;
 use Seaf\Wrapper;
+use Seaf\Message;
 
 /**
  * Seafとコンポーネント取得のショートハンド
@@ -27,11 +29,19 @@ function Seaf($component_name = null) {
 
 function seaf_container ($data)
 {
+    if ($data instanceof Controller\ArrayContainer) {
+        return $data;
+    }
     return new Container\ArrayContainer($data);
 }
 function seaf_closure ($data)
 {
     return Wrapper\Closure::create($data);
+}
+
+function seaf_registry_get ($name, $default =null)
+{
+    return Registry\Registry::getSingleton( )->getVar($name, $default);
 }
 
 /**
@@ -42,6 +52,7 @@ class Seaf
     use Base\SingletonTrait;
     use Component\ComponentCompositeTrait;
     use Event\ObservableTrait;
+    use Logging\LoggingTrait;
 
     /**
      * シングルトン用のクラス名取得メソッド
@@ -131,8 +142,10 @@ class Seaf
             ->setVar([
                 'project_root' => $project_root,
                 'kvs_file_dir' => $project_root.'/var/store',
+                'cache_dir'    => $project_root.'/var/cache',
                 'env'          => $env
             ]);
+
 
         // 設定を読み込む
         $c = $this->Config( )->loadConfigFiles($project_root.'/configs');
@@ -150,19 +163,55 @@ class Seaf
         $logger->setName('Seaf');
         $logger->setup($c('logging', []));
         $logger->register();
+        $logger->swapSingleton(); // 昇格
 
         // 開始メッセージを送出する
         $logger->info('START', null, ['SEAF','SYSTEM']);
 
+        $storeLogFunction =  function ($e) {
+            $this->Registry( )->appendVar('logs', $e->getVar('log'));
+        };
+
+
+        $this->Registry->on('enable.debug', function ($e) use($logger, $storeLogFunction) {
+            $logger->debug('Debug On');
+            // デバッグ中はログをレジストリに保存する
+            $logger->on('log.post', $storeLogFunction);
+        });
+        $this->Registry->on('disable.debug', function ($e) use($logger, $storeLogFunction) {
+            $logger->debug('Debug Off');
+            $logger->off('log.post', $storeLogFunction);
+        });
         // ロガーをコンポーネントに登録する
         $this->setComponent('Logger', $logger);
 
+        if ($env == 'development') {
+            $this->Registry->enableDebug();
+        }
         return $this;
+    }
+
+    public function getLogsClear ( )
+    {
+        return $this->Registry( )->getVarClear('logs');
     }
 
     //------------------------------------------
     // コンポーネント初期化用のメソッド
     //------------------------------------------
+
+    /**
+     * クラスローダの作成
+     *
+     * @param array
+     * @return Loader\ClassLoader
+     */
+    public function initClassLoader($cfg)
+    {
+        $loader = new Loader\ClassLoader( );
+        $loader->register();
+        return $loader;
+    }
 
     /**
      * レジストリの作成
@@ -214,15 +263,53 @@ class Seaf
     }
 
     /**
-     * クラスローダの作成
+     * Webコントローラの作成
+     *
+     * @param array
+     * @return Web\WebController
+     */
+    public function initWebController($cfg)
+    {
+        return new Web\WebController( );
+    }
+
+
+    /**
+     * メッセージトランスレータの作成
      *
      * @param array
      * @return Loader\ClassLoader
      */
-    public function initClassLoader($cfg)
+    public function initMessage($cfg)
     {
-        $loader = new Loader\ClassLoader( );
-        $loader->register();
-        return $loader;
+        $translator = Message\Translator::getSingleton( );
+        $translator->setDefaultLocale($this->Config()->getConfig('setting.lang'));
+        $translator->setCacheKey($cfg('cacheKey', 'message'));
+        $translator->setMessageDir($cfg('dir', __DIR__.'/var/lang'));
+        $translator->on('translation.notfound', function ($e) {
+            $e->setVar('translation', 'notfound:code('.$e->getVar('code').')');
+            $this->debug([
+                'Translation NotFound Locale(%s) Code(%s)',
+                    $e->getVar('locale'),
+                    $e->getVar('code')
+            ]);
+        });
+        return $translator;
+    }
+
+    /**
+     * PHPファンクションラッパの作成
+     */
+    public function initPHPFunction( )
+    {
+        return Wrapper\PHPFunction::getSingleton();
+    }
+
+    /**
+     * PHPスーパーグローバルラッパの作成
+     */
+    public function initSuperGlobalVars( )
+    {
+        return Wrapper\SuperGlobalVars::getSingleton();
     }
 }
