@@ -4,9 +4,10 @@
  */
 namespace Seaf\Base\Event;
 
-use Seaf\Base\Singleton;
-
+/**
+ * Eventオブザーブできるオブジェクト 
+ */
 interface ObserverIF
 {
-    public function notify (Event $e);
+    public function notify(EventIF $event);
 }

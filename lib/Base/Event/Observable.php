@@ -2,6 +2,8 @@
 
 namespace Seaf\Base\Event;
 
+use Seaf\Util\Util;
+
 class Observable implements ObservableIF
 {
     use ObservableTrait;

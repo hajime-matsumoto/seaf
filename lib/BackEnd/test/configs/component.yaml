@@ -1,0 +1,54 @@
+# vim: set ft=yaml ts=4 sts=4 sw=4 :
+#
+# Seaf設定ファイル
+# 
+#
+useSection: 0
+
+# ====================================
+# コンポーネントの設定
+#
+
+#===========================================
+# KVSの設定
+#===========================================
+KeyValueStore:
+    default: Memcache
+    component:
+        FileSystem:
+            rootPath:
+                $FJ_PROJECT_ROOT$/var/kvs
+        Memcache:
+            servers:
+                - localhost
+
+#===========================================
+# キャッシュの設定
+#===========================================
+Cache:
+    KeyValueStore: memcache
+
+#===========================================
+# Messageの設定
+#===========================================
+Message:
+    cacheKey: 'message'
+    dir: $FJ_PROJECT_ROOT$/var/message
+
+#===========================================
+# Assetの設定
+#===========================================
+WebAssetController:
+    dirs:
+        - $FJ_PROJECT_ROOT$/lib/assets
+#===========================================
+# DBの設定
+#===========================================
+DB:
+    defaultConnectionName: sql
+    connectionMap:
+        sql: 'mysql://localhost:3306/seaf_test'
+        nosql: 'mongodb://localhost:27017/test'
+    tableMap:
+        yahoo_user: 'nosql'
+        yahoo_api: 'nosql'

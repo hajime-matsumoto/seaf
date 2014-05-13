@@ -2,30 +2,54 @@
 
 namespace Seaf\Base\Event;
 
-use Seaf\Base\Container;
+use Seaf\Util\Util;
 
-class Event
+class Event implements EventIF
 {
-    use Container\ArrayContainerTrait;
+    private $isStoped = false;
+    private $info;
 
-    public $type;
-    public $target;
-
-    public function __construct ($type, $args, $target)
+    public function __construct ($type, $params, $source)
     {
-        $this->type   = $type;
-        $this->target = $target;
-        $this->data = $args;
+        $this->info = Util::Dictionary([
+            'type' => $type,
+            'source' => $source,
+            'params' => $params
+        ]);
+    }
+
+    public function stop() {
+        $this->isStoped = true;
+    }
+
+    public function isStoped() {
+        return $this->isStoped;
+    }
+
+    public function getType() {
+        return $this->info->type;
+    }
+
+    public function getParams() {
+        return $this->info->get('params');
+    }
+
+
+    public function getSource() {
+        return $this->info->source;
+    }
+
+    public function addCallers($caller) {
+        return $this->info->prepend('caller', $caller);
+    }
+
+    public function getCallers( )
+    {
+        return $this->info->get('caller', []);
     }
 
     public function __get($name)
     {
-        return $this->get($name);
+        return $this->info->dict('params')->get($name);
     }
-
-    public function __set($name, $value)
-    {
-        $this->set($name, $value);
-    }
-
 }

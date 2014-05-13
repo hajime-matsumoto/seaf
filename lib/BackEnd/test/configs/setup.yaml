@@ -1,0 +1,15 @@
+# vim: set ft=yaml ts=4 sts=4 sw=4 :
+#
+# Seaf設定ファイル
+#
+useSection: 0
+
+#===========================================
+#
+# 基本的な設定
+#
+#===========================================
+encoding     : utf-8
+lang         : ja
+timezone     : Asia/Tokyo
+project_root : $FJ_PROJECT_ROOT$

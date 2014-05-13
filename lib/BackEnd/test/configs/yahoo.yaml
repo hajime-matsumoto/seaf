@@ -1,0 +1,17 @@
+# vim: set ft=yaml ts=4 sts=4 sw=4 :
+
+# セクションを使う
+useSection: 1
+
+# ====================================
+# Yahooの設定
+#
+default:
+    apiPears:
+        -
+            Id     : dj0zaiZpPWE4bUY1Tkl2QmgyYSZzPWNvbnN1bWVyc2VjcmV0Jng9ZTE-
+            Secret : f38fa9bacbc6061241e4baef44ee6b12c3d0a62e
+    accounts:
+        -
+            Id   : hajime_matsumoto_19830118
+            Pass : deganjue

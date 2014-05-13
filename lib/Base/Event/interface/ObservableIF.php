@@ -5,11 +5,13 @@
 namespace Seaf\Base\Event;
 
 /**
- * 
+ * Eventオブザーブできるオブジェクト 
  */
-interface ObservableIF
+interface ObservableIF extends ObserverIF
 {
     public function addObserver(ObserverIF $observer);
     public function fireEvent($type, $args = []);
-
+    public function once($type, callable $callback);
+    public function on($type, callable $callback);
+    public function off($type, callable $callback);
 }
